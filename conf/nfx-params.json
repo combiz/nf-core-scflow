@@ -1,0 +1,93 @@
+{
+  "inputs": {
+    "manifest": "${baseDir}/refs/Manifest.txt",
+    "samplesheet": "${baseDir}/refs/SampleSheet.tsv",
+    "ss_classes": "",
+    "ensembl_mappings": "${baseDir}/src/ensembl-ids/ensembl_mappings.tsv"
+  },
+  "QC": {
+    "key_colname": "manifest",
+    "min_library_size": 300,
+    "min_features": 100,
+    "max_mito": 0.1,
+    "min_ribo": 0,
+    "max_ribo": 1,
+    "min_counts": 2,
+    "min_cells": 2,
+    "drop_unmapped": true,
+    "drop_mito": true,
+    "drop_ribo": true
+  },
+  "singlets": {
+    "find_singlets": true,
+    "singlets_methods": "doubletfinder",
+    "vars_to_regress_out": [
+      "nCount_RNA", 
+      "pc_mito"
+    ],
+    "pca_dims": 10,
+    "var_features": 2000,
+    "doublet_rate": 0,
+    "dpk": 8
+  },
+  "reddim": {
+    "reduction_methods": [
+      "PCA", 
+      "tSNE", 
+      "UMAP", 
+      "UMAP3D"
+    ],
+    "vars_to_regress_out": [
+      "nCount_RNA", 
+      "pc_mito"
+    ],
+    "pca_dims": 30,
+    "n_neighbors": 30,
+    "n_components": 2,
+    "init": "pca",
+    "metric": "euclidean",
+    "n_epochs": 500,
+    "learning_rate": 1,
+    "min_dist": 0.3,
+    "spread": 0.3,
+    "set_op_mix_ratio": 1,
+    "local_connectivity": 1,
+    "repulsion_strength": 1,
+    "negative_sample_rate": 5,
+    "fast_sgd": false
+  },
+  "cluster": {
+    "cluster_method": "leiden",
+    "reduction_method": "UMAP_Liger",
+    "res": 0.00001,
+    "k": 100,
+    "louvain_iter": 1
+  },
+  "mapct": {
+    "ctd_folder": "${baseDir}/refs/ctd",
+    "clusters_colname": "cluster_celltype",
+    "cells_to_sample": 10000
+  },
+  "de": {
+    "de_method": [
+      "MASTZLM"
+    ],
+    "min_counts": 1,
+    "min_cells_pc": 0.1,
+    "rescale_numerics": true,
+    "dependent_var": "group",
+    "ref_class": "Control",
+    "confounding_vars": [
+      "cngeneson", 
+      "sex", 
+      "age", 
+      "PMI", 
+      "RIN", 
+      "seqdate", 
+      "pc_mito"
+    ],
+    "random_effects_var": "null",
+    "fc_threshold": 1.1,
+    "pval_cutoff": 0.05
+  }
+}
