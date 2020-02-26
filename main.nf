@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+nextflow.preview.dsl=2
 /*
 ========================================================================================
                          nf-core/scflow
@@ -57,9 +58,9 @@ if (params.help) {
  */
 
 // Check if genome exists in the config file
-if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
-}
+//if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+//    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
+//}
 
 // TODO nf-core: Add any reference files that are needed
 // Configurable reference genomes
@@ -97,6 +98,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
 /*
  * Create a channel for input read files
  */
+ /*
 if (params.readPaths) {
     if (params.single_end) {
         Channel
@@ -117,6 +119,7 @@ if (params.readPaths) {
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
         .into { ch_read_files_fastqc; ch_read_files_trimming }
 }
+*/
 
 // Header log info
 log.info nfcoreHeader()
@@ -124,9 +127,11 @@ def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name']         = custom_runName ?: workflow.runName
 // TODO nf-core: Report custom parameters here
-summary['Reads']            = params.reads
-summary['Fasta Ref']        = params.fasta
-summary['Data Type']        = params.single_end ? 'Single-End' : 'Paired-End'
+summary['Manifest']            = params.inputs.manifest
+summary['SampleSheet']        = params.inputs.samplesheet
+summary['Finding Singlets'] = params.singlets.find_singlets ? 'Yes' : 'No'
+summary['Dimension Reds.']  = params.reddim.reduction_methods.join(',')
+summary['Clustering Input'] = params.cluster.reduction_method
 summary['Max Resources']    = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output dir']       = params.outdir
@@ -196,8 +201,31 @@ process get_software_versions {
 }
 
 /*
- * STEP 1 - FastQC
+ * STEP 1 - Check Inputs
  */
+ process check_inputs {
+
+  tag "$name"
+  label 'process_tiny'
+
+  echo true
+
+  input:
+    path samplesheet
+    path manifest
+
+  output:
+    path 'checked_manifest.txt', emit: checked_manifest
+
+  script:
+    """
+    check_inputs.r \
+    --samplesheet $samplesheet \
+    --manifest $manifest    
+    """     
+
+}
+/*
 process fastqc {
     tag "$name"
     label 'process_medium'
@@ -217,10 +245,56 @@ process fastqc {
     fastqc --quiet --threads $task.cpus $reads
     """
 }
-
+*/
 /*
- * STEP 2 - MultiQC
+ * STEP 2 - Single Sample QC
  */
+process scflow_qc {
+
+  tag "${key}"
+  label 'process_medium'
+  
+  echo true
+   
+  input:
+    tuple val(key), val(mat_path)
+
+  output:
+    path 'qc_report/*.html', emit: qc_report
+    path 'qc_plot_data/*.tsv', emit: qc_plot_data
+    path 'qc_summary/*.tsv', emit: qc_summary
+    path 'qc_plots/*.png', emit: qc_plots
+    path '*_sce', emit: qc_sce
+
+  script:
+    """
+    scflow_qc.r \
+    --samplesheet ${params.inputs.samplesheet} \
+    --mat_path ${mat_path} \
+    --key ${key} \
+    --key_colname ${params.QC.key_colname} \
+    --ensembl_mappings ${params.inputs.ensembl_mappings} \
+    --min_library_size ${params.QC.min_library_size} \
+    --min_features ${params.QC.min_features} \
+    --max_mito ${params.QC.max_mito} \
+    --min_ribo ${params.QC.min_ribo} \
+    --max_ribo ${params.QC.max_ribo} \
+    --min_counts ${params.QC.min_counts} \
+    --min_cells ${params.QC.min_cells} \
+    --drop_unmapped ${params.QC.drop_unmapped} \
+    --drop_mito ${params.QC.drop_mito} \
+    --drop_ribo ${params.QC.drop_ribo} \
+    --find_singlets ${params.singlets.find_singlets} \
+    --singlets_method ${params.singlets.singlets_method} \
+    --vars_to_regress_out ${params.singlets.vars_to_regress_out.join(',')} \
+    --pca_dims ${params.singlets.pca_dims} \
+    --var_features ${params.singlets.var_features} \
+    --doublet_rate ${params.singlets.doublet_rate}
+     
+    """
+}
+
+ /*
 process multiqc {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
@@ -246,10 +320,11 @@ process multiqc {
     multiqc -f $rtitle $rfilename $custom_config_file .
     """
 }
-
+*/
 /*
  * STEP 3 - Output Description HTML
  */
+ /*
 process output_documentation {
     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
@@ -264,6 +339,7 @@ process output_documentation {
     markdown_to_html.py $output_docs -o results_description.html
     """
 }
+*/
 
 /*
  * Completion e-mail notification

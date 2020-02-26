@@ -58,12 +58,7 @@
   },
   "cluster": {
     "cluster_method": "leiden",
-    "reduction_method": [
-      "UMAP_Liger",
-      "tSNE_PCA",
-      "UMAP_PCA",
-      "tSNE_PCA"
-    ],
+    "reduction_method": "UMAP_Liger",
     "res": 0.00001,
     "k": 100,
     "louvain_iter": 1
