@@ -121,38 +121,30 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--drop_unmapped",
-  type = "integer", 
-  default = 1,
+  "--drop_unmapped", 
+  default = "TRUE",
   help = "drop genes which could not be mapped to gene names (lgl)",
-  metavar = "integer", 
   required = TRUE
 )
 
 required$add_argument(
   "--drop_mito",
-  type = "integer", 
-  default = 1,
   help = "drop mitochondrial genes (lgl)",
-  metavar = "integer", 
+  metavar = "TRUE", 
   required = TRUE
 )
 
 required$add_argument(
   "--drop_ribo",
-  type = "integer", 
-  default = 0,
   help = "drop ribosomal genes (lgl)",
-  metavar = "integer", 
+  metavar = "TRUE", 
   required = TRUE
 )
 
 required$add_argument(
   "--find_singlets",
-  type = "integer", 
-  default = 1,
   help = "run a singlet finding algorithm (lgl)",
-  metavar = "integer", 
+  metavar = "TRUE", 
   required = TRUE
 )
 
@@ -205,13 +197,21 @@ args[startsWith(names(args), "drop_")] <-
   as.logical(args[startsWith(names(args), "drop_")])
 args$find_singlets <- as.logical(args$find_singlets)
 args$vars_to_regress_out <- strsplit(args$vars_to_regress_out, ",")[[1]]
+args <- purrr::map(args, function(x) {
+  if (length(x) == 1) {
+    if (toupper(x) == "TRUE") return(TRUE)
+    if (toupper(x) == "FALSE") return(FALSE)
+    if (toupper(x) == "NULL") return(NULL)
+  }
+  return(x)
+})
 
 ##  ............................................................................
 ##  Start QC                                                                ####
 
 cli::boxx(paste0("Analysing: ", args$key), float = "center")
 
-mat <- scflow::read_sparse_matrix(args$mat_path)
+mat <- scFlow::read_sparse_matrix(args$mat_path)
 
 metadata <- read_metadata(
   unique_key = args$key,
