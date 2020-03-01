@@ -219,17 +219,12 @@ process get_software_versions {
     path 'checked_manifest.txt', emit: checked_manifest
 
   script:
-    """
-    echo "hello world"
-    cp Manifest.txt checked_manifest.txt
-    """
-    /*
+
     """
     check_inputs.r \
     --samplesheet $samplesheet \
     --manifest $manifest    
     """     
-    */
 
 }
 
@@ -283,9 +278,7 @@ process scflow_qc {
 
 process merge_qc_summaries {
   
-  errorStrategy 'retry'
-  maxRetries 3
-
+  tag "merged"
   label 'process_tiny'
 
   input:
@@ -305,6 +298,188 @@ process merge_qc_summaries {
 }
 
 
+process scflow_merge {
+  
+  tag "merged"
+  label 'process_medium'
+
+  input:
+    path( qc_passed_sces )
+
+  output:
+    path 'merged_sce/', emit: merged_sce
+
+  script:
+    """
+
+    scflow_merge.r \
+    --sce_paths ${qc_passed_sces.join(',')} \
+    --ensembl_mappings ${params.inputs.ensembl_mappings}
+
+    """
+
+}
+
+
+process scflow_reduce_dims {
+  
+  tag "merged"
+  label 'process_medium'
+
+  input:
+    path( sce )
+
+  output:
+    path 'reddim_sce/', emit: reddim_sce
+
+  script:
+    """
+
+    scflow_reduce_dims.r \
+    --sce_path ${sce} \
+    --reduction_methods ${params.reddim.reduction_methods.join(',')} \
+    --vars_to_regress_out ${params.reddim.vars_to_regress_out.join(',')} \
+    --pca_dims ${params.reddim.pca_dims} \
+    --n_neighbors ${params.reddim.n_neighbors} \
+    --n_components ${params.reddim.n_components} \
+    --init ${params.reddim.init} \
+    --metric ${params.reddim.metric} \
+    --n_epochs ${params.reddim.n_epochs} \
+    --learning_rate ${params.reddim.learning_rate} \
+    --min_dist ${params.reddim.min_dist} \
+    --spread ${params.reddim.spread} \
+    --set_op_mix_ratio ${params.reddim.set_op_mix_ratio} \
+    --local_connectivity ${params.reddim.local_connectivity} \
+    --repulsion_strength ${params.reddim.repulsion_strength} \
+    --negative_sample_rate ${params.reddim.negative_sample_rate} \
+    --fast_sgd ${params.reddim.fast_sgd}
+
+    """
+
+}
+
+process scflow_cluster {
+  
+  tag "merged"
+  label 'process_medium'
+
+  input:
+    path( sce )
+
+  output:
+    path 'clustered_sce/', emit: clustered_sce
+
+  script:
+    """
+
+    scflow_cluster.r \
+    --sce_path ${sce} \
+    --cluster_method ${params.cluster.cluster_method} \
+    --reduction_method ${params.cluster.reduction_method} \
+    --res ${params.cluster.res} \
+    --k ${params.cluster.k} \
+    --louvain_iter ${params.cluster.louvain_iter}
+
+    """
+
+}
+
+process scflow_map_celltypes {
+  
+  tag "merged"
+  label 'process_medium'
+
+  input:
+    path( sce )
+
+  output:
+    path 'celltype_mapped_sce/', emit: celltype_mapped_sce
+
+  script:
+    """
+
+    scflow_map_celltypes.r \
+    --sce_path ${sce} \
+    --ctd_folder ${params.mapct.ctd_folder} \
+    --clusters_colname ${params.mapct.clusters_colname} \
+    --cells_to_sample ${params.mapct.cells_to_sample}
+
+    """
+
+}
+
+
+process scflow_perform_de {
+
+  tag "${celltype}|${de_method}"
+  label 'process_medium'
+  
+  echo true
+   
+  input:
+    path( sce )
+    each de_method
+    each celltype
+
+  output:
+    path '*.tsv', emit: de_table
+
+    script:
+    """
+    scflow_perform_de.r \
+    --sce ${sce} \
+    --celltype ${celltype} \
+    --de_method ${de_method} \
+    --min_counts ${params.de.min_counts} \
+    --min_cells_pc ${params.de.min_cells_pc} \
+    --rescale_numerics ${params.de.rescale_numerics} \
+    --dependent_var ${params.de.dependent_var} \
+    --ref_class ${params.de.ref_class} \
+    --confounding_vars ${params.de.confounding_vars.join(',')} \
+    --random_effects_var ${params.de.random_effects_var} \
+    --fc_threshold ${params.de.fc_threshold}
+     
+    """
+}
+
+process scflow_perform_ipa {
+
+  label 'process_low'
+  
+  echo true
+   
+  input:
+    path( sce )
+
+  output:
+    //path '*.tsv', emit: de_table
+
+  script:
+    """
+    echo hello world
+     
+    """
+}
+
+process scflow_traject {
+
+  label 'process_low'
+  
+  echo true
+   
+  input:
+    path( sce )
+
+  output:
+    //path '*.tsv', emit: de_table
+
+  script:
+    """
+    echo hello world
+     
+    """
+}
+
 workflow {  
     
   main:
@@ -312,19 +487,31 @@ workflow {
     //scflow_qc ( samples_ch )
     scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
     merge_qc_summaries ( scflow_qc.out.qc_summary.collect() )
+    scflow_merge ( scflow_qc.out.qc_sce.collect() )
+    scflow_reduce_dims ( scflow_merge.out.merged_sce )
+    scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
+    scflow_map_celltypes ( scflow_cluster.out.clustered_sce )
+    scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["Endo"] )
+    scflow_perform_ipa( scflow_map_celltypes.out.celltype_mapped_sce )
+    scflow_traject( scflow_map_celltypes.out.celltype_mapped_sce )
+
   
   publish:
     check_inputs.out.checked_manifest to: "$baseDir/$params.outdir/", mode: 'copy'
     // Quality-control
-    scflow_qc.out.qc_report to: "$baseDir/results/qc/", mode: 'copy'
-    scflow_qc.out.qc_plot_data to: "$baseDir/results/qc/", mode: 'copy'
-    scflow_qc.out.qc_plots to: "$baseDir/results/qc/", mode: 'copy'
-    scflow_qc.out.qc_sce to: "$baseDir/results/qc/sce", mode: 'copy'
-    merge_qc_summaries.out.qc_summary to: "$baseDir/results/qc", mode: 'copy'
-   
+    scflow_qc.out.qc_report to: "$baseDir/$params.outdir/qc/", mode: 'copy'
+    scflow_qc.out.qc_plot_data to: "$baseDir/$params.outdir/qc/", mode: 'copy'
+    scflow_qc.out.qc_plots to: "$baseDir/$params.outdir/qc/", mode: 'copy'
+    scflow_qc.out.qc_sce to: "$baseDir/$params.outdir/sce", mode: 'copy'
+    merge_qc_summaries.out.qc_summary to: "$baseDir/$params.outdir/qc", mode: 'copy'
+    // Merged SCE
+    scflow_cluster.out.clustered_sce to: "$baseDir/$params.outdir/clustered_sce", mode: 'copy'
+    scflow_map_celltypes.out.celltype_mapped_sce to: "$baseDir/$params.outdir/celltype_mapped_sce", mode: 'copy'
+    // DE
+    scflow_perform_de.out.de_table to: "$baseDir/$params.outdir/de", mode: 'copy'
+    
 
 }
-
 
 /*
  * Completion e-mail notification
