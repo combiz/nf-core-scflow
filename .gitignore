@@ -1,7 +1,10 @@
 .nextflow*
+refs/
 work/
 data/
 results/
+singularity/
+*.sif
 .DS_Store
 tests/
 testing/

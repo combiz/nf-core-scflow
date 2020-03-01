@@ -70,8 +70,8 @@ if (params.help) {
 //   input:
 //   file fasta from ch_fasta
 //
-params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-if (params.fasta) { ch_fasta = file(params.fasta, checkIfExists: true) }
+//params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
+//if (params.fasta) { ch_fasta = file(params.fasta, checkIfExists: true) }
 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
@@ -91,9 +91,12 @@ if (workflow.profile.contains('awsbatch')) {
 }
 
 // Stage config files
+/*
 ch_multiqc_config = file("$baseDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
+*/
 ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
+
 
 /*
  * Create a channel for input read files
@@ -127,9 +130,9 @@ def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name']         = custom_runName ?: workflow.runName
 // TODO nf-core: Report custom parameters here
-summary['Manifest']            = params.inputs.manifest
-summary['SampleSheet']        = params.inputs.samplesheet
-summary['Finding Singlets'] = params.singlets.find_singlets ? 'Yes' : 'No'
+summary['Manifest']          = params.inputs.manifest
+summary['SampleSheet']       = params.inputs.samplesheet
+summary['Run DoubletFinder'] = params.singlets.find_singlets ? 'Yes' : 'No'
 summary['Dimension Reds.']  = params.reddim.reduction_methods.join(',')
 summary['Clustering Input'] = params.cluster.reduction_method
 summary['Max Resources']    = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
@@ -151,7 +154,6 @@ if (params.config_profile_url)         summary['Config URL']         = params.co
 if (params.email || params.email_on_fail) {
     summary['E-mail Address']    = params.email
     summary['E-mail on failure'] = params.email_on_fail
-    summary['MultiQC maxsize']   = params.max_multiqc_email_size
 }
 log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "-\033[2m--------------------------------------------------\033[0m-"
@@ -186,7 +188,7 @@ process get_software_versions {
                 }
 
     output:
-    file 'software_versions_mqc.yaml' into ch_software_versions_yaml
+    //file 'software_versions_mqc.yaml' into ch_software_versions_yaml
     file "software_versions.csv"
 
     script:
@@ -194,8 +196,7 @@ process get_software_versions {
     """
     echo $workflow.manifest.version > v_pipeline.txt
     echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    multiqc --version > v_multiqc.txt
+    R --version > v_R.txt
     scrape_software_versions.py &> software_versions_mqc.yaml
     """
 }
@@ -205,7 +206,7 @@ process get_software_versions {
  */
  process check_inputs {
 
-  tag "$name"
+  tag "check_inputs"
   label 'process_tiny'
 
   echo true
@@ -219,33 +220,19 @@ process get_software_versions {
 
   script:
     """
+    echo "hello world"
+    cp Manifest.txt checked_manifest.txt
+    """
+    /*
+    """
     check_inputs.r \
     --samplesheet $samplesheet \
     --manifest $manifest    
     """     
+    */
 
 }
-/*
-process fastqc {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/fastqc", mode: 'copy',
-        saveAs: { filename ->
-                      filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"
-                }
 
-    input:
-    set val(name), file(reads) from ch_read_files_fastqc
-
-    output:
-    file "*_fastqc.{zip,html}" into ch_fastqc_results
-
-    script:
-    """
-    fastqc --quiet --threads $task.cpus $reads
-    """
-}
-*/
 /*
  * STEP 2 - Single Sample QC
  */
@@ -294,52 +281,50 @@ process scflow_qc {
     """
 }
 
- /*
-process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+process merge_qc_summaries {
+  
+  errorStrategy 'retry'
+  maxRetries 3
 
-    input:
-    file (multiqc_config) from ch_multiqc_config
-    file (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
-    // TODO nf-core: Add in log files from your new processes for MultiQC to find!
-    file ('fastqc/*') from ch_fastqc_results.collect().ifEmpty([])
-    file ('software_versions/*') from ch_software_versions_yaml.collect()
-    file workflow_summary from ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml")
+  label 'process_tiny'
 
-    output:
-    file "*multiqc_report.html" into ch_multiqc_report
-    file "*_data"
-    file "multiqc_plots"
+  input:
+    path( qcs_tsv )
 
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-    // TODO nf-core: Specify which MultiQC modules to use with -m for a faster run time
+  output:
+    path '*.tsv', emit: qc_summary
+
+  script:
     """
-    multiqc -f $rtitle $rfilename $custom_config_file .
+
+    merge_tables.r \
+    --filepaths ${qcs_tsv.join(',')}
+
     """
+
 }
-*/
-/*
- * STEP 3 - Output Description HTML
- */
- /*
-process output_documentation {
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
-    input:
-    file output_docs from ch_output_docs
 
-    output:
-    file "results_description.html"
+workflow {  
+    
+  main:
+    check_inputs(params.inputs.samplesheet, params.inputs.manifest)
+    //scflow_qc ( samples_ch )
+    scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
+    merge_qc_summaries ( scflow_qc.out.qc_summary.collect() )
+  
+  publish:
+    check_inputs.out.checked_manifest to: "$baseDir/$params.outdir/", mode: 'copy'
+    // Quality-control
+    scflow_qc.out.qc_report to: "$baseDir/results/qc/", mode: 'copy'
+    scflow_qc.out.qc_plot_data to: "$baseDir/results/qc/", mode: 'copy'
+    scflow_qc.out.qc_plots to: "$baseDir/results/qc/", mode: 'copy'
+    scflow_qc.out.qc_sce to: "$baseDir/results/qc/sce", mode: 'copy'
+    merge_qc_summaries.out.qc_summary to: "$baseDir/results/qc", mode: 'copy'
+   
 
-    script:
-    """
-    markdown_to_html.py $output_docs -o results_description.html
-    """
 }
-*/
+
 
 /*
  * Completion e-mail notification
@@ -374,21 +359,6 @@ workflow.onComplete {
     email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
     email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
 
-    // TODO nf-core: If not using MultiQC, strip out this code (including params.max_multiqc_email_size)
-    // On success try attach the multiqc report
-    def mqc_report = null
-    try {
-        if (workflow.success) {
-            mqc_report = ch_multiqc_report.getVal()
-            if (mqc_report.getClass() == ArrayList) {
-                log.warn "[nf-core/scflow] Found multiple reports from process 'multiqc', will use only one"
-                mqc_report = mqc_report[0]
-            }
-        }
-    } catch (all) {
-        log.warn "[nf-core/scflow] Could not attach MultiQC report to summary email"
-    }
-
     // Check if we are only sending emails on failure
     email_address = params.email
     if (!params.email && params.email_on_fail && !workflow.success) {
@@ -407,7 +377,7 @@ workflow.onComplete {
     def email_html = html_template.toString()
 
     // Render the sendmail template
-    def smail_fields = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, baseDir: "$baseDir", mqcFile: mqc_report, mqcMaxSize: params.max_multiqc_email_size.toBytes() ]
+    def smail_fields = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, baseDir: "$baseDir"]
     def sf = new File("$baseDir/assets/sendmail_template.txt")
     def sendmail_template = engine.createTemplate(sf).make(smail_fields)
     def sendmail_html = sendmail_template.toString()

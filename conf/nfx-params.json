@@ -1,10 +1,4 @@
 {
-  "inputs": {
-    "manifest": "${baseDir}/refs/Manifest.txt",
-    "samplesheet": "${baseDir}/refs/SampleSheet.tsv",
-    "ss_classes": "",
-    "ensembl_mappings": "${baseDir}/src/ensembl-ids/ensembl_mappings.tsv"
-  },
   "QC": {
     "key_colname": "manifest",
     "min_library_size": 300,
