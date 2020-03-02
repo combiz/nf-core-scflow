@@ -58,7 +58,6 @@
     "louvain_iter": 1
   },
   "mapct": {
-    "ctd_folder": "${baseDir}/refs/ctd",
     "clusters_colname": "cluster_celltype",
     "cells_to_sample": 10000
   },
