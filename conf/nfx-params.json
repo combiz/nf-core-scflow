@@ -12,9 +12,16 @@
     "drop_mito": true,
     "drop_ribo": true
   },
+  "findcells": {
+    "find_cells": true,
+    "lower": 100,
+    "retain": 300,
+    "alpha_cutoff": 0.001,
+    "niters": 10000
+  },
   "singlets": {
     "find_singlets": true,
-    "singlets_methods": "doubletfinder",
+    "singlets_method": "doubletfinder",
     "vars_to_regress_out": [
       "nCount_RNA", 
       "pc_mito"
