@@ -5,12 +5,12 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = parallel::detectCores())
+options(mc.cores = future::availableCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
 library(argparse)
-library(scflow)
+library(scFlow)
 library(parallel)
 
 ##  ............................................................................
