@@ -298,7 +298,6 @@ process merge_qc_summaries {
 
   output:
     path '*.tsv', emit: qc_summary
-    path 'merged_report/*.html', emit: merged_report
 
   script:
     """
@@ -320,6 +319,7 @@ process scflow_merge {
 
   output:
     path 'merged_sce/', emit: merged_sce
+    path 'merged_report/*.html', emit: merged_report
 
   script:
     """
