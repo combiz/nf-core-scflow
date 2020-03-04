@@ -5,7 +5,7 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-#options(mc.cores = parallel::detectCores())
+options(mc.cores = future::availableCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -189,6 +189,49 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--find_cells",
+  help = "run empty drops (ambient RNA) algorithm (lgl)",
+  metavar = "TRUE", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--lower",
+  type = "integer", 
+  default = 100,
+  help = "lower parameter for empty drops",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--retain",
+  type = "integer", 
+  default = 300,
+  help = "UMI count above which all barcodes are assumed to contain cells",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--alpha_cutoff",
+  type = "double", 
+  default = 0.0001,
+  help = "alpha cutoff for emptyDrops algorithm",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--niters",
+  type = "integer", 
+  default = 10000,
+  help = "number of iterations to use for the Monte Carlo p-value calculations.",
+  metavar = "N", 
+  required = TRUE
+)
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
@@ -222,6 +265,16 @@ metadata <- read_metadata(
 sce <- generate_sce(mat, metadata)
 
 rm(mat, metadata)
+
+if (args$find_cells) {
+  sce <- find_cells(
+    sce,
+    lower = args$lower,
+    retain = args$retain,
+    alpha_cutoff = args$alpha_cutoff,
+    niters = args$niters
+  )
+}
 
 sce <- annotate_sce(
   sce = sce,
@@ -330,4 +383,4 @@ for(pname in names(sce@metadata$qc_plots$doublet_finder)) {
 ##  Clean up                                                                ####
 
 # Clear biomart cache
-biomaRt::biomartCacheClear()
+#biomaRt::biomartCacheClear()
