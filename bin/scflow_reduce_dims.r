@@ -5,12 +5,12 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = parallel::detectCores())
+options(mc.cores = future::availableCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
 library(argparse)
-library(scflow)
+library(scFlow)
 library(parallel)
 
 ##  ............................................................................
@@ -27,6 +27,13 @@ required$add_argument(
   "--sce_path",
   help = "-path to the SingleCellExperiment",
   metavar = "dir", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--input_reduced_dim",
+  help = "input reducedDim to use for further dim reds",
+  metavar = "PCA,Liger", 
   required = TRUE
 )
 
@@ -172,6 +179,7 @@ required$add_argument(
 
 args <- parser$parse_args()
 args$fast_sgd <- as.logical(args$fast_sgd)
+args$input_reduced_dim <- strsplit(args$input_reduced_dim, ",")[[1]]
 args$reduction_methods <- strsplit(args$reduction_methods, ",")[[1]]
 args$vars_to_regress_out <- strsplit(args$vars_to_regress_out, ",")[[1]]
 print(args)
@@ -183,6 +191,7 @@ sce <- read_sce(args$sce_path)
 
 sce <- reduce_dims_sce(
     sce,
+    input_reduced_dim = args$input_reduced_dim,
     reduction_methods = args$reduction_methods,
     vars_to_regress_out = args$vars_to_regress_out,
     pca_dims = args$pca_dims,

@@ -10,7 +10,7 @@
 ##  ............................................................................
 ##  Load packages                                                           ####
 library(argparse)
-library(scflow)
+library(scFlow)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -56,6 +56,14 @@ sce <- merge_sce(
   sce_l,
   ensembl_mapping_file = args$ensembl_mappings
   )
+
+dir.create(file.path(getwd(), "merged_report"))
+
+report_merged_sce(
+  sce = sce,
+  report_folder_path = file.path(getwd(), "merged_report"),
+  report_file = paste0(args$key, "_scflow_merged_report")
+)
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####

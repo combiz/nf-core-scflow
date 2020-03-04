@@ -31,6 +31,7 @@ def helpMessage() {
 
     References                        If not specified in the configuration file or you wish to overwrite any of the references
       --ensembl_mappings [file]       Path to ensembl_mappings file
+      --ctd_folder [path]             Path to the folder containing .ctd files for celltype annotation
 
     Other options:
       --outdir [file]                 The output directory where the results will be saved
@@ -103,6 +104,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
 
  if (params.manifest) { ch_manifest = file(params.manifest, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
+ if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
 
  /*
 if (params.readPaths) {
@@ -135,7 +137,8 @@ summary['Run Name']         = custom_runName ?: workflow.runName
 // TODO nf-core: Report custom parameters here
 summary['Manifest']          = params.manifest
 summary['SampleSheet']       = params.samplesheet
-summary['Run DoubletFinder'] = params.singlets.find_singlets ? 'Yes' : 'No'
+summary['Run EmptyDrops']   = params.findcells.find_cells ? "Yes" : "No"
+summary['Find Singlets']   = params.singlets.find_singlets ? "Yes ($params.singlets.singlets_method)" : 'No'
 summary['Dimension Reds.']  = params.reddim.reduction_methods.join(',')
 summary['Clustering Input'] = params.cluster.reduction_method
 summary['Max Resources']    = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
@@ -239,10 +242,11 @@ process scflow_qc {
   tag "${key}"
   label 'process_medium'
   
-  echo true
+  echo false
    
   input:
     tuple val(key), val(mat_path)
+    path samplesheet
 
   output:
     path 'qc_report/*.html', emit: qc_report
@@ -254,7 +258,7 @@ process scflow_qc {
   script:
     """
     scflow_qc.r \
-    --samplesheet ${params.samplesheet} \
+    --samplesheet ${samplesheet} \
     --mat_path ${mat_path} \
     --key ${key} \
     --key_colname ${params.QC.key_colname} \
@@ -274,7 +278,12 @@ process scflow_qc {
     --vars_to_regress_out ${params.singlets.vars_to_regress_out.join(',')} \
     --pca_dims ${params.singlets.pca_dims} \
     --var_features ${params.singlets.var_features} \
-    --doublet_rate ${params.singlets.doublet_rate}
+    --doublet_rate ${params.singlets.doublet_rate} \
+    --find_cells ${params.findcells.find_cells} \
+    --lower ${params.findcells.lower} \
+    --retain ${params.findcells.retain} \
+    --alpha_cutoff ${params.findcells.alpha_cutoff} \
+    --niters ${params.findcells.niters}
      
     """
 }
@@ -289,6 +298,7 @@ process merge_qc_summaries {
 
   output:
     path '*.tsv', emit: qc_summary
+    path 'merged_report/*.html', emit: merged_report
 
   script:
     """
@@ -299,7 +309,6 @@ process merge_qc_summaries {
     """
 
 }
-
 
 process scflow_merge {
   
@@ -323,7 +332,6 @@ process scflow_merge {
 
 }
 
-
 process scflow_reduce_dims {
   
   tag "merged"
@@ -340,6 +348,7 @@ process scflow_reduce_dims {
 
     scflow_reduce_dims.r \
     --sce_path ${sce} \
+    --input_reduced_dim ${params.reddim.input_reduced_dim.join(',')}
     --reduction_methods ${params.reddim.reduction_methods.join(',')} \
     --vars_to_regress_out ${params.reddim.vars_to_regress_out.join(',')} \
     --pca_dims ${params.reddim.pca_dims} \
@@ -410,7 +419,6 @@ process scflow_map_celltypes {
     """
 
 }
-
 
 process scflow_perform_de {
 
@@ -487,8 +495,8 @@ workflow {
     
   main:
     check_inputs(ch_manifest, ch_samplesheet)
-    //scflow_qc ( samples_ch )
-    scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
+    scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:['key', 'filepath'], skip: 1, sep: '\t').map{ row-> tuple(row.key, row.filepath)} , ch_samplesheet2 )
+    //scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
     merge_qc_summaries ( scflow_qc.out.qc_summary.collect() )
     scflow_merge ( scflow_qc.out.qc_sce.collect() )
     scflow_reduce_dims ( scflow_merge.out.merged_sce )
@@ -500,18 +508,19 @@ workflow {
 
   
   publish:
-    check_inputs.out.checked_manifest to: "$baseDir/$params.outdir/", mode: 'copy'
+    check_inputs.out.checked_manifest to: "$params.outdir/", mode: 'copy'
     // Quality-control
-    scflow_qc.out.qc_report to: "$baseDir/$params.outdir/qc/", mode: 'copy'
-    scflow_qc.out.qc_plot_data to: "$baseDir/$params.outdir/qc/", mode: 'copy'
-    scflow_qc.out.qc_plots to: "$baseDir/$params.outdir/qc/", mode: 'copy'
-    scflow_qc.out.qc_sce to: "$baseDir/$params.outdir/sce", mode: 'copy'
-    merge_qc_summaries.out.qc_summary to: "$baseDir/$params.outdir/qc", mode: 'copy'
+    scflow_qc.out.qc_report to: "$params.outdir/qc/", mode: 'copy'
+    scflow_qc.out.qc_plot_data to: "$params.outdir/qc/", mode: 'copy'
+    scflow_qc.out.qc_plots to: "$params.outdir/qc/", mode: 'copy'
+    scflow_qc.out.qc_sce to: "$params.outdir/sce", mode: 'copy'
+    merge_qc_summaries.out.qc_summary to: "$params.outdir/qc", mode: 'copy'
     // Merged SCE
-    scflow_cluster.out.clustered_sce to: "$baseDir/$params.outdir/clustered_sce", mode: 'copy'
-    scflow_map_celltypes.out.celltype_mapped_sce to: "$baseDir/$params.outdir/celltype_mapped_sce", mode: 'copy'
+    scflow_merge.out.merged_report to: "$params.outdir/qc/", mode: 'copy'
+    scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
+    scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     // DE
-    scflow_perform_de.out.de_table to: "$baseDir/$params.outdir/de", mode: 'copy'
+    scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
     
 
 }
