@@ -348,6 +348,7 @@ process scflow_reduce_dims {
 
     scflow_reduce_dims.r \
     --sce_path ${sce} \
+    --input_reduced_dim ${params.reddim.input_reduced_dim.join(',')}
     --reduction_methods ${params.reddim.reduction_methods.join(',')} \
     --vars_to_regress_out ${params.reddim.vars_to_regress_out.join(',')} \
     --pca_dims ${params.reddim.pca_dims} \
