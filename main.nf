@@ -298,6 +298,7 @@ process merge_qc_summaries {
 
   output:
     path '*.tsv', emit: qc_summary
+    path 'merged_report/*.html', emit: merged_report
 
   script:
     """
@@ -514,6 +515,7 @@ workflow {
     scflow_qc.out.qc_sce to: "$params.outdir/sce", mode: 'copy'
     merge_qc_summaries.out.qc_summary to: "$params.outdir/qc", mode: 'copy'
     // Merged SCE
+    scflow_merge.out.merged_report to: "$params.outdir/qc/", mode: 'copy'
     scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     // DE

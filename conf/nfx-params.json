@@ -32,6 +32,9 @@
     "dpk": 8
   },
   "reddim": {
+    "input_reduced_dim": [
+      "PCA"
+    ],
     "reduction_methods": [
       "PCA", 
       "tSNE", 
