@@ -83,19 +83,14 @@
     "fc_threshold": 1.1,
     "pval_cutoff": 0.05
   },
-  "IPA": {
+   "IPA": {
+    "reference_file": "null",
     "enrichment_tool": [
       "WebgestaltR"
     ],
     "enrichment_method": "ORA",
     "enrichment_database": [
-      "geneontology_Biological_Process_noRedundant",
-      "geneontology_Cellular_Component_noRedundant",
-      "geneontology_Molecular_Function_noRedundant",
-      "pathway_KEGG",
-      "pathway_Panther",
-      "pathway_Reactome",
-      "pathway_Wikipathway"
+      "geneontology_Biological_Process_noRedundant"
     ],
     "is_output": true,
     "output_dir": "./"
