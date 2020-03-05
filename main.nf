@@ -455,19 +455,29 @@ process scflow_perform_de {
 
 process scflow_perform_ipa {
 
-  label 'process_low'
+  label 'process_medium'
   
   echo true
    
   input:
-    path( sce )
+    path( de_table )
+    each de_method
+    each celltype
 
   output:
-    //path '*.tsv', emit: de_table
+    path 'ipa/**/**', type = 'dir', emit: ipa_results
+    path 'ipa/*.html', emit: ipa_report
 
   script:
     """
-    echo hello world
+    scflow_ipa.r \
+    --gene_file \ 
+    --reference_file ${params.IPA.reference_file} \
+    --enrichment_tool ${params.IPA.enrichment_tool} \
+    --enrichment_method ${params.IPA.enrichment_method} \
+    --enrichment_database ${params.IPA.enrichment_database.join(',')} \
+    --is_output ${params.IPA.is_output} \
+    --output_dir ${params.IPA.output_dir}
      
     """
 }
@@ -521,7 +531,8 @@ workflow {
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
-    
+    scflow_perform_ipa.out.ipa_results to: "$params.outdir/ipa/", mode: 'copy'
+    scflow_perform_ipa.out.ipa_report to: "$params.outdir/ipa/", mode: 'copy'
 
 }
 
