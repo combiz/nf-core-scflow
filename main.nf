@@ -453,19 +453,30 @@ process scflow_perform_de {
 
 process scflow_perform_ipa {
 
-  label 'process_low'
+  label 'process_medium'
   
   echo true
    
   input:
-    path( sce )
+    path( de_table )
+    each de_method
+    each celltype
 
   output:
-    //path '*.tsv', emit: de_table
+    path 'ipa/*/*.tsv', emit: ipa_tables
+    path 'ipa/*/*.png', emit: ipa_plots
+    path 'ipa/*.html', emit: ipa_report
 
   script:
     """
-    echo hello world
+    scflow_ipa.r \
+    --gene_file \ 
+    --reference_file ${params.IPA.reference_file} \
+    --enrichment_tool ${params.IPA.enrichment_tool} \
+    --enrichment_method ${params.IPA.enrichment_method} \
+    --enrichment_database ${params.IPA.enrichment_database.join(',')} \
+    --is_output ${params.IPA.is_output} \
+    --output_dir ${params.IPA.output_dir}
      
     """
 }
