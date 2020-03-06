@@ -31,6 +31,20 @@
     "doublet_rate": 0,
     "dpk": 8
   },
+  "merge": {
+    "plot_vars": [
+      "total_features_by_counts",
+      "total_counts",
+      "pc_mito",
+      "pc_ribo"
+    ],
+    "facet_vars": ["NULL"],
+    "outlier_vars": [
+      "total_features_by_counts",
+      "total_counts"
+    ],
+    "outlier_mads": 3
+  },
   "reddim": {
     "input_reduced_dim": [
       "PCA"

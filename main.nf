@@ -319,6 +319,8 @@ process scflow_merge {
 
   output:
     path 'merged_sce/', emit: merged_sce
+    path 'merge_plots/*.png', emit: merge_plots
+    path 'merge_summary_plots/*.png', emit: merge_summary_plots    
     path 'merged_report/*.html', emit: merged_report
 
   script:
@@ -326,7 +328,12 @@ process scflow_merge {
 
     scflow_merge.r \
     --sce_paths ${qc_passed_sces.join(',')} \
-    --ensembl_mappings ${params.ensembl_mappings}
+    --ensembl_mappings ${params.ensembl_mappings} \
+    --unique_id_var ${params.QC.key_colname} \
+    --plot_vars ${params.merge.plot_vars.join(',')} \
+    --facet_vars ${params.merge.facet_vars.join(',')} \
+    --outlier_vars ${params.merge.outlier_vars.join(',')} \
+    --outlier_mads ${params.merge.outlier_mads}
 
     """
 
@@ -335,7 +342,7 @@ process scflow_merge {
 process scflow_reduce_dims {
   
   tag "merged"
-  label 'process_medium'
+  label 'process_low'
 
   input:
     path( sce )
@@ -461,17 +468,17 @@ process scflow_perform_ipa {
    
   input:
     path( de_table )
-    each de_method
-    each celltype
+    //each de_method
+    //each celltype
 
   output:
-    path 'ipa/**/**', type = 'dir', emit: ipa_results
+    path 'ipa/**/*', emit: ipa_results
     path 'ipa/*.html', emit: ipa_report
 
   script:
     """
     scflow_ipa.r \
-    --gene_file \ 
+    --gene_file ${de_table} \
     --reference_file ${params.IPA.reference_file} \
     --enrichment_tool ${params.IPA.enrichment_tool} \
     --enrichment_method ${params.IPA.enrichment_method} \
@@ -526,7 +533,11 @@ workflow {
     scflow_qc.out.qc_sce to: "$params.outdir/sce", mode: 'copy'
     merge_qc_summaries.out.qc_summary to: "$params.outdir/qc", mode: 'copy'
     // Merged SCE
-    scflow_merge.out.merged_report to: "$params.outdir/qc/", mode: 'copy'
+    scflow_merge.out.merged_report to: "$params.outdir/merge/", mode: 'copy'
+    scflow_merge.out.merge_plots to: "$params.outdir/merge/plots", mode: 'copy'
+    scflow_merge.out.merge_summary_plots to: "$params.outdir/merge/plots/summary_plots", mode: 'copy'
+
+    // ct
     scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     // DE
