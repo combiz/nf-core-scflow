@@ -128,6 +128,7 @@ report_merged_sce(
 ##  ............................................................................
 ##  Save Outputs                                                            ####
 
+dir.create(file.path(getwd(), "merge_plots"))
 # Save merged plots (images)
 for(rd_name in setdiff(names(sce@metadata$pseudobulk_rd_plots), "UMAP3D")) {
   png(file.path(getwd(), "merge_plots", 
@@ -137,15 +138,17 @@ for(rd_name in setdiff(names(sce@metadata$pseudobulk_rd_plots), "UMAP3D")) {
   dev.off()
 }
 
+dir.create(file.path(getwd(), "pb_plots"))
 # Save pb plots (images)
 for(rd_name in names(sce@metadata$pseudobulk_plots)) {
-  png(file.path(getwd(), "merge_plots", 
+  png(file.path(getwd(), "pb_plots", 
                 paste0(args$unique_id_var, "_", rd_name, ".png")), 
       width = 247, height = 170, units = "mm", res = 600)
   print(sce@metadata$pseudobulk_rd_plots[[rd_name]])
   dev.off()
 }
 
+dir.create(file.path(getwd(), "merge_summary_plots"))
 # save multi-sample summary plots 
 for(plot_var in names(sce@metadata$merged_plots)) {
   for(plot in names(sce@metadata$merged_plots[[plot_var]])) {
