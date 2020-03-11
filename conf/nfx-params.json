@@ -50,7 +50,6 @@
       "PCA"
     ],
     "reduction_methods": [
-      "PCA", 
       "tSNE", 
       "UMAP", 
       "UMAP3D"
@@ -82,7 +81,7 @@
     "louvain_iter": 1
   },
   "mapct": {
-    "clusters_colname": "cluster_celltype",
+    "clusters_colname": "clusters",
     "cells_to_sample": 10000
   },
   "de": {

@@ -105,6 +105,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.manifest) { ch_manifest = file(params.manifest, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
+ if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
 
  /*
 if (params.readPaths) {
@@ -355,7 +356,7 @@ process scflow_reduce_dims {
 
     scflow_reduce_dims.r \
     --sce_path ${sce} \
-    --input_reduced_dim ${params.reddim.input_reduced_dim.join(',')}
+    --input_reduced_dim ${params.reddim.input_reduced_dim.join(',')} \
     --reduction_methods ${params.reddim.reduction_methods.join(',')} \
     --vars_to_regress_out ${params.reddim.vars_to_regress_out.join(',')} \
     --pca_dims ${params.reddim.pca_dims} \
@@ -410,6 +411,7 @@ process scflow_map_celltypes {
 
   input:
     path( sce )
+    path ctd_folder
 
   output:
     path 'celltype_mapped_sce/', emit: celltype_mapped_sce
@@ -419,7 +421,7 @@ process scflow_map_celltypes {
 
     scflow_map_celltypes.r \
     --sce_path ${sce} \
-    --ctd_folder ${params.mapct.ctd_folder} \
+    --ctd_folder ${ctd_folder} \
     --clusters_colname ${params.mapct.clusters_colname} \
     --cells_to_sample ${params.mapct.cells_to_sample}
 
@@ -448,6 +450,7 @@ process scflow_perform_de {
     --sce ${sce} \
     --celltype ${celltype} \
     --de_method ${de_method} \
+    --mast_method ${params.de.mast_method} \
     --min_counts ${params.de.min_counts} \
     --min_cells_pc ${params.de.min_cells_pc} \
     --rescale_numerics ${params.de.rescale_numerics} \
@@ -518,9 +521,9 @@ workflow {
     scflow_merge ( scflow_qc.out.qc_sce.collect() )
     scflow_reduce_dims ( scflow_merge.out.merged_sce )
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
-    scflow_map_celltypes ( scflow_cluster.out.clustered_sce )
-    scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["Endo"] )
-    scflow_perform_ipa( scflow_map_celltypes.out.celltype_mapped_sce )
+    scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
+    scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["IN-SST"] )
+    scflow_perform_ipa( scflow_perform_de.out.de_table )
     scflow_traject( scflow_map_celltypes.out.celltype_mapped_sce )
 
   
