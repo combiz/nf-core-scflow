@@ -475,8 +475,8 @@ process scflow_perform_ipa {
     //each celltype
 
   output:
-    path 'ipa/**/*', emit: ipa_results
-    path 'ipa/*.html', emit: ipa_report
+    path 'ipa/**/*', optional: true, type: 'dir', emit: ipa_results
+    path 'ipa/*.html', optional: true, emit: ipa_report
 
   script:
     """
@@ -545,6 +545,7 @@ workflow {
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
+    // IPA
     scflow_perform_ipa.out.ipa_results to: "$params.outdir/ipa/", mode: 'copy'
     scflow_perform_ipa.out.ipa_report to: "$params.outdir/ipa/", mode: 'copy'
 
