@@ -343,7 +343,8 @@ process scflow_merge {
 process scflow_integrate {
 
   tag "merged"
-  label 'process_medium'
+  executor 'local'
+  label 'process_local'
 
   input:
     path( sce )
@@ -356,12 +357,12 @@ process scflow_integrate {
 
     scflow_integrate.r \
     --sce_path ${sce} \
-    --method ${params.integrate.method.join(',')} \
-    --unique_id_var ${params.integrate.unique_id_var.join(',')} \
+    --method ${params.integrate.method} \
+    --unique_id_var ${params.integrate.unique_id_var} \
     --take_gene_union ${params.integrate.take_gene_union} \
     --remove_missing ${params.integrate.remove_missing} \
     --num_genes ${params.integrate.num_genes} \
-    --combine ${params.integrate.combine.join(',')} \
+    --combine ${params.integrate.combine} \
     --keep_unique ${params.integrate.keep_unique} \
     --capitalize ${params.integrate.capitalize} \
     --do_plot ${params.integrate.do_plot} \
@@ -374,7 +375,7 @@ process scflow_integrate {
     --nrep ${params.integrate.nrep} \
     --h_init ${params.integrate.h_init} \
     --w_init ${params.integrate.w_init} \
-	--v_init ${params.integrate.v_init} \
+	  --v_init ${params.integrate.v_init} \
     --rand_seed ${params.integrate.rand_seed} \
     --print_obj ${params.integrate.print_obj} \
     --knn_k ${params.integrate.knn_k} \
@@ -385,8 +386,8 @@ process scflow_integrate {
     --quantiles ${params.integrate.quantiles} \
     --nstart ${params.integrate.nstart} \
     --resolution ${params.integrate.resolution} \
-	--dims_use ${params.integrate.dims_use} \
-    --dist_use ${params.integrate.dist_use.join(',')} \
+	  --dims_use ${params.integrate.dims_use} \
+    --dist_use ${params.integrate.dist_use} \
     --center ${params.integrate.center} \
     --small_clust_thresh ${params.integrate.small_clust_thresh} \
     --id_number ${params.integrate.id_number} \
@@ -576,7 +577,7 @@ workflow {
     //scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
     merge_qc_summaries ( scflow_qc.out.qc_summary.collect() )
     scflow_merge ( scflow_qc.out.qc_sce.collect() )
-	scflow_integrate ( scflow_merge.out.merged_sce )
+	  scflow_integrate ( scflow_merge.out.merged_sce )
     scflow_reduce_dims ( scflow_integrate.out.integrated_sce )
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
@@ -597,7 +598,6 @@ workflow {
     scflow_merge.out.merged_report to: "$params.outdir/merge/", mode: 'copy'
     scflow_merge.out.merge_plots to: "$params.outdir/merge/plots", mode: 'copy'
     scflow_merge.out.merge_summary_plots to: "$params.outdir/merge/plots/summary_plots", mode: 'copy'
-
     // ct
     scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'

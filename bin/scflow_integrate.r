@@ -5,12 +5,12 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 ​
-options(mc.cores = parallel::detectCores())
+options(mc.cores = future::availableCores())
 ​
 ##  ............................................................................
 ##  Load packages                                                           ####
 library(argparse)
-library(scflow)
+library(scFlow)
 library(parallel)
 ​
 ##  ............................................................................
@@ -22,6 +22,13 @@ parser <- ArgumentParser()
 # specify options
 required <- parser$add_argument_group("Required", "required arguments")
 optional <- parser$add_argument_group("Optional", "required arguments")
+
+required$add_argument(
+  "--sce_path",
+  help = "-path to the SingleCellExperiment",
+  metavar = "dir", 
+  required = TRUE
+)
 
 required$add_argument(
   "--method",
@@ -64,7 +71,7 @@ required$add_argument(
 
 required$add_argument(
   "--combine",
-  default = union,
+  default = "union",
   required = TRUE,
   help ="How to combine variable genes across experiments",
   metavar = "union,intersect"
@@ -131,7 +138,7 @@ required$add_argument(
 
 required$add_argument(
   "--thresh",
-  default = 1e-4,
+  default = 0.0001,
   type = "number", 
   required = TRUE,
   help ="Convergence threshold. Convergence occurs when |obj0-obj|/(mean(obj0,obj)) < thresh",
@@ -158,7 +165,7 @@ required$add_argument(
 
 required$add_argument(
   "--H.init",
-  default = '',
+  default = 'null',
   required = TRUE,
   help ="Initial values to use for H matrices",
   metavar = "H"
@@ -166,7 +173,7 @@ required$add_argument(
 
 required$add_argument(
   "--W.init",
-  default = '',
+  default = 'null',
   required = TRUE,
   help ="Initial values to use for W matrices",
   metavar = "W"
@@ -174,7 +181,7 @@ required$add_argument(
 
 required$add_argument(
   "--V.init",
-  default = '',
+  default = 'null',
   required = TRUE,
   help ="Initial values to use for V matrices",
   metavar = "V"
@@ -270,7 +277,7 @@ required$add_argument(
 
 required$add_argument(
   "--dims.use",
-  default = 1:ncol(H[[1]])),
+  default = "null",
   required = TRUE,
   help ="Indices of factors to use for shared nearest factor determination",
   metavar = "Indices"
@@ -278,7 +285,7 @@ required$add_argument(
 
 required$add_argument(
   "--dist.use",
-  default = CR,
+  default = "CR",
   required = TRUE,
   help ="Distance metric to use in calculating nearest neighbors",
   metavar = "CR"
@@ -324,28 +331,38 @@ required$add_argument(
   metavar = "Boolean"
 )
 
-
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 ​
 args <- parser$parse_args()
-args$method <- strsplit(args$method, ",")[[1]]
-args$unique_id_var <- strsplit(args$unique_id_var, ",")[[1]]
-args$combine <- strsplit(args$combine, ",")[[1]]
-args$dist.use <- strsplit(args$dist.use, ",")[[1]]
-print(args)
+args <- purrr::map(args, function(x) {
+  if (length(x) == 1) {
+    if (toupper(x) == "TRUE") {
+      return(TRUE)
+    }
+    if (toupper(x) == "FALSE") {
+      return(FALSE)
+    }
+    if (toupper(x) == "NULL") {
+      return(NULL)
+    }
+  }
+  return(x)
+})
 ​
 ##  ............................................................................
 ##  Integrate sce                                                            ####
 
+sce <- read_sce(args$sce_path)
+
 sce <- integrate_sce(
     sce,
-	method = args$method,
-	unique_id_var = args$unique_id_var,
+    method = args$method,
+    unique_id_var = args$unique_id_var,
     take_gene_union = args$take_gene_union,
     remove.missing = args$remove.missing,
     num_genes = args$num_genes,
-    combine = args$"union",
+    combine = args$union,
     keep_unique = args$keep_unique,
     capitalize = args$capitalize,
     do_plot = args$do_plot,
@@ -363,19 +380,20 @@ sce <- integrate_sce(
     print_obj = args$print_obj,
     knn_k = args$knn_k,
     k2 = args$k2,
-	prune_thresh = args$prune_thresh,
+    prune_thresh = args$prune_thresh,
     ref_dataset = args$ref_dataset,
     min_cells = args$min_cells,
     quantiles = args$quantiles,
     nstart = args$nstart,
     resolution = args$resolution,
-	dims_use = args$dims_use,
+    dims_use = args$dims_use,
     dist_use = args$dist_use,
     center = args$center,
     small_clust_thresh = args$small_clust_thresh,
     id_number = args$id_number,
     print_mod = args$print_mod,
-    print_align_summary = args$print_align_summary)
+    print_align_summary = args$print_align_summary
+    )
 	
 ##  ............................................................................
 ##  Save Outputs                                                            ####
