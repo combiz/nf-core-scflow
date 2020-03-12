@@ -105,6 +105,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.manifest) { ch_manifest = file(params.manifest, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
+ if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
 
  /*
 if (params.readPaths) {
@@ -298,7 +299,6 @@ process merge_qc_summaries {
 
   output:
     path '*.tsv', emit: qc_summary
-    path 'merged_report/*.html', emit: merged_report
 
   script:
     """
@@ -320,13 +320,21 @@ process scflow_merge {
 
   output:
     path 'merged_sce/', emit: merged_sce
+    path 'merge_plots/*.png', emit: merge_plots
+    path 'merge_summary_plots/*.png', emit: merge_summary_plots    
+    path 'merged_report/*.html', emit: merged_report
 
   script:
     """
 
     scflow_merge.r \
     --sce_paths ${qc_passed_sces.join(',')} \
-    --ensembl_mappings ${params.ensembl_mappings}
+    --ensembl_mappings ${params.ensembl_mappings} \
+    --unique_id_var ${params.QC.key_colname} \
+    --plot_vars ${params.merge.plot_vars.join(',')} \
+    --facet_vars ${params.merge.facet_vars.join(',')} \
+    --outlier_vars ${params.merge.outlier_vars.join(',')} \
+    --outlier_mads ${params.merge.outlier_mads}
 
     """
 
@@ -392,7 +400,7 @@ process scflow_integrate {
 process scflow_reduce_dims {
   
   tag "merged"
-  label 'process_medium'
+  label 'process_low'
 
   input:
     path( sce )
@@ -460,6 +468,7 @@ process scflow_map_celltypes {
 
   input:
     path( sce )
+    path ctd_folder
 
   output:
     path 'celltype_mapped_sce/', emit: celltype_mapped_sce
@@ -469,7 +478,7 @@ process scflow_map_celltypes {
 
     scflow_map_celltypes.r \
     --sce_path ${sce} \
-    --ctd_folder ${params.mapct.ctd_folder} \
+    --ctd_folder ${ctd_folder} \
     --clusters_colname ${params.mapct.clusters_colname} \
     --cells_to_sample ${params.mapct.cells_to_sample}
 
@@ -498,6 +507,7 @@ process scflow_perform_de {
     --sce ${sce} \
     --celltype ${celltype} \
     --de_method ${de_method} \
+    --mast_method ${params.de.mast_method} \
     --min_counts ${params.de.min_counts} \
     --min_cells_pc ${params.de.min_cells_pc} \
     --rescale_numerics ${params.de.rescale_numerics} \
@@ -512,19 +522,29 @@ process scflow_perform_de {
 
 process scflow_perform_ipa {
 
-  label 'process_low'
+  label 'process_medium'
   
   echo true
    
   input:
-    path( sce )
+    path( de_table )
+    //each de_method
+    //each celltype
 
   output:
-    //path '*.tsv', emit: de_table
+    path 'ipa/**/*', optional: true, type: 'dir', emit: ipa_results
+    path 'ipa/*.html', optional: true, emit: ipa_report
 
   script:
     """
-    echo hello world
+    scflow_ipa.r \
+    --gene_file ${de_table.join(',')} \
+    --reference_file ${params.IPA.reference_file} \
+    --enrichment_tool ${params.IPA.enrichment_tool.join(',')} \
+    --enrichment_method ${params.IPA.enrichment_method} \
+    --enrichment_database ${params.IPA.enrichment_database.join(',')} \
+    --is_output ${params.IPA.is_output} \
+    --output_dir ${params.IPA.output_dir}
      
     """
 }
@@ -559,9 +579,9 @@ workflow {
 	scflow_integrate ( scflow_merge.out.merged_sce )
     scflow_reduce_dims ( scflow_integrate.out.integrated_sce )
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
-    scflow_map_celltypes ( scflow_cluster.out.clustered_sce )
-    scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["Endo"] )
-    scflow_perform_ipa( scflow_map_celltypes.out.celltype_mapped_sce )
+    scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
+    scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["IN-SST"] )
+    scflow_perform_ipa( scflow_perform_de.out.de_table )
     scflow_traject( scflow_map_celltypes.out.celltype_mapped_sce )
 
   
@@ -574,12 +594,18 @@ workflow {
     scflow_qc.out.qc_sce to: "$params.outdir/sce", mode: 'copy'
     merge_qc_summaries.out.qc_summary to: "$params.outdir/qc", mode: 'copy'
     // Merged SCE
-    scflow_merge.out.merged_report to: "$params.outdir/qc/", mode: 'copy'
+    scflow_merge.out.merged_report to: "$params.outdir/merge/", mode: 'copy'
+    scflow_merge.out.merge_plots to: "$params.outdir/merge/plots", mode: 'copy'
+    scflow_merge.out.merge_summary_plots to: "$params.outdir/merge/plots/summary_plots", mode: 'copy'
+
+    // ct
     scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
-    
+    // IPA
+    scflow_perform_ipa.out.ipa_results to: "$params.outdir/ipa/", mode: 'copy'
+    scflow_perform_ipa.out.ipa_report to: "$params.outdir/ipa/", mode: 'copy'
 
 }
 

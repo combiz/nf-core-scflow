@@ -21,7 +21,7 @@ parser <- ArgumentParser()
 # specify options
 required <- parser$add_argument_group("Required", "required arguments")
 optional <- parser$add_argument_group("Optional", "required arguments")
-+
+
 required$add_argument(
   "--sce",
   help = "path to SingleCellExperiment directory",
@@ -39,7 +39,14 @@ required$add_argument(
 required$add_argument(
   "--de_method",
   help = "differential gene expression method",
-  metavar = "Microglia",
+  metavar = "MAST",
+  required = TRUE
+)
+
+required$add_argument(
+  "--mast_method",
+  help = "differential gene expression sub-method for MAST",
+  metavar = "bayesglm",
   required = TRUE
 )
 
@@ -62,10 +69,8 @@ required$add_argument(
 
 required$add_argument(
   "--rescale_numerics",
-  type = "integer",
-  default = 1,
   help = "rescale numeric variables in the model (lgl)",
-  metavar = "integer",
+  metavar = "TRUE",
   required = TRUE
 )
 
@@ -142,7 +147,8 @@ de_results <- perform_de(
   confounding_vars = args$confounding_vars,
   random_effects_var = args$random_effects_var,
   fc_threshold = args$fc_threshold,
-  pval_cutoff = args$pval_cutoff
+  pval_cutoff = args$pval_cutoff,
+  mast_method = args$mast_method
   )
 
 for (result in names(de_results)) {

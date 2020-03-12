@@ -69,12 +69,25 @@
     "print_mod": false,
     "print_align_summary": false
   },
+  "merge": {
+    "plot_vars": [
+      "total_features_by_counts",
+      "total_counts",
+      "pc_mito",
+      "pc_ribo"
+    ],
+    "facet_vars": ["NULL"],
+    "outlier_vars": [
+      "total_features_by_counts",
+      "total_counts"
+    ],
+    "outlier_mads": 3
+  },
   "reddim": {
     "input_reduced_dim": [
       "PCA"
     ],
     "reduction_methods": [
-      "PCA", 
       "tSNE", 
       "UMAP", 
       "UMAP3D"
@@ -106,7 +119,7 @@
     "louvain_iter": 1
   },
   "mapct": {
-    "clusters_colname": "cluster_celltype",
+    "clusters_colname": "clusters",
     "cells_to_sample": 10000
   },
   "de": {
@@ -130,5 +143,17 @@
     "random_effects_var": "null",
     "fc_threshold": 1.1,
     "pval_cutoff": 0.05
+  },
+   "IPA": {
+    "reference_file": "null",
+    "enrichment_tool": [
+      "WebgestaltR"
+    ],
+    "enrichment_method": "ORA",
+    "enrichment_database": [
+      "GO_Biological_Process"
+    ],
+    "is_output": true,
+    "output_dir": "."
   }
 }

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>scFlow Parameter Configurator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <style>
+        #main-header {align-content: center; padding-left: 10%;padding-right: 10%;}
+        fieldset  {border-right-style: solid; padding-left: 10%;padding-right: 10%; columns: 2;}
+        .help-block {font-size: small;}        
+        .btn-primary { background-color: rgb(21,153,87); padding-left: 10%; }
+    </style>
+</head>
+
+<body>
+    <h1 id="main-header"><font style="color: rgb(21,153,87)">nf-</font>core/scflow - Parameter Configurator</h1>
+    <form></form>
+
+    <div id="res" class="alert"></div>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/1.0.6/jsviews.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsonform@2.1.6/lib/jsonform.min.js"></script>
+    <script type="text/javascript">
+
+        function saveFile(text, name, type) {
+            var a = document.createElement("a");
+            var file = new Blob([text], {type: type});
+            a.href = URL.createObjectURL(file);
+            a.download = name;
+            a.click();
+        }
+
+        function loadJSON(filePath, success, error)
+        {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function()
+            {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        if (success)
+                            success(JSON.parse(xhr.responseText));
+                } else {
+                    if (error)
+                        error(xhr);
+                    }
+                }
+            };
+            xhr.open("GET", filePath, true);
+            xhr.send();
+        }
+
+        var json = loadJSON("../params.settings.json"); // no worky, fix
+
+		$('form').jsonForm({
+			"schema": {
+                "QC": {
+                    "type": "object",
+                    "title": "Quality-Control",                    
+                        "properties": {
+                            "key_colname": {
+                                "type": "string",
+                                "title": "key_colname",
+                                "default": "manifest",
+                                "description": "The unique sample identifier."
+                            },
+                            "min_library_size": {
+                                "type": "integer",
+                                "title": "min_library_size",
+                                "default": 300,
+                                "description": "Minimum counts per cell."
+                            },
+                            "min_features": {
+                                "type": "integer",
+                                "title": "min_features",
+                                "default": 100,
+                                "description": "Minimum number of expressive genes per cell."
+                            },
+                            "max_mito": {
+                                "type": "number",
+                                "title": "max_mito",
+                                "default": 0.1,
+                                "description": "Maximum relative proportion of mitochondrial counts (e.g. 0.1 for 10%)."
+                            },
+                            "min_ribo": {
+                                "type": "number",
+                                "title": "min_ribo",
+                                "default": 0,
+                                "description": "Minimum relative proportion of ribosomal counts (e.g. 0 for 0%)."
+                            },
+                            "max_ribo": {
+                                "type": "number",
+                                "title": "max_ribo",
+                                "default": 1,
+                                "description": "Maximum relative proportion of ribosomal counts (e.g. 1 for 100%)."
+                            },
+                            "min_counts": {
+                                "type": "integer",
+                                "title": "min_counts",
+                                "default": 2,
+                                "description": "A gene with at least min_counts in min_cells within a sample is considered expressive."
+                            },
+                            "min_cells": {
+                                "type": "integer",
+                                "title": "min_cells",
+                                "default": 2,
+                                "minimum": 1,
+                                "maximum": 5,
+                                "description": "A gene with at least min_counts in min_cells within a sample is considered expressive."
+                            },
+                            "drop_unmapped": {
+                                "type": "boolean",
+                                "title": "drop_unmapped",
+                                "default": true,
+                                "description": "Drop genes with unmapped ensembl_gene_id's?"
+                            },
+                            "drop_mito": {
+                                "type": "boolean",
+                                "title": "drop_mito",
+                                "default": true,
+                                "description": "Drop mitochondrial genes?"
+                            },
+                            "drop_ribo": {
+                                "type": "boolean",
+                                "title": "drop_ribo",
+                                "default": true,
+                                "description": "Drop ribosomal genes?"
+                            }
+                        }
+                },
+                "singlets": {
+                    "type": "object",
+                    "title": "DoubletFinder",                    
+                        "properties": {
+                            "find_singlets": {
+                                "type": "boolean",
+                                "title": "find_singlets",
+                                "default": true
+                            },
+                            "singlets_methods": {
+                                "type": "string",
+                                "title": "singlets_methods",
+                                "enum": ["doubletfinder"],
+                                "default": "doubletfinder"
+                            },
+                            "vars_to_regress_out": {
+                                "type": "array",
+                                "title": "vars_to_regress_out",
+                                "items": {
+                                    "type": "string",
+                                    "title": "Variable to regress out",
+                                }
+                            },
+                            "pca_dims": {
+                                "type": "integer",
+                                "title": "pca_dims",
+                                "default": 10
+                            },
+                            "var_features": {
+                                "type": "integer",
+                                "title": "var_features",
+                                "default": 2000
+                            },
+                            "doublet_rate": {
+                                "type": "number",
+                                "title": "doublet_rate",
+                                "default": 0.00
+                            },
+                            "dpk": {
+                                "type": "integer",
+                                "title": "dpk (doublets per thousand cells)",
+                                "default": 8
+                            }
+                        }
+                },
+                "integrate": {
+                    "type": "object",
+                    "title": "Dataset Integration",                    
+                        "properties": {
+                            "method": {
+                                "type": "string",
+                                "title": "method",
+                                "default": "Liger",
+                                "enum": ["Liger"]
+                            },
+                            "unique_id_var": {
+                                "type": "string",
+                                "title": "unique_id_var",
+                                "default": "manifest"
+                            },
+                            "take_gene_union": {
+                                "type": "boolean",
+                                "title": "take_gene_union",
+                                "default": false
+                            },
+                            "remove_missing": {
+                                "type": "boolean",
+                                "title": "remove_missing",
+                                "default": true
+                            },
+                            "num_genes": {
+                                "type": "integer",
+                                "title": "num_genes",
+                                "default": 3000
+                            },
+                            "combine": {
+                                "type": "string",
+                                "title": "combine",
+								"enum": ["union", "intersect"],
+                                "default": "union"
+                            },
+                            "keep_unique": {
+                                "type": "boolean",
+                                "title": "keep_unique",
+                                "default": false
+                            },
+                            "capitalize": {
+                                "type": "boolean",
+                                "title": "capitalize",
+                                "default": false
+                            },
+                            "do_plot": {
+                                "type": "boolean",
+                                "title": "do_plot",
+                                "default": false
+                            },
+                            "cex_use": {
+                                "type": "number",
+                                "title": "cex_use",
+                                "default": 0.3
+                            },
+                            "use_cols": {
+                                "type": "boolean",
+                                "title": "use_cols",
+                                "default": true
+                            },
+							"k": {
+                                "type": "integer",
+                                "title": "k",
+                                "default": 30
+                            },
+					        "lambda": {
+                                "type": "number",
+                                "title": "lambda",
+                                "default": 5.0
+                            },
+							"thresh": {
+                                "type": "number",
+                                "title": "thresh",
+                                "default": 1e-4
+                            },
+							"max_iters": {
+                                "type": "integer",
+                                "title": "max_iters",
+                                "default": 100
+                            },
+							"nrep": {
+                                "type": "integer",
+                                "title": "nrep",
+                                "default": 1
+                            },
+							"H_init": {
+                                "type": "number",
+                                "title": "H_init",
+                                "default": "null"
+                            },
+							"W_init": {
+                                "type": "number",
+                                "title": "W_init",
+                                "default": "null"
+                            },
+							"V_init": {
+                                "type": "number",
+                                "title": "V_init",
+                                "default": "null"
+                            },
+							"rand_seed": {
+                                "type": "integer",
+                                "title": "rand_seed",
+                                "default": 1
+                            },
+							"print_obj": {
+                                "type": "boolean",
+                                "title": "print_obj",
+                                "default": false
+                            },
+							"knn_k": {
+                                "type": "integer",
+                                "title": "knn_k",
+                                "default": 20
+                            },
+							"k2": {
+                                "type": "integer",
+                                "title": "k2",
+                                "default": 500
+                            },
+							"prune_thresh": {
+                                "type": "number",
+                                "title": "prune_thresh",
+                                "default": 0.2
+                            },
+							"ref_dataset": {
+                                "type": "string",
+                                "title": "ref_dataset",
+                                "default": "NULL"
+                            },
+							"min_cells": {
+                                "type": "integer",
+                                "title": "min_cells",
+                                "default": 2
+                            },
+							"quantiles": {
+                                "type": "integer",
+                                "title": "quantiles",
+                                "default": 50
+                            },
+							"nstart": {
+                                "type": "integer",
+                                "title": "nstart",
+                                "default": 10
+                            },
+							"resolution": {
+                                "type": "number",
+                                "title": "resolution",
+                                "default": 1
+                            },
+							"dims_use": {
+                                "type": "number",
+                                "title": "dims_use",
+                                "default": ""
+                            },
+							"dist_use": {
+                                "type": "string",
+                                "title": "dist_use",
+                                "default": "CR"
+                            },
+							"center": {
+                                "type": "string",
+                                "title": "center",
+                                "default": false
+                            },
+							"small_clust_thresh": {
+                                "type": "number",
+                                "title": "small_clust_thresh",
+                                "default": 0
+                            },
+							"id_number": {
+                                "type": "number",
+                                "title": "id_number",
+                                "default": ""
+                            },
+							"print_mod": {
+                                "type": "boolean",
+                                "title": "print_mod",
+                                "default": false
+                            },
+							"print_align_summary": {
+                                "type": "boolean",
+                                "title": "print_align_summary",
+                                "default": false
+                            }
+                        }
+                },
+                "reddim": {
+                    "type": "object",
+                    "title": "Dimensionality Reduction",                    
+                        "properties": {
+                            "reduction_methods": {
+                                "type": "array",
+                                "title": "reduction_methods",
+                                "items": {
+                                    "type": "string",
+                                    "title": "reduction method",
+                                    "enum": ["PCA", "tSNE", "UMAP", "UMAP3D"]
+                                }
+                            },
+                            "vars_to_regress_out": {
+                                "type": "array",
+                                "title": "vars_to_regress_out",
+                                "items": {
+                                    "type": "string",
+                                    "title": "Variable to regress out"
+                                }
+                            },
+                            "pca_dims": {
+                                "type": "integer",
+                                "title": "pca_dims",
+                                "default": 30
+                            },
+                            "n_neighbors": {
+                                "type": "integer",
+                                "title": "n_neighbors",
+                                "default": 30
+                            },
+                            "n_components": {
+                                "type": "integer",
+                                "title": "n_components",
+                                "default": 2
+                            },
+                            "init": {
+                                "type": "string",
+                                "title": "init",
+                                "enum": ["pca"],
+                                "default": "pca"
+                            },
+                            "metric": {
+                                "type": "string",
+                                "title": "metric",
+                                "enum": ["euclidean"],
+                                "default": "euclidean"
+                            },
+                            "n_epochs": {
+                                "type": "integer",
+                                "title": "n_epochs",
+                                "default": 500
+                            },
+                            "learning_rate": {
+                                "type": "number",
+                                "title": "learning_rate",
+                                "default": 1.0
+                            },
+                            "min_dist": {
+                                "type": "number",
+                                "title": "min_dist",
+                                "default": 0.3
+                            },
+                            "spread": {
+                                "type": "number",
+                                "title": "spread",
+                                "default": 0.3
+                            },
+                            "set_op_mix_ratio": {
+                                "type": "number",
+                                "title": "set_op_mix_ratio",
+                                "default": 1.0
+                            },
+                            "local_connectivity": {
+                                "type": "integer",
+                                "title": "local_connectivity",
+                                "default": 1
+                            },
+                            "repulsion_strength": {
+                                "type": "integer",
+                                "title": "repulsion_strength",
+                                "default": 1
+                            },
+                            "negative_sample_rate": {
+                                "type": "integer",
+                                "title": "negative_sample_rate",
+                                "default": 5
+                            },
+                            "fast_sgd": {
+                                "type": "boolean",
+                                "title": "fast_sgd",
+                                "default": false
+                            }
+                        }
+                },
+                "cluster": {
+                    "type": "object",
+                    "title": "Clustering",                    
+                        "properties": {                            
+                            "cluster_method": {
+                                "type": "string",
+                                "title": "cluster_method",
+                                "enum": ["leiden", "louvain"],
+                                "default": "leiden"
+                            },
+                            "reduction_method": {
+                                "type": "array",
+                                "title": "reduction_method",
+                                "items": {
+                                    "type": "string",
+                                    "title": "Variable to regress out",
+                                    "enum": ["tSNE_PCA", "tSNE_Liger", "UMAP_PCA", "UMAP_Liger"],
+                                    "default": "UMAP_Liger"                          }
+                            },
+                            "res": {
+                                "type": "number",
+                                "title": "res",
+                                "default": 0.00001
+                            },
+                            "k": {
+                                "type": "integer",
+                                "title": "k",
+                                "default": 100
+                            },
+                            "louvain_iter": {
+                                "type": "integer",
+                                "title": "louvain_iter",
+                                "default": 1
+                            }
+                        }
+                },
+                "mapct": {
+                    "type": "object",
+                    "title": "Celltype Annotation",                    
+                        "properties": {                            
+                            "ctd_folder": {
+                                "type": "string",
+                                "title": "ctd_folder",
+                                "enum": ["${baseDir}/refs/ctd"],
+                                "default": "${baseDir}/refs/ctd"
+                            },
+                            "clusters_colname": {
+                                "type": "string",
+                                "title": "clusters_colname",
+                                "default": "cluster_celltype"
+                            },
+                            "cells_to_sample": {
+                                "type": "integer",
+                                "title": "cells_to_sample",
+                                "default": 10000
+                            }
+                        }
+                },
+                "de": {
+                    "type": "object",
+                    "title": "Differential Gene Expression",                    
+                        "properties": {                            
+                            "de_method": {
+                                "type": "array",
+                                "title": "de_method",
+                                "items": {
+                                    "type": "string",
+                                    "title": "DGE method",
+                                    "enum": ["MASTZLM"],
+                                    "default": "MASTZLM"                          
+                                    }
+                            },
+                            "min_counts": {
+                                "type": "integer",
+                                "title": "min_counts",
+                                "default": 1
+                            },
+                            "min_cells_pc": {
+                                "type": "number",
+                                "title": "min_cells_pc",
+                                "default": 0.10
+                            },
+                            "rescale_numerics": {
+                                "type": "boolean",
+                                "title": "rescale_numerics",
+                                "default": true
+                            },
+                            "dependent_var": {
+                                "type": "string",
+                                "title": "dependent_var",
+                                "default": "group"
+                            },
+                            "ref_class": {
+                                "type": "string",
+                                "title": "ref_class",
+                                "default": "Control"
+                            },
+                            "confounding_vars": {
+                                "type": "array",
+                                "title": "confounding_vars",
+                                "items": {
+                                    "type": "string",
+                                    "title": "Confounding variable",
+                                    "default": "cngeneson"                          
+                                    }
+                            },
+                            "random_effects_var": {
+                                "type": "string",
+                                "title": "random_effects_var",
+                                "default": "null"
+                            },
+                            "fc_threshold": {
+                                "type": "number",
+                                "title": "fc_threshold",
+                                "default": 1.1
+                            },
+                            "pval_cutoff": {
+                                "type": "number",
+                                "title": "pval_cutoff",
+                                "default": 0.05
+                            }                            
+                        }
+                }
+            },
+			onSubmit: function (errors, values) {
+				if (errors) {
+
+					alert('Check the form for invalid values!');
+
+				} else {
+					
+                    // "values" follows the schema, yeepee!
+                    var jsonData = JSON.stringify(values, null, "    ");
+                    console.log(jsonData);
+                    saveFile(jsonData, 'nfx-params.json', 'text/plain');
+                    
+
+			    }
+			}
+		});
+	</script>
+</body>
+
+</html>

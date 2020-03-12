@@ -345,7 +345,7 @@ sce <- integrate_sce(
     take_gene_union = args$take_gene_union,
     remove.missing = args$remove.missing,
     num_genes = args$num_genes,
-    combine = args$combine,
+    combine = args$"union",
     keep_unique = args$keep_unique,
     capitalize = args$capitalize,
     do_plot = args$do_plot,
