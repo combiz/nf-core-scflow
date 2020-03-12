@@ -340,6 +340,63 @@ process scflow_merge {
 
 }
 
+process scflow_integrate {
+
+  tag "merged"
+  label 'process_medium'
+
+  input:
+    path( sce )
+
+  output:
+    path 'integrated_sce/', emit: integrated_sce
+
+  script:
+    """
+
+    scflow_integrate.r \
+    --sce_path ${sce} \
+    --method ${params.integrate.method.join(',')} \
+    --unique_id_var ${params.integrate.unique_id_var.join(',')} \
+    --take_gene_union ${params.integrate.take_gene_union} \
+    --remove_missing ${params.integrate.remove_missing} \
+    --num_genes ${params.integrate.num_genes} \
+    --combine ${params.integrate.combine.join(',')} \
+    --keep_unique ${params.integrate.keep_unique} \
+    --capitalize ${params.integrate.capitalize} \
+    --do_plot ${params.integrate.do_plot} \
+    --cex_use ${params.integrate.cex_use} \
+    --use_cols ${params.integrate.use_cols} \
+    --k ${params.integrate.k} \
+    --lambda ${params.integrate.lambda} \
+    --thresh ${params.integrate.thresh} \
+    --max_iters ${params.integrate.max_iters} \
+    --nrep ${params.integrate.nrep} \
+    --h_init ${params.integrate.h_init} \
+    --w_init ${params.integrate.w_init} \
+	--v_init ${params.integrate.v_init} \
+    --rand_seed ${params.integrate.rand_seed} \
+    --print_obj ${params.integrate.print_obj} \
+    --knn_k ${params.integrate.knn_k} \
+    --k2 ${params.integrate.k2} \
+    --prune_thresh ${params.integrate.prune_thresh} \
+    --ref_dataset ${params.integrate.ref_dataset} \
+    --min_cells ${params.integrate.min_cells} \
+    --quantiles ${params.integrate.quantiles} \
+    --nstart ${params.integrate.nstart} \
+    --resolution ${params.integrate.resolution} \
+	--dims_use ${params.integrate.dims_use} \
+    --dist_use ${params.integrate.dist_use.join(',')} \
+    --center ${params.integrate.center} \
+    --small_clust_thresh ${params.integrate.small_clust_thresh} \
+    --id_number ${params.integrate.id_number} \
+    --print_mod ${params.integrate.print_mod} \
+    --print_align_summary ${params.integrate.print_align_summary}
+	
+	"""
+
+}
+
 process scflow_reduce_dims {
   
   tag "merged"
@@ -519,7 +576,8 @@ workflow {
     //scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
     merge_qc_summaries ( scflow_qc.out.qc_summary.collect() )
     scflow_merge ( scflow_qc.out.qc_sce.collect() )
-    scflow_reduce_dims ( scflow_merge.out.merged_sce )
+	scflow_integrate ( scflow_merge.out.merged_sce )
+    scflow_reduce_dims ( scflow_integrate.out.integrated_sce )
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
     scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["IN-SST"] )
