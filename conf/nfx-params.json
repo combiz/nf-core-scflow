@@ -113,9 +113,9 @@
     ],
     "enrichment_method": "ORA",
     "enrichment_database": [
-      "geneontology_Biological_Process_noRedundant"
+      "GO_Biological_Process"
     ],
     "is_output": true,
-    "output_dir": "./"
+    "output_dir": "."
   }
 }

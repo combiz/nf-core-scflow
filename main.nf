@@ -481,9 +481,9 @@ process scflow_perform_ipa {
   script:
     """
     scflow_ipa.r \
-    --gene_file ${de_table} \
+    --gene_file ${de_table.join(',')} \
     --reference_file ${params.IPA.reference_file} \
-    --enrichment_tool ${params.IPA.enrichment_tool} \
+    --enrichment_tool ${params.IPA.enrichment_tool.join(',')} \
     --enrichment_method ${params.IPA.enrichment_method} \
     --enrichment_database ${params.IPA.enrichment_database.join(',')} \
     --is_output ${params.IPA.is_output} \
