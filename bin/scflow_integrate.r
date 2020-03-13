@@ -1,410 +1,405 @@
 #!/usr/bin/env Rscript
 # Integrate multiple single cell datasets (samples)
-#  Mahdi Moradi Marjaneh <m.moradi@imperial.ac.uk>
-​
-#   ____________________________________________________________________________
-#   Initialization                                                          ####
-​
+# Mahdi Moradi Marjaneh
+
+# ____________________________________________________________________________
+# Initialization ####
+
 options(mc.cores = future::availableCores())
-​
-##  ............................................................................
-##  Load packages                                                           ####
+
+## ............................................................................
+## Load packages ####
 library(argparse)
 library(scFlow)
 library(parallel)
-​
-##  ............................................................................
-##  Parse command-line arguments                                            ####
-​
+
+## ............................................................................
+## Parse command-line arguments ####
+
 # create parser object
 parser <- ArgumentParser()
-​
+
 # specify options
 required <- parser$add_argument_group("Required", "required arguments")
 optional <- parser$add_argument_group("Optional", "required arguments")
 
 required$add_argument(
-  "--sce_path",
-  help = "-path to the SingleCellExperiment",
-  metavar = "dir", 
-  required = TRUE
+"--sce_path",
+help = "-path to the SingleCellExperiment",
+metavar = "dir",
+required = TRUE
 )
 
 required$add_argument(
-  "--method",
-  required = TRUE,
-  help ="The integration method to use",
-  metavar = "Liger"
+"--method",
+required = TRUE,
+help ="The integration method to use",
+metavar = "Liger"
 )
 
 required$add_argument(
-  "--unique_id_var",
-  required = TRUE,
-  help ="Unique id variable",
-  metavar = "manifest"
+"--unique_id_var",
+required = TRUE,
+help ="Unique id variable",
+metavar = "manifest"
 )
 
 required$add_argument(
-  "--take.gene.union",
-  default = FALSE,
-  required = TRUE,
-  help ="Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data)",
-  metavar = "Boolean"
+"--take_gene_union",
+default = FALSE,
+required = TRUE,
+help ="Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data)",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--remove.missing",
-  default = TRUE,
-  required = TRUE,
-  help ="Whether to remove cells not expressing any measured genes, and genes not expressed in any cells",
-  metavar = "Boolean"
+"--remove_missing",
+default = TRUE,
+required = TRUE,
+help ="Whether to remove cells not expressing any measured genes, and genes not expressed in any cells",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--num.genes",
-  default = 3000,
-  type = "integer", 
-  required = TRUE,
-  help ="Number of genes to find for each dataset",
-  metavar = "N"
+"--num_genes",
+default = 3000,
+type = "integer",
+required = TRUE,
+help ="Number of genes to find for each dataset",
+metavar = "N"
 )
 
 required$add_argument(
-  "--combine",
-  default = "union",
-  required = TRUE,
-  help ="How to combine variable genes across experiments",
-  metavar = "union,intersect"
+"--combine",
+default = "union",
+required = TRUE,
+help ="How to combine variable genes across experiments",
+metavar = "union,intersect"
 )
 
 required$add_argument(
-  "--keep.unique",
-  default = FALSE,
-  required = TRUE,
-  help ="Keep genes that occur (i.e., there is a corresponding column in raw.data) only in one dataset",
-  metavar = "Boolean"
+"--keep_unique",
+default = FALSE,
+required = TRUE,
+help ="Keep genes that occur (i.e., there is a corresponding column in raw.data) only in one dataset",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--capitalize",
-  default = FALSE,
-  required = TRUE,
-  help ="Capitalize gene names to match homologous genes(ie. across species)",
-  metavar = "Boolean"
+"--capitalize",
+default = FALSE,
+required = TRUE,
+help ="Capitalize gene names to match homologous genes(ie. across species)",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--do.plot",
-  default = FALSE,
-  required = TRUE,
-  help ="Display log plot of gene variance vs. gene expression for each dataset",
-  metavar = "Boolean"
+"--do_plot",
+default = FALSE,
+required = TRUE,
+help ="Display log plot of gene variance vs. gene expression for each dataset",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--cex.use",
-  default = 0.3,
-  type = "number", 
-  required = TRUE,
-  help ="Point size for plot",
-  metavar = "N"
+"--cex_use",
+default = 0.3,
+type = "double",
+required = TRUE,
+help ="Point size for plot",
+metavar = "N"
 )
 
 required$add_argument(
-  "--use.cols",
-  default = TRUE,
-  required = TRUE,
-  help ="Treat each column as a cell",
-  metavar = "Boolean"
+"--use_cols",
+default = TRUE,
+required = TRUE,
+help ="Treat each column as a cell",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--k",
-  default = 30,
-  type = "integer", 
-  required = TRUE,
-  help ="Inner dimension of factorization (number of factors)",
-  metavar = "N"
+"--k",
+default = 30,
+type = "integer",
+required = TRUE,
+help ="Inner dimension of factorization (number of factors)",
+metavar = "N"
 )
 
 required$add_argument(
-  "--lambda",
-  default = 5.0,
-  type = "number", 
-  required = TRUE,
-  help ="Regularization parameter. Larger values penalize dataset-specific effects more strongly (ie. alignment should increase as lambda increases)",
-  metavar = "N"
+"--lambda",
+default = 5.0,
+type = "double",
+required = TRUE,
+help ="Regularization parameter. Larger values penalize dataset-specific effects more strongly (ie. alignment should increase as lambda increases)",
+metavar = "N"
 )
 
 required$add_argument(
-  "--thresh",
-  default = 0.0001,
-  type = "number", 
-  required = TRUE,
-  help ="Convergence threshold. Convergence occurs when |obj0-obj|/(mean(obj0,obj)) < thresh",
-  metavar = "N"
+"--thresh",
+default = 0.0001,
+type = "double",
+required = TRUE,
+help ="Convergence threshold. Convergence occurs when |obj0-obj|/(mean(obj0,obj)) < thresh",
+metavar = "N"
 )
 
 required$add_argument(
-  "--max.iters",
-  default = 100,
-  type = "integer", 
-  required = TRUE,
-  help ="Maximum number of block coordinate descent iterations to perform",
-  metavar = "N"
+"--max_iters",
+default = 100,
+type = "integer",
+required = TRUE,
+help ="Maximum number of block coordinate descent iterations to perform",
+metavar = "N"
 )
 
 required$add_argument(
-  "--nrep",
-  default = 1,
-  type = "integer", 
-  required = TRUE,
-  help ="Number of restarts to perform",
-  metavar = "N"
+"--nrep",
+default = 1,
+type = "integer",
+required = TRUE,
+help ="Number of restarts to perform",
+metavar = "N"
 )
 
 required$add_argument(
-  "--H.init",
-  default = 'null',
-  required = TRUE,
-  help ="Initial values to use for H matrices",
-  metavar = "H"
+"--h_init",
+default = 'null',
+required = TRUE,
+help ="Initial values to use for H matrices",
+metavar = "H"
 )
 
 required$add_argument(
-  "--W.init",
-  default = 'null',
-  required = TRUE,
-  help ="Initial values to use for W matrices",
-  metavar = "W"
+"--w_init",
+default = 'null',
+required = TRUE,
+help ="Initial values to use for W matrices",
+metavar = "W"
 )
 
 required$add_argument(
-  "--V.init",
-  default = 'null',
-  required = TRUE,
-  help ="Initial values to use for V matrices",
-  metavar = "V"
+"--v_init",
+default = 'null',
+required = TRUE,
+help ="Initial values to use for V matrices",
+metavar = "V"
 )
 
 required$add_argument(
-  "--rand.seed",
-  default = 1,
-  type = "integer", 
-  required = TRUE,
-  help ="Random seed to allow reproducible results",
-  metavar = "N"
+"--rand_seed",
+default = 1,
+type = "integer",
+required = TRUE,
+help ="Random seed to allow reproducible results",
+metavar = "N"
 )
 
 required$add_argument(
-  "--print.obj",
-  default = FALSE,
-  required = TRUE,
-  help ="Print objective function values after convergence",
-  metavar = "Boolean"
+"--print_obj",
+default = FALSE,
+required = TRUE,
+help ="Print objective function values after convergence",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--knn_k",
-  default = 20,
-  type = "integer", 
-  required = TRUE,
-  help ="Number of nearest neighbors for within-dataset knn graph",
-  metavar = "N"
+"--knn_k",
+default = 20,
+type = "integer",
+required = TRUE,
+help ="Number of nearest neighbors for within-dataset knn graph",
+metavar = "N"
 )
 
 required$add_argument(
-  "--k2",
-  default = 500,
-  type = "integer", 
-  required = TRUE,
-  help ="Horizon parameter for shared nearest factor graph",
-  metavar = "N"
+"--k2",
+default = 500,
+type = "integer",
+required = TRUE,
+help ="Horizon parameter for shared nearest factor graph",
+metavar = "N"
 )
 
 required$add_argument(
-  "--prune.thresh",
-  default = 0.2,
-  type = "number", 
-  required = TRUE,
-  help ="Minimum allowed edge weight. Any edges below this are removed (given weight 0)",
-  metavar = "N"
+"--prune_thresh",
+default = 0.2,
+type = "double",
+required = TRUE,
+help ="Minimum allowed edge weight. Any edges below this are removed (given weight 0)",
+metavar = "N"
 )
 
 required$add_argument(
-  "--ref_dataset",
-  default = '',
-  required = TRUE,
-  help ="Name of dataset to use as a reference for normalization",
-  metavar = "ref"
+"--ref_dataset",
+default = '',
+required = TRUE,
+help ="Name of dataset to use as a reference for normalization",
+metavar = "ref"
 )
 
 required$add_argument(
-  "--min_cells",
-  default = 2,
-  type = "integer", 
-  required = TRUE,
-  help ="Minimum number of cells to consider a cluster shared across datasets",
-  metavar = "N"
+"--min_cells",
+default = 2,
+type = "integer",
+required = TRUE,
+help ="Minimum number of cells to consider a cluster shared across datasets",
+metavar = "N"
 )
 
 required$add_argument(
-  "--quantiles",
-  default = 50,
-  type = "integer", 
-  required = TRUE,
-  help ="Number of quantiles to use for quantile normalization",
-  metavar = "N"
+"--quantiles",
+default = 50,
+type = "integer",
+required = TRUE,
+help ="Number of quantiles to use for quantile normalization",
+metavar = "N"
 )
 
 required$add_argument(
-  "--nstart",
-  default = 10,
-  type = "integer", 
-  required = TRUE,
-  help ="Number of times to perform Louvain community detection with different random starts",
-  metavar = "N"
+"--nstart",
+default = 10,
+type = "integer",
+required = TRUE,
+help ="Number of times to perform Louvain community detection with different random starts",
+metavar = "N"
 )
 
 required$add_argument(
-  "--resolution",
-  default = 1,
-  type = "number", 
-  required = TRUE,
-  help ="Controls the number of communities detected (Higher resolution -> more communities)",
-  metavar = "N"
+"--resolution",
+default = 1,
+type = "double",
+required = TRUE,
+help ="Controls the number of communities detected (Higher resolution -> more communities)",
+metavar = "N"
 )
 
 required$add_argument(
-  "--dims.use",
-  default = "null",
-  required = TRUE,
-  help ="Indices of factors to use for shared nearest factor determination",
-  metavar = "Indices"
+"--dims_use",
+default = "null",
+required = TRUE,
+help ="Indices of factors to use for shared nearest factor determination",
+metavar = "Indices"
 )
 
 required$add_argument(
-  "--dist.use",
-  default = "CR",
-  required = TRUE,
-  help ="Distance metric to use in calculating nearest neighbors",
-  metavar = "CR"
+"--dist_use",
+default = "CR",
+required = TRUE,
+help ="Distance metric to use in calculating nearest neighbors",
+metavar = "CR"
 )
 
 required$add_argument(
-  "--center",
-  default = FALSE,
-  required = TRUE,
-  help ="Centers the data when scaling factors (useful for less sparse modalities like methylation data)",
-  metavar = "Boolean"
+"--center",
+default = FALSE,
+required = TRUE,
+help ="Centers the data when scaling factors (useful for less sparse modalities like methylation data)",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--small.clust.thresh",
-  default = 0,
-  type = "number", 
-  required = TRUE,
-  help ="Extracts small clusters loading highly on single factor with fewer cells than this before regular alignment",
-  metavar = "N"
+"--small_clust_thresh",
+default = 0,
+type = "double",
+required = TRUE,
+help ="Extracts small clusters loading highly on single factor with fewer cells than this before regular alignment",
+metavar = "N"
 )
 
 required$add_argument(
-  "--id.number",
-  required = TRUE,
-  help ="Number to use for identifying edge file (when running in parallel) (generates random value by default)",
-  metavar = "id"
+"--id_number",
+required = TRUE,
+help ="Number to use for identifying edge file (when running in parallel) (generates random value by default)",
+metavar = "id"
 )
 
 required$add_argument(
-  "--print.mod",
-  default = FALSE,
-  required = TRUE,
-  help ="Print modularity output from clustering algorithm",
-  metavar = "Boolean"
+"--print_mod",
+default = FALSE,
+required = TRUE,
+help ="Print modularity output from clustering algorithm",
+metavar = "Boolean"
 )
 
 required$add_argument(
-  "--print.align.summary",
-  default = FALSE,
-  required = TRUE,
-  help ="Print summary of clusters which did not align normally",
-  metavar = "Boolean"
+"--print_align_summary",
+default = FALSE,
+required = TRUE,
+help ="Print summary of clusters which did not align normally",
+metavar = "Boolean"
 )
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
-### Pre-process args                                                        ####
-​
+### Pre-process args ####
+
 args <- parser$parse_args()
 args <- purrr::map(args, function(x) {
-  if (length(x) == 1) {
-    if (toupper(x) == "TRUE") {
-      return(TRUE)
-    }
-    if (toupper(x) == "FALSE") {
-      return(FALSE)
-    }
-    if (toupper(x) == "NULL") {
-      return(NULL)
-    }
-  }
-  return(x)
+if (length(x) == 1) {
+if (toupper(x) == "TRUE") {
+return(TRUE)
+}
+if (toupper(x) == "FALSE") {
+return(FALSE)
+}
+if (toupper(x) == "NULL") {
+return(NULL)
+}
+}
+return(x)
 })
-​
-##  ............................................................................
-##  Integrate sce                                                            ####
+
+## ............................................................................
+## Integrate sce ####
 
 sce <- read_sce(args$sce_path)
 
 sce <- integrate_sce(
-    sce,
-    method = args$method,
-    unique_id_var = args$unique_id_var,
-    take_gene_union = args$take_gene_union,
-    remove.missing = args$remove.missing,
-    num_genes = args$num_genes,
-    combine = args$union,
-    keep_unique = args$keep_unique,
-    capitalize = args$capitalize,
-    do_plot = args$do_plot,
-    cex_use = args$cex_use,
-    use_cols = args$use_cols,
-    k = args$k,
-    lambda = args$lambda,
-    thresh = args$thresh,
-    max_iters = args$max_iters,
-    nrep = args$nrep,
-    h_init = args$h_init,
-    w_init = args$w_init,
-    v_init = args$v_init,
-    rand_seed = args$rand_seed,
-    print_obj = args$print_obj,
-    knn_k = args$knn_k,
-    k2 = args$k2,
-    prune_thresh = args$prune_thresh,
-    ref_dataset = args$ref_dataset,
-    min_cells = args$min_cells,
-    quantiles = args$quantiles,
-    nstart = args$nstart,
-    resolution = args$resolution,
-    dims_use = args$dims_use,
-    dist_use = args$dist_use,
-    center = args$center,
-    small_clust_thresh = args$small_clust_thresh,
-    id_number = args$id_number,
-    print_mod = args$print_mod,
-    print_align_summary = args$print_align_summary
-    )
-	
-##  ............................................................................
-##  Save Outputs                                                            ####
-​
+sce,
+method = args$method,
+unique_id_var = args$unique_id_var,
+take_gene_union = args$take_gene_union,
+remove.missing = args$remove_missing,
+num_genes = args$num_genes,
+combine = args$combine,
+keep_unique = args$keep_unique,
+capitalize = args$capitalize,
+do_plot = args$do_plot,
+cex_use = args$cex_use,
+use_cols = args$use_cols,
+k = args$k,
+lambda = args$lambda,
+thresh = args$thresh,
+max_iters = args$max_iters,
+nrep = args$nrep,
+h_init = args$h_init,
+w_init = args$w_init,
+v_init = args$v_init,
+rand_seed = args$rand_seed,
+print_obj = args$print_obj,
+knn_k = args$knn_k,
+k2 = args$k2,
+prune_thresh = args$prune_thresh,
+ref_dataset = args$ref_dataset,
+min_cells = args$min_cells,
+quantiles = args$quantiles,
+nstart = args$nstart,
+resolution = args$resolution,
+dims_use = args$dims_use,
+dist_use = args$dist_use,
+center = args$center,
+small_clust_thresh = args$small_clust_thresh,
+id_number = args$id_number,
+print_mod = args$print_mod,
+print_align_summary = args$print_align_summary
+)
+
+## ............................................................................
+## Save Outputs ####
+
 # Save SingleCellExperiment
 write_sce(
-  sce = sce,
-  folder_path = file.path(getwd(), "integrate_sce")
-  )
-​
-##  ............................................................................
-##  Clean up                                                                ####
-​
-# Clear biomart cache
+sce = sce,
+folder_path = file.path(getwd(), "integrated_sce")
+)

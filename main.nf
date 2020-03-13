@@ -343,8 +343,7 @@ process scflow_merge {
 process scflow_integrate {
 
   tag "merged"
-  executor 'local'
-  label 'process_local'
+  label 'process_medium'
 
   input:
     path( sce )
