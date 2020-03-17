@@ -106,6 +106,9 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
  if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
+ if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
+
+
 
  /*
 if (params.readPaths) {
@@ -472,6 +475,7 @@ process scflow_map_celltypes {
 
   output:
     path 'celltype_mapped_sce/', emit: celltype_mapped_sce
+    path 'celltype_mappings.tsv', emit: celltype_mappings
 
   script:
     """
@@ -485,6 +489,45 @@ process scflow_map_celltypes {
     """
 
 }
+
+process scflow_finalize_sce {
+  tag "merged"
+  label  'process_low'
+
+  echo true
+  
+  input:
+    path (sce)
+    path celltype_mappings
+
+  output:
+    path 'final_sce/', emit: final_sce
+
+
+  script:
+  //def ctmappings = celltype_mappings.name != 'NO_FILE' ? "--celltype_mappings $celltype_mappings" : ''
+    if( celltype_mappings.name != 'NO_FILE' )
+
+      """
+      echo "Revised celltype mappings not found: using automated celltype predictions."
+      cp -R * ./final_sce
+      """
+
+    else
+
+      """
+      finalize_sce.r \
+      --sce_path ${sce} \
+      --celltype_mappings ${celltype_mappings} \
+      """
+
+}
+
+
+
+
+
+
 
 process scflow_perform_de {
 
@@ -600,6 +643,7 @@ workflow {
     // ct
     scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
+    scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/celltype_mappings", mode: 'copy'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
     // IPA
