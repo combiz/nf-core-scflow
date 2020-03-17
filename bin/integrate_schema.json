@@ -153,7 +153,7 @@
 							"dims_use": {
                                 "type": "number",
                                 "title": "dims_use",
-                                "default": ""
+                                "default": "NULL"
                             },
 							"dist_use": {
                                 "type": "string",
@@ -173,7 +173,7 @@
 							"id_number": {
                                 "type": "number",
                                 "title": "id_number",
-                                "default": ""
+                                "default": "NULL"
                             },
 							"print_mod": {
                                 "type": "boolean",

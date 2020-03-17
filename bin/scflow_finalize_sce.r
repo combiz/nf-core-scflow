@@ -1,17 +1,15 @@
 #!/usr/bin/env Rscript
-# Map celltypes for a SCE
+# Finalize SCE with manually revised celltypes
 #  Combiz Khozoie <c.khozoie@imperial.ac.uk>
 
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
-
 ##  ............................................................................
 ##  Load packages                                                           ####
 library(argparse)
 library(scFlow)
-library(parallel)
+library(magrittr)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -31,25 +29,16 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--ctd_folder",
-  help = "path to a folder containing ewce ctd files",
+  "--celltype_mappings",
+  help = "path to a tsv file with revised celltype mappings",
   metavar = "foo/bar", 
   required = TRUE
 )
 
 required$add_argument(
   "--clusters_colname",
-  help = "the sce colData variable storing cluster numbers",
+  help = "name of the column with cluster numbers",
   metavar = "foo/bar", 
-  required = TRUE
-)
-
-required$add_argument(
-  "--cells_to_sample",
-  type = "integer", 
-  default = 10000,
-  help = "the number of cells to sample with ewce",
-  metavar = "N", 
   required = TRUE
 )
 
@@ -61,29 +50,33 @@ args <- parser$parse_args()
 ##  ............................................................................
 ##  Start                                                                   ####
 
-cat(print(tempdir()))
+celltype_mappings <- read_celltype_mappings(args$celltype_mappings)
 
 sce <- read_sce(args$sce_path)
 
-sce <- map_celltypes_sce(
-  sce, 
-  ctd_folder = args$ctd_folder,
-  clusters_colname = args$clusters_colname,
-  cells_to_sample = args$cells_to_sample
-  )
+sce <- map_custom_celltypes(
+    sce, 
+    mappings = celltype_mappings, 
+    clusters_colname = args$clusters_colname
+    )
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####
 
-write_celltype_mappings(sce, folder_path = getwd())
+celltypes <- as.data.frame(SummarizedExperiment::colData(sce)) %>%
+  dplyr::count(cluster_celltype)
+colnames(celltypes) <- c("celltype", "n_cells")
+
+write.table(
+  data.frame(celltypes), 
+  file = "celltypes.tsv", 
+  row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
 
 # Save SingleCellExperiment
 write_sce(
   sce = sce,
-  folder_path = file.path(getwd(), "celltype_mapped_sce")
+  folder_path = file.path(getwd(), "final_sce")
   )
 
 ##  ............................................................................
 ##  Clean up                                                                ####
-
-# Clear biomart cache

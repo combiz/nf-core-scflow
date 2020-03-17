@@ -166,10 +166,8 @@ required$add_argument(
 
 required$add_argument(
   "--fast_sgd",
-  type = "integer", 
-  default = 0,
   help = "faster but less reproducible UMAP (uwot) (lgl)",
-  metavar = "integer", 
+  metavar = "FALSE", 
   required = TRUE
 )
 
@@ -182,7 +180,14 @@ args$fast_sgd <- as.logical(args$fast_sgd)
 args$input_reduced_dim <- strsplit(args$input_reduced_dim, ",")[[1]]
 args$reduction_methods <- strsplit(args$reduction_methods, ",")[[1]]
 args$vars_to_regress_out <- strsplit(args$vars_to_regress_out, ",")[[1]]
-print(args)
+args <- purrr::map(args, function(x) {
+  if (length(x) == 1) {
+    if (toupper(x) == "TRUE") return(TRUE)
+    if (toupper(x) == "FALSE") return(FALSE)
+    if (toupper(x) == "NULL") return(NULL)
+  }
+  return(x)
+})
 
 ##  ............................................................................
 ##  Start                                                                   ####

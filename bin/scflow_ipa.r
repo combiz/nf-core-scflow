@@ -11,7 +11,6 @@ options(mc.cores = parallel::detectCores())
 ##  Load packages                                                           ####
 library(argparse)
 library(scFlow)
-library(parallel)
 library(cli)
 
 ##  ............................................................................
@@ -42,8 +41,8 @@ required$add_argument(
 
 required$add_argument(
   "--enrichment_tool",
-  help = "name of the enrichment tool",
-  metavar = "WebGestaltR,EnrichR,ROntoTools",
+  help = "one or more enrichment tools",
+  metavar = "WebGestaltR",
   required = TRUE,
   default = "WebGestaltR"
 )
@@ -86,9 +85,11 @@ required$add_argument(
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+
 args$enrichment_method <- strsplit(args$enrichment_method, ",")[[1]]
 args$enrichment_tool <- strsplit(args$enrichment_tool, ",")[[1]]
 args$enrichment_database <- strsplit(args$enrichment_database, ",")[[1]]
+args$gene_file <- strsplit(args$gene_file, ",")[[1]]
 args <- purrr::map(args, function(x) {
   if (length(x) == 1) {
     if (toupper(x) == "TRUE") {
@@ -110,23 +111,28 @@ args <- purrr::map(args, function(x) {
 output_dir <- file.path(args$output_dir, "ipa")
 dir.create(output_dir)
 
-enrichment_result <- find_impacted_pathways(
-  gene_file = args$gene_file,
-  enrichment_tool = args$enrichment_tool,
-  enrichment_method = args$enrichment_method,
-  enrichment_database = args$enrichment_database,
-  is_output = args$is_output,
-  output_dir = output_dir
-)
+for (gene_file in args$gene_file) {
 
+  enrichment_result <- find_impacted_pathways(
+    gene_file = gene_file,
+    enrichment_tool = args$enrichment_tool,
+    enrichment_method = args$enrichment_method,
+    enrichment_database = args$enrichment_database,
+    is_output = args$is_output,
+    output_dir = output_dir
+  )
 
-report_impacted_pathway(
-  res = enrichment_result,
-  report_folder_path = output_dir,
-  report_file = paste0(args$gene_file, "_scflow_ipa_report")
-)
+  report_name <-  tools::file_path_sans_ext(gene_file)
+  report_fp <- paste0(report_name, "_scflow_ipa_report")
+  
+  report_impacted_pathway(
+      res = enrichment_result,
+      report_folder_path = output_dir,
+      report_file = report_fp
+    )
 
-cli::cli_text(c(
-  "{cli::col_green(symbol$tick)} Analysis complete, output is found at: ",
-  "{.file {output_dir}}"
-))
+    cli::cli_text(c(
+      "{cli::col_green(symbol$tick)} Analysis complete, output is found at: ",
+      "{.file {output_dir}}"
+    ))
+}
