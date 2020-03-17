@@ -9,6 +9,7 @@
 ##  Load packages                                                           ####
 library(argparse)
 library(scFlow)
+library(magrittr)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -49,8 +50,6 @@ args <- parser$parse_args()
 ##  ............................................................................
 ##  Start                                                                   ####
 
-cat(print(tempdir()))
-
 celltype_mappings <- read_celltype_mappings(args$celltype_mappings)
 
 sce <- read_sce(args$sce_path)
@@ -63,6 +62,15 @@ sce <- map_custom_celltypes(
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####
+
+celltypes <- as.data.frame(SummarizedExperiment::colData(sce)) %>%
+  dplyr::count(cluster_celltype)
+colnames(celltypes) <- c("celltype", "n_cells")
+
+write.table(
+  data.frame(celltypes), 
+  file = "celltypes.tsv", 
+  row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
 
 # Save SingleCellExperiment
 write_sce(

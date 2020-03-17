@@ -491,7 +491,7 @@ process scflow_map_celltypes {
 }
 
 process scflow_finalize {
-  
+
   tag "merged"
   label  'process_local'
 
@@ -503,6 +503,7 @@ process scflow_finalize {
 
   output:
     path 'final_sce/', emit: final_sce
+    path 'celltypes.tsv', emit: celltypes
 
 
   script:
@@ -627,7 +628,7 @@ workflow {
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
     scflow_finalize ( scflow_map_celltypes.out.celltype_mapped_sce, ch_celltype_mappings )
-    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, ["IN-SST"] )
+    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, scflow_finalize.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> row.celltype } )
     scflow_perform_ipa( scflow_perform_de.out.de_table )
     scflow_traject( scflow_finalize.out.final_sce )
 
@@ -645,16 +646,15 @@ workflow {
     scflow_merge.out.merge_plots to: "$params.outdir/merge/plots", mode: 'copy'
     scflow_merge.out.merge_summary_plots to: "$params.outdir/merge/plots/summary_plots", mode: 'copy'
     // ct
-    scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
-    scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/celltype_mappings", mode: 'copy'
     // final
-    scflow_finalize.out.final_sce to: "$params.outdir/final_sce", mode: 'copy', overwrite: 'true'
+    scflow_finalize.out.final_sce to: "$params.outdir/", mode: 'copy', overwrite: 'true'
+    scflow_finalize.out.celltypes to: "$params.outdir/celltype_mappings", mode: 'copy', overwrite: 'true'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
     // IPA
-    scflow_perform_ipa.out.ipa_results to: "$params.outdir/ipa/", mode: 'copy'
-    scflow_perform_ipa.out.ipa_report to: "$params.outdir/ipa/", mode: 'copy'
+    scflow_perform_ipa.out.ipa_results to: "$params.outdir/", mode: 'copy'
+    scflow_perform_ipa.out.ipa_report to: "$params.outdir/", mode: 'copy'
 
 }
 
