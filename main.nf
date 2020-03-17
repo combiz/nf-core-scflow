@@ -490,9 +490,10 @@ process scflow_map_celltypes {
 
 }
 
-process scflow_finalize_sce {
+process scflow_finalize {
+  
   tag "merged"
-  label  'process_low'
+  label  'process_local'
 
   echo true
   
@@ -506,19 +507,21 @@ process scflow_finalize_sce {
 
   script:
   //def ctmappings = celltype_mappings.name != 'NO_FILE' ? "--celltype_mappings $celltype_mappings" : ''
-    if( celltype_mappings.name != 'NO_FILE' )
+    if( celltype_mappings.name == 'NO_FILE' )
 
       """
       echo "Revised celltype mappings not found: using automated celltype predictions."
-      cp -R * ./final_sce
+      cp -R ${sce} ./final_sce
       """
 
     else
 
       """
-      finalize_sce.r \
+      echo "Applying revised celltype mappings.."
+      scflow_finalize_sce.r \
       --sce_path ${sce} \
       --celltype_mappings ${celltype_mappings} \
+      --clusters_colname ${params.mapct.clusters_colname}
       """
 
 }
@@ -623,9 +626,10 @@ workflow {
     scflow_reduce_dims ( scflow_integrate.out.integrated_sce )
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
-    scflow_perform_de( scflow_map_celltypes.out.celltype_mapped_sce, params.de.de_method, ["IN-SST"] )
+    scflow_finalize ( scflow_map_celltypes.out.celltype_mapped_sce, ch_celltype_mappings )
+    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, ["IN-SST"] )
     scflow_perform_ipa( scflow_perform_de.out.de_table )
-    scflow_traject( scflow_map_celltypes.out.celltype_mapped_sce )
+    scflow_traject( scflow_finalize.out.final_sce )
 
   
   publish:
@@ -644,6 +648,8 @@ workflow {
     scflow_cluster.out.clustered_sce to: "$params.outdir/clustered_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mapped_sce to: "$params.outdir/celltype_mapped_sce", mode: 'copy'
     scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/celltype_mappings", mode: 'copy'
+    // final
+    scflow_finalize.out.final_sce to: "$params.outdir/final_sce", mode: 'copy', overwrite: 'true'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
     // IPA
