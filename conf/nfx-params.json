@@ -1,6 +1,9 @@
 {
   "QC": {
     "key_colname": "manifest",
+    "factor_vars": [
+      "manifest"
+    ],
     "min_library_size": 300,
     "min_features": 100,
     "max_mito": 0.1,
@@ -142,16 +145,22 @@
     ],
     "random_effects_var": "null",
     "fc_threshold": 1.1,
-    "pval_cutoff": 0.05
+    "pval_cutoff": 0.05,
+    "force_run": false
   },
    "IPA": {
     "reference_file": "null",
     "enrichment_tool": [
-      "WebgestaltR"
+      "WebGestaltR", 
+      "ROntoTools", 
+      "enrichR"
     ],
     "enrichment_method": "ORA",
     "enrichment_database": [
-      "GO_Biological_Process"
+      "GO_Biological_Process",
+      "KEGG", 
+      "Panther", 
+      "Reactome"
     ],
     "is_output": true,
     "output_dir": "."

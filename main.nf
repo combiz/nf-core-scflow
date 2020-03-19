@@ -139,12 +139,16 @@ def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name']         = custom_runName ?: workflow.runName
 // TODO nf-core: Report custom parameters here
-summary['Manifest']          = params.manifest
-summary['SampleSheet']       = params.samplesheet
+summary['Manifest']         = params.manifest
+summary['SampleSheet']      = params.samplesheet
 summary['Run EmptyDrops']   = params.findcells.find_cells ? "Yes" : "No"
-summary['Find Singlets']   = params.singlets.find_singlets ? "Yes ($params.singlets.singlets_method)" : 'No'
+summary['Find Singlets']    = params.singlets.find_singlets ? "Yes ($params.singlets.singlets_method)" : 'No'
 summary['Dimension Reds.']  = params.reddim.reduction_methods.join(',')
 summary['Clustering Input'] = params.cluster.reduction_method
+summary['DGE Method']       = params.de.de_method == "MASTZLM" ? "$params.de.de_method ($params.de.mast_method)": "$params.de.de_method"
+summary['DGE Dependent Var']= params.de.dependent_var
+summary['DGE Ref Class']    = params.de.ref_class.join(',')
+summary['DGE Confound Vars']= params.de.confounding_vars.join(',')
 summary['Max Resources']    = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output dir']       = params.outdir
@@ -266,6 +270,7 @@ process scflow_qc {
     --mat_path ${mat_path} \
     --key ${key} \
     --key_colname ${params.QC.key_colname} \
+    --factor_vars ${params.QC.factor_vars.join(',')} \
     --ensembl_mappings ${params.ensembl_mappings} \
     --min_library_size ${params.QC.min_library_size} \
     --min_features ${params.QC.min_features} \
@@ -493,7 +498,7 @@ process scflow_map_celltypes {
 process scflow_finalize {
 
   tag "merged"
-  label  'process_local'
+  label  'process_low'
 
   echo true
   
@@ -527,15 +532,9 @@ process scflow_finalize {
 
 }
 
-
-
-
-
-
-
 process scflow_perform_de {
 
-  tag "${celltype}|${de_method}"
+  tag "${celltype} (${n_cells_str} cells) | ${de_method}"
   label 'process_medium'
   
   echo true
@@ -543,13 +542,18 @@ process scflow_perform_de {
   input:
     path( sce )
     each de_method
-    each celltype
+    each ct_tuple
 
   output:
     path '*.tsv', emit: de_table
 
-    script:
+  script:
+    celltype = ct_tuple[0]
+    n_cells = ct_tuple[1].toInteger()
+    n_cells_str = (Math.round(n_cells * 100) / 100000).round(1).toString() + 'k'
+
     """
+    echo "celltype: ${celltype} n_cells: ${n_cells_str}"
     scflow_perform_de.r \
     --sce ${sce} \
     --celltype ${celltype} \
@@ -558,6 +562,7 @@ process scflow_perform_de {
     --min_counts ${params.de.min_counts} \
     --min_cells_pc ${params.de.min_cells_pc} \
     --rescale_numerics ${params.de.rescale_numerics} \
+    --force_run ${params.de.force_run} \
     --dependent_var ${params.de.dependent_var} \
     --ref_class ${params.de.ref_class} \
     --confounding_vars ${params.de.confounding_vars.join(',')} \
@@ -570,8 +575,6 @@ process scflow_perform_de {
 process scflow_perform_ipa {
 
   label 'process_medium'
-  
-  echo true
    
   input:
     path( de_table )
@@ -628,7 +631,7 @@ workflow {
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
     scflow_finalize ( scflow_map_celltypes.out.celltype_mapped_sce, ch_celltype_mappings )
-    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, scflow_finalize.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> row.celltype } )
+    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, scflow_finalize.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> tuple(row.celltype, row.n_cells) } )
     scflow_perform_ipa( scflow_perform_de.out.de_table )
     scflow_traject( scflow_finalize.out.final_sce )
 

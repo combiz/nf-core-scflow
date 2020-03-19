@@ -75,6 +75,13 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--force_run",
+  help = "force run if non-full-rank (lgl)",
+  metavar = "TRUE",
+  required = TRUE
+)
+
+required$add_argument(
   "--dependent_var",
   help = "dependent variable",
   metavar = "group",
@@ -122,6 +129,7 @@ required$add_argument(
 # otherwise if options not found on command line then set defaults
 args <- parser$parse_args()
 args$rescale_numerics <- as.logical(args$rescale_numerics)
+args$force_run <- as.logical(args$force_run)
 if(tolower(args$random_effects_var) == "null") args$random_effects_var <- NULL
 args$confounding_vars <- strsplit(args$confounding_vars, ",")[[1]]
 
@@ -148,7 +156,8 @@ de_results <- perform_de(
   random_effects_var = args$random_effects_var,
   fc_threshold = args$fc_threshold,
   pval_cutoff = args$pval_cutoff,
-  mast_method = args$mast_method
+  mast_method = args$mast_method,
+  force_run = args$force_run
   )
 
 for (result in names(de_results)) {

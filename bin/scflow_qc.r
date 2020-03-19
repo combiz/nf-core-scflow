@@ -44,6 +44,13 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--factor_vars",
+  help = "sample sheet variables to treat as factors",
+  metavar = "hirol", 
+  required = TRUE
+)
+
+required$add_argument(
   "--mat_path",
   help = "folder path of sparse matrix (cellranger output)",
   metavar = "out", 
@@ -239,6 +246,7 @@ args <- parser$parse_args()
 args[startsWith(names(args), "drop_")] <- 
   as.logical(args[startsWith(names(args), "drop_")])
 args$find_singlets <- as.logical(args$find_singlets)
+args$factor_vars <- strsplit(args$factor_vars, ",")[[1]]
 args$vars_to_regress_out <- strsplit(args$vars_to_regress_out, ",")[[1]]
 args <- purrr::map(args, function(x) {
   if (length(x) == 1) {
@@ -256,10 +264,14 @@ cli::boxx(paste0("Analysing: ", args$key), float = "center")
 
 mat <- scFlow::read_sparse_matrix(args$mat_path)
 
+col_classes <- rep("factor", length(args$factor_vars))
+names(col_classes) <- args$factor_vars
+
 metadata <- read_metadata(
   unique_key = args$key,
   key_colname = args$key_colname,
-  samplesheet_path = args$samplesheet
+  samplesheet_path = args$samplesheet,
+  col_classes = col_classes
 )
 
 sce <- generate_sce(mat, metadata)
