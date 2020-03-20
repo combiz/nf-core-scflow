@@ -107,6 +107,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
  if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
  if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
+ if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: true) }
 
 
 
@@ -532,10 +533,33 @@ process scflow_finalize {
 
 }
 
+process scflow_plot_reddim_genes {
+
+  label 'process_low'
+   
+  input:
+    path( sce )
+    path ( reddim_genes_yml )
+
+  output:
+    path 'reddim_gene_plots/', emit: reddim_gene_plots
+
+  script:
+    
+    """
+    scflow_plot_reddim_genes.r \
+    --sce ${sce} \
+    --reduction_methods ${params.plot_reddim_genes.reduction_methods.join(',')} \
+    --reddim_genes_yml ${reddim_genes_yml}
+     
+    """
+}
+
 process scflow_perform_de {
 
   tag "${celltype} (${n_cells_str} cells) | ${de_method}"
   label 'process_medium'
+  maxRetries 3
   
   echo true
    
@@ -545,7 +569,7 @@ process scflow_perform_de {
     each ct_tuple
 
   output:
-    path '*.tsv', emit: de_table
+    path '*.tsv', emit: de_table, optional: true
 
   script:
     celltype = ct_tuple[0]
@@ -631,9 +655,13 @@ workflow {
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
     scflow_finalize ( scflow_map_celltypes.out.celltype_mapped_sce, ch_celltype_mappings )
+    // 
     scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, scflow_finalize.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> tuple(row.celltype, row.n_cells) } )
     scflow_perform_ipa( scflow_perform_de.out.de_table )
+    //
     scflow_traject( scflow_finalize.out.final_sce )
+    // plotting
+    scflow_plot_reddim_genes( scflow_finalize.out.final_sce, ch_reddim_genes_yml)
 
   
   publish:
@@ -654,10 +682,12 @@ workflow {
     scflow_finalize.out.final_sce to: "$params.outdir/", mode: 'copy', overwrite: 'true'
     scflow_finalize.out.celltypes to: "$params.outdir/celltype_mappings", mode: 'copy', overwrite: 'true'
     // DE
-    scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy'
+    scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy', optional: true
     // IPA
-    scflow_perform_ipa.out.ipa_results to: "$params.outdir/", mode: 'copy'
-    scflow_perform_ipa.out.ipa_report to: "$params.outdir/", mode: 'copy'
+    scflow_perform_ipa.out.ipa_results to: "$params.outdir/", mode: 'copy', optional: true
+    scflow_perform_ipa.out.ipa_report to: "$params.outdir/", mode: 'copy', optional: true
+    // plots
+    scflow_plot_reddim_genes.out.reddim_gene_plots to: "$params.outdir/", mode: 'copy'
 
 }
 
