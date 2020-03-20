@@ -151,18 +151,18 @@
    "IPA": {
     "reference_file": "null",
     "enrichment_tool": [
-      "WebGestaltR", 
-      "ROntoTools", 
-      "enrichR"
+      "WebGestaltR"
     ],
     "enrichment_method": "ORA",
     "enrichment_database": [
-      "GO_Biological_Process",
-      "KEGG", 
-      "Panther", 
-      "Reactome"
+      "GO_Biological_Process"
     ],
     "is_output": true,
     "output_dir": "."
+  },
+  "plot_reddim_genes": {
+    "reduction_methods": [
+      "UMAP_Liger"
+    ]
   }
 }

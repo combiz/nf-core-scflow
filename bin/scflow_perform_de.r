@@ -161,13 +161,18 @@ de_results <- perform_de(
   )
 
 for (result in names(de_results)) {
-  write.table(de_results[[result]],
-              file = paste0(
-                args$celltype, "_",
-                args$demethod, "_",
-                result, "_DE.tsv"
-              ),
-              quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE
-  )
+  if (dim(de_results[[result]])[[1]] > 0) {
+    write.table(de_results[[result]],
+                file = paste0(
+                  args$celltype, "_",
+                  args$demethod, "_",
+                  result, "_DE.tsv"
+                ),
+                quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE
+    )
+  } else { 
+    print(sprintf("No DE genes found for %s", result)) 
+  }  
 }
+
 
