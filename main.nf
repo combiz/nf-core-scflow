@@ -107,7 +107,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
  if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
  if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
- if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: true) }
+ if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: false) }
 
 
 
