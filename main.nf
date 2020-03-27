@@ -250,6 +250,7 @@ process scflow_qc {
 
   tag "${key}"
   label 'process_medium'
+  maxRetries 3
   
   echo false
    
