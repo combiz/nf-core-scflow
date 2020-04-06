@@ -198,10 +198,8 @@ required$add_argument(
 
 required$add_argument(
   "--pK",
-  type = NULL, 
-  default = NULL,
+  default = "NULL",
   help = "pK value for doublet finder",
-  metavar = "N", 
   required = TRUE
 )
 
