@@ -197,6 +197,15 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--pK",
+  type = "double", 
+  default = NULL,
+  help = "pK value for doublet finder",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
   "--find_cells",
   help = "run empty drops (ambient RNA) algorithm (lgl)",
   metavar = "TRUE", 
@@ -318,7 +327,8 @@ if(args$find_singlets) {
     vars_to_regress_out = args$vars_to_regress_out,
     pca_dims = args$pca_dims,
     var_features = args$var_features,
-    doublet_rate = args$doublet_rate
+    doublet_rate = args$doublet_rate,
+    pK = args$pK
   )
 
   sce <- filter_sce(
