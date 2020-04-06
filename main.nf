@@ -290,6 +290,7 @@ process scflow_qc {
     --pca_dims ${params.singlets.pca_dims} \
     --var_features ${params.singlets.var_features} \
     --doublet_rate ${params.singlets.doublet_rate} \
+    --pK ${params.singlets.pK} \
     --find_cells ${params.findcells.find_cells} \
     --lower ${params.findcells.lower} \
     --retain ${params.findcells.retain} \
