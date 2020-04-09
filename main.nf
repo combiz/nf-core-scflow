@@ -249,9 +249,8 @@ process get_software_versions {
 process scflow_qc {
 
   tag "${key}"
-  label 'process_medium'
-  maxRetries 3
-  
+  label 'process_long'
+   
   echo false
    
   input:
@@ -475,7 +474,7 @@ process scflow_cluster {
 process scflow_map_celltypes {
   
   tag "merged"
-  label 'process_medium'
+  label 'process_high'
 
   input:
     path( sce )
@@ -600,7 +599,7 @@ process scflow_perform_de {
 
 process scflow_perform_ipa {
 
-  label 'process_medium'
+  label 'process_low'
    
   input:
     path( de_table )
