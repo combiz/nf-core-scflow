@@ -411,7 +411,7 @@ process scflow_integrate {
 process scflow_reduce_dims {
   
   tag "merged"
-  label 'process_low'
+  label 'process_medium'
 
   input:
     path( sce )
