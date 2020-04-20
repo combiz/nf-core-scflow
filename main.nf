@@ -592,7 +592,8 @@ process scflow_perform_de {
     --ref_class ${params.de.ref_class} \
     --confounding_vars ${params.de.confounding_vars.join(',')} \
     --random_effects_var ${params.de.random_effects_var} \
-    --fc_threshold ${params.de.fc_threshold}
+    --fc_threshold ${params.de.fc_threshold} \
+    --ensembl_mappings ${params.ensembl_mappings} 
      
     """
 }
