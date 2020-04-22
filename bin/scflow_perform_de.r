@@ -75,6 +75,27 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--pseudobulk",
+  help = "perform pseudobulking option (lgl)",
+  metavar = "TRUE",
+  required = TRUE
+)
+
+required$add_argument(
+  "--celltype_var",
+  help = "celltype variable",
+  metavar = "cluster_celltype",
+  required = TRUE
+)
+
+required$add_argument(
+  "--sample_var",
+  help = "sample variable",
+  metavar = "manifest",
+  required = TRUE
+)
+
+required$add_argument(
   "--force_run",
   help = "force run if non-full-rank (lgl)",
   metavar = "TRUE",
@@ -129,6 +150,7 @@ required$add_argument(
 # otherwise if options not found on command line then set defaults
 args <- parser$parse_args()
 args$rescale_numerics <- as.logical(args$rescale_numerics)
+args$pseudobulk <- as.logical(args$pseudobulk)
 args$force_run <- as.logical(args$force_run)
 if(tolower(args$random_effects_var) == "null") args$random_effects_var <- NULL
 args$confounding_vars <- strsplit(args$confounding_vars, ",")[[1]]
@@ -144,6 +166,19 @@ write(sprintf(
 sce <- read_sce(args$sce)
 
 sce_subset <- sce[, sce$cluster_celltype == args$celltype]
+
+if (pseudobulk) {
+  pb_str <- pb_str <- "_pb"
+  sce_subset <- pseudobulk_sce(
+    sce_subset,
+    keep_vars = c(args$dependent_var, args$confounding_vars, args$random_effects_var),
+    assay_name = "counts",
+    celltype_var = args$celltype_var,
+    sample_var = args$sample_var
+  )
+} else {
+  pb_str <- ""
+}
 
 de_results <- perform_de(
   sce_subset,
@@ -166,6 +201,7 @@ for (result in names(de_results)) {
                 file = paste0(
                   args$celltype, "_",
                   args$demethod, "_",
+                  pb_str,
                   result, "_DE.tsv"
                 ),
                 quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE
