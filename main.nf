@@ -249,9 +249,8 @@ process get_software_versions {
 process scflow_qc {
 
   tag "${key}"
-  label 'process_medium'
-  maxRetries 3
-  
+  label 'process_long'
+   
   echo false
    
   input:
@@ -411,7 +410,7 @@ process scflow_integrate {
 process scflow_reduce_dims {
   
   tag "merged"
-  label 'process_low'
+  label 'process_medium'
 
   input:
     path( sce )
@@ -475,7 +474,7 @@ process scflow_cluster {
 process scflow_map_celltypes {
   
   tag "merged"
-  label 'process_medium'
+  label 'process_high'
 
   input:
     path( sce )
@@ -593,14 +592,15 @@ process scflow_perform_de {
     --ref_class ${params.de.ref_class} \
     --confounding_vars ${params.de.confounding_vars.join(',')} \
     --random_effects_var ${params.de.random_effects_var} \
-    --fc_threshold ${params.de.fc_threshold}
+    --fc_threshold ${params.de.fc_threshold} \
+    --ensembl_mappings ${params.ensembl_mappings} 
      
     """
 }
 
 process scflow_perform_ipa {
 
-  label 'process_medium'
+  label 'process_low'
    
   input:
     path( de_table )
