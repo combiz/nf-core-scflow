@@ -1,0 +1,60 @@
+{
+    "schema": {
+                  "IPA": {
+                      "type": "object",
+                      "title": "Impacted Pathway Analysis",                    
+                          "properties": {
+                            "reference_file": {
+                                  "type": "string",
+                                  "title": "reference_file",
+                                  "default": "null"
+                              },
+                              "enrichment_tool": {
+                                  "type": "array",
+                                  "title": "Enrichment tool",
+                                  "description": "Choose one ore more enrichment tools",
+                                  "items": {
+                                      "type": "string",
+                                      "title": "Enrichment tool",
+                                      "enum": ["WebGestaltR","ROntoTools","enrichR"]
+                                  }
+                              },
+                              "enrichment_method": {
+                                    "type": "string",
+                                    "title": "Enrichment method",
+                                    "description": "Either ORA or GSEA when the enrichment tool is WebgestaltR",
+                                    "default": "ORA"
+                                  },
+                              "enrichment_database": {
+                                  "type": "array",
+                                  "title": "Pathway Database",
+                                  "description": "Choose one or more databases for enrichment",
+                                  "items": {
+                                      "type": "string",
+                                      "title": "Database",
+                                      "enum": ["GO_Biological_Process",
+                                        "GO_Cellular_Component",
+                                        "GO_Molecular_Function",
+                                        "KEGG",
+                                        "Panther",
+                                        "Reactome",
+                                        "Wikipathway"
+                                      ]
+                                  }
+                              },
+                              "is_output": {
+                                  "type": "boolean",
+                                  "title": "is_output",
+                                  "description": "If output will be returned in a folder",
+                                  "default": true
+                              },
+                              "output_dir": {
+                                  "type": "string",
+                                  "title": "Output directory",
+                                  "description": "Output directory path",
+                                  "default": "./"
+                              }
+                          }
+                  }
+    }
+  }

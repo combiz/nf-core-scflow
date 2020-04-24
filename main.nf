@@ -107,7 +107,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
  if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
  if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
- if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: true) }
+ if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: false) }
 
 
 
@@ -249,8 +249,8 @@ process get_software_versions {
 process scflow_qc {
 
   tag "${key}"
-  label 'process_medium'
-  
+  label 'process_long'
+   
   echo false
    
   input:
@@ -289,6 +289,7 @@ process scflow_qc {
     --pca_dims ${params.singlets.pca_dims} \
     --var_features ${params.singlets.var_features} \
     --doublet_rate ${params.singlets.doublet_rate} \
+    --pK ${params.singlets.pK} \
     --find_cells ${params.findcells.find_cells} \
     --lower ${params.findcells.lower} \
     --retain ${params.findcells.retain} \
@@ -409,7 +410,7 @@ process scflow_integrate {
 process scflow_reduce_dims {
   
   tag "merged"
-  label 'process_low'
+  label 'process_medium'
 
   input:
     path( sce )
@@ -473,7 +474,7 @@ process scflow_cluster {
 process scflow_map_celltypes {
   
   tag "merged"
-  label 'process_medium'
+  label 'process_high'
 
   input:
     path( sce )
@@ -591,14 +592,15 @@ process scflow_perform_de {
     --ref_class ${params.de.ref_class} \
     --confounding_vars ${params.de.confounding_vars.join(',')} \
     --random_effects_var ${params.de.random_effects_var} \
-    --fc_threshold ${params.de.fc_threshold}
+    --fc_threshold ${params.de.fc_threshold} \
+    --ensembl_mappings ${params.ensembl_mappings} 
      
     """
 }
 
 process scflow_perform_ipa {
 
-  label 'process_medium'
+  label 'process_low'
    
   input:
     path( de_table )

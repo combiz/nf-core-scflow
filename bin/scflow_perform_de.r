@@ -125,6 +125,13 @@ required$add_argument(
   help = "p-value cutoff for DE [default %(default)s]"
 )
 
+required$add_argument(
+  "--ensembl_mappings",
+  help = "path to ensembl mappings file",
+  metavar = "tsv", 
+  required = TRUE
+)
+
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults
 args <- parser$parse_args()
@@ -157,7 +164,8 @@ de_results <- perform_de(
   fc_threshold = args$fc_threshold,
   pval_cutoff = args$pval_cutoff,
   mast_method = args$mast_method,
-  force_run = args$force_run
+  force_run = args$force_run,
+  ensembl_mapping_file = args$ensembl_mappings
   )
 
 for (result in names(de_results)) {
