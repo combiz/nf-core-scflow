@@ -587,6 +587,9 @@ process scflow_perform_de {
     --min_cells_pc ${params.de.min_cells_pc} \
     --rescale_numerics ${params.de.rescale_numerics} \
     --force_run ${params.de.force_run} \
+    --pseudobulk ${params.de.pseudobulk} \
+    --celltype_var ${params.de.celltype_var} \
+    --sample_var ${params.de.sample_var} \
     --dependent_var ${params.de.dependent_var} \
     --ref_class ${params.de.ref_class} \
     --confounding_vars ${params.de.confounding_vars.join(',')} \

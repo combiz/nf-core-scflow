@@ -167,7 +167,7 @@ sce <- read_sce(args$sce)
 
 sce_subset <- sce[, sce$cluster_celltype == args$celltype]
 
-if (pseudobulk) {
+if (args$pseudobulk) {
   pb_str <- pb_str <- "_pb"
   sce_subset <- pseudobulk_sce(
     sce_subset,

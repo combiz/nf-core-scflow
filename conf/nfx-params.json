@@ -132,7 +132,7 @@
     "min_counts": 1,
     "min_cells_pc": 0.1,
     "rescale_numerics": true,
-    "pseudobulk": false,
+    "pseudobulk": true,
     "celltype_var": "cluster_celltype",
     "sample_var": "manifest",
     "dependent_var": "group",
