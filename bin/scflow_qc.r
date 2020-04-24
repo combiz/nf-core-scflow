@@ -204,14 +204,6 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--num.cores",
-  type = "integer",
-  default = 1,
-  help = "number of cores to be used for doublet finder parameter sweep",
-  required = TRUE
-)
-
-required$add_argument(
   "--find_cells",
   help = "run empty drops (ambient RNA) algorithm (lgl)",
   metavar = "TRUE", 
@@ -335,7 +327,7 @@ if(args$find_singlets) {
     var_features = args$var_features,
     doublet_rate = args$doublet_rate,
     pK = args$pK,
-    num.cores = args$num.cores
+    num.cores = future::availableCores()
   )
 
   sce <- filter_sce(
