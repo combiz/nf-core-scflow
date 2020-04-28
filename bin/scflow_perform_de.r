@@ -190,6 +190,7 @@ if (args$pseudobulk) {
 de_results <- perform_de(
   sce_subset,
   de_method = args$de_method,
+  min_counts = args$min_counts,
   min_cells_pc = args$min_cells_pc,
   rescale_numerics = args$rescale_numerics,
   dependent_var = args$dependent_var,
