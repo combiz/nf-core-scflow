@@ -94,23 +94,6 @@ metavar = "Boolean"
 )
 
 required$add_argument(
-"--do_plot",
-default = FALSE,
-required = TRUE,
-help ="Display log plot of gene variance vs. gene expression for each dataset",
-metavar = "Boolean"
-)
-
-required$add_argument(
-"--cex_use",
-default = 0.3,
-type = "double",
-required = TRUE,
-help ="Point size for plot",
-metavar = "N"
-)
-
-required$add_argument(
 "--use_cols",
 default = TRUE,
 required = TRUE,
@@ -164,44 +147,12 @@ metavar = "N"
 )
 
 required$add_argument(
-"--h_init",
-default = 'null',
-required = TRUE,
-help ="Initial values to use for H matrices",
-metavar = "H"
-)
-
-required$add_argument(
-"--w_init",
-default = 'null',
-required = TRUE,
-help ="Initial values to use for W matrices",
-metavar = "W"
-)
-
-required$add_argument(
-"--v_init",
-default = 'null',
-required = TRUE,
-help ="Initial values to use for V matrices",
-metavar = "V"
-)
-
-required$add_argument(
 "--rand_seed",
 default = 1,
 type = "integer",
 required = TRUE,
 help ="Random seed to allow reproducible results",
 metavar = "N"
-)
-
-required$add_argument(
-"--print_obj",
-default = FALSE,
-required = TRUE,
-help ="Print objective function values after convergence",
-metavar = "Boolean"
 )
 
 required$add_argument(
@@ -308,29 +259,6 @@ help ="Extracts small clusters loading highly on single factor with fewer cells 
 metavar = "N"
 )
 
-required$add_argument(
-"--id_number",
-required = TRUE,
-help ="Number to use for identifying edge file (when running in parallel) (generates random value by default)",
-metavar = "id"
-)
-
-required$add_argument(
-"--print_mod",
-default = FALSE,
-required = TRUE,
-help ="Print modularity output from clustering algorithm",
-metavar = "Boolean"
-)
-
-required$add_argument(
-"--print_align_summary",
-default = FALSE,
-required = TRUE,
-help ="Print summary of clusters which did not align normally",
-metavar = "Boolean"
-)
-
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args ####
 
@@ -365,19 +293,13 @@ num_genes = args$num_genes,
 combine = args$combine,
 keep_unique = args$keep_unique,
 capitalize = args$capitalize,
-do_plot = args$do_plot,
-cex_use = args$cex_use,
 use_cols = args$use_cols,
 k = args$k,
 lambda = args$lambda,
 thresh = args$thresh,
 max_iters = args$max_iters,
 nrep = args$nrep,
-h_init = args$h_init,
-w_init = args$w_init,
-v_init = args$v_init,
 rand_seed = args$rand_seed,
-print_obj = args$print_obj,
 knn_k = args$knn_k,
 k2 = args$k2,
 prune_thresh = args$prune_thresh,
@@ -390,9 +312,6 @@ dims_use = args$dims_use,
 dist_use = args$dist_use,
 center = args$center,
 small_clust_thresh = args$small_clust_thresh,
-id_number = args$id_number,
-print_mod = args$print_mod,
-print_align_summary = args$print_align_summary
 )
 
 ## ............................................................................
