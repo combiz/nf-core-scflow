@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
-#' Annotate integrated, dims reduced and clustered sce object
+#' Annotate integrated, reduced dimension,
+#' and clustered SingleCellExperiment object
 # Mahdi Moradi Marjaneh
 
 # ____________________________________________________________________________
@@ -11,6 +12,7 @@ options(mc.cores = future::availableCores())
 ## Load packages ####
 library(argparse)
 library(scFlow)
+library(parallel)
 
 ## ............................................................................
 ## Parse command-line arguments ####
@@ -31,7 +33,7 @@ required$add_argument(
 
 required$add_argument(
   "--categorical_covariates",
-  help = "-categorical variables",
+  help = "-a list of categorical variables",
   metavar = "individual,diagnosis,region,sex",
   required = TRUE
 )
@@ -64,16 +66,6 @@ sce <- annotate_integrated_sce(
 sce,
 categorical_covariates = args$categorical_covariates
 )
-
-dir.create(file.path(getwd(), "integration_report"))
-
-report_integrated_sce(
-  sce = sce,
-  report_folder_path = file.path(getwd(), "integration_report"),
-  report_file = "integrate_reduceDims_cluster_report_scflow",
-)
-
-print("Annotation complete, saving outputs..")
 
 ## ............................................................................
 ## Save Outputs ####
