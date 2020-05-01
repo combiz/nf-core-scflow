@@ -31,7 +31,7 @@ required$add_argument(
 
 required$add_argument(
   "--categorical_covariates",
-  help = "-categorical variables",
+  help = "-categorical covariates",
   metavar = "individual,diagnosis,region,sex",
   required = TRUE
 )

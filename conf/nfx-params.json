@@ -62,6 +62,12 @@
     "dist_use": "CR",
     "center": false,
     "small_clust_thresh": 0,
+	"categorical_covariates": [
+      "individual", 
+      "diagnosis", 
+      "region", 
+      "sex"
+    ]
   },
   "merge": {
     "plot_vars": [

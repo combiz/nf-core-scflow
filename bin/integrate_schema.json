@@ -140,6 +140,20 @@
                                 "title": "small_clust_thresh",
                                 "default": 0
                             },
+							"categorical_covariates": {
+                                "type": "array",
+                                "title": "categorical_covariates",
+                                  "items": {
+                                      "type": "string",
+                                      "title": "categorical_covariate",
+                                      "enum": ["individual",
+                                        "diagnosis",
+                                        "region",
+                                        "sex"
+                                      ]
+                                  }
+    						}							
+							
                         }
                 }
             }
