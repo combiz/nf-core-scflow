@@ -11,6 +11,7 @@ options(mc.cores = future::availableCores())
 ##  Load packages                                                           ####
 library(argparse)
 library(scFlow)
+library(cli)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
