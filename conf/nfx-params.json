@@ -32,7 +32,8 @@
     "pca_dims": 10,
     "var_features": 2000,
     "doublet_rate": 0,
-    "dpk": 8
+    "dpk": 8,
+    "pK": "null"
   },
   "integrate": {
     "method": "Liger",

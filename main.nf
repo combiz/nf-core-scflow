@@ -570,7 +570,10 @@ process scflow_perform_de {
     each ct_tuple
 
   output:
-    path '*.tsv', emit: de_table, optional: true
+    path 'de_table/*.tsv', emit: de_table, optional: true
+    path 'de_report/*.html', emit: de_report
+    path 'de_plot/*.png', emit: de_plot
+    path 'de_plot_data/*.tsv', emit: de_plot_data
 
   script:
     celltype = ct_tuple[0]
@@ -688,6 +691,9 @@ workflow {
     scflow_finalize.out.celltypes to: "$params.outdir/celltype_mappings", mode: 'copy', overwrite: 'true'
     // DE
     scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy', optional: true
+    scflow_perform_de.out.de_report to: "$params.outdir/de/", mode: 'copy'
+    scflow_perform_de.out.de_plot to: "$params.outdir/de/", mode: 'copy'
+    scflow_perform_de.out.de_plot_data to: "$params.outdir/de/", mode: 'copy'
     // IPA
     scflow_perform_ipa.out.ipa_results to: "$params.outdir/", mode: 'copy', optional: true
     scflow_perform_ipa.out.ipa_report to: "$params.outdir/", mode: 'copy', optional: true
