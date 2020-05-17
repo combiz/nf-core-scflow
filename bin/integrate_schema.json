@@ -45,16 +45,6 @@
                                 "title": "capitalize",
                                 "default": false
                             },
-                            "do_plot": {
-                                "type": "boolean",
-                                "title": "do_plot",
-                                "default": false
-                            },
-                            "cex_use": {
-                                "type": "number",
-                                "title": "cex_use",
-                                "default": 0.3
-                            },
                             "use_cols": {
                                 "type": "boolean",
                                 "title": "use_cols",
@@ -85,30 +75,10 @@
                                 "title": "nrep",
                                 "default": 1
                             },
-							"H_init": {
-                                "type": "number",
-                                "title": "H_init",
-                                "default": "null"
-                            },
-							"W_init": {
-                                "type": "number",
-                                "title": "W_init",
-                                "default": "null"
-                            },
-							"V_init": {
-                                "type": "number",
-                                "title": "V_init",
-                                "default": "null"
-                            },
 							"rand_seed": {
                                 "type": "integer",
                                 "title": "rand_seed",
                                 "default": 1
-                            },
-							"print_obj": {
-                                "type": "boolean",
-                                "title": "print_obj",
-                                "default": false
                             },
 							"knn_k": {
                                 "type": "integer",
@@ -170,21 +140,20 @@
                                 "title": "small_clust_thresh",
                                 "default": 0
                             },
-							"id_number": {
-                                "type": "number",
-                                "title": "id_number",
-                                "default": "NULL"
-                            },
-							"print_mod": {
-                                "type": "boolean",
-                                "title": "print_mod",
-                                "default": false
-                            },
-							"print_align_summary": {
-                                "type": "boolean",
-                                "title": "print_align_summary",
-                                "default": false
-                            }
+							"categorical_covariates": {
+                                "type": "array",
+                                "title": "categorical_covariates",
+                                  "items": {
+                                      "type": "string",
+                                      "title": "categorical_covariate",
+                                      "enum": ["individual",
+                                        "diagnosis",
+                                        "region",
+                                        "sex"
+                                      ]
+                                  }
+    						}							
+							
                         }
                 }
             }
