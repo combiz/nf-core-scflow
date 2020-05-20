@@ -12,6 +12,7 @@ options(mc.cores = future::availableCores())
 library(argparse)
 library(scFlow)
 library(parallel)
+library(SingleCellExperiment) # due to monocle3 missing namespace::
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -192,7 +193,7 @@ args <- purrr::map(args, function(x) {
 ##  ............................................................................
 ##  Start                                                                   ####
 
-sce <- read_sce(args$sce_path)
+sce <- read_sce(args$sce_path, read_metadata = TRUE)
 
 sce <- reduce_dims_sce(
     sce,
@@ -220,7 +221,8 @@ sce <- reduce_dims_sce(
 # Save SingleCellExperiment
 write_sce(
   sce = sce,
-  folder_path = file.path(getwd(), "reddim_sce")
+  folder_path = file.path(getwd(), "reddim_sce"),
+  write_metadata = TRUE
   )
 
 ##  ............................................................................

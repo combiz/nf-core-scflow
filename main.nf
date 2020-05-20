@@ -274,7 +274,9 @@ process scflow_qc {
     --factor_vars ${params.QC.factor_vars.join(',')} \
     --ensembl_mappings ${params.ensembl_mappings} \
     --min_library_size ${params.QC.min_library_size} \
+    --max_library_size ${params.QC.max_library_size} \
     --min_features ${params.QC.min_features} \
+    --max_features ${params.QC.max_features} \
     --max_mito ${params.QC.max_mito} \
     --min_ribo ${params.QC.min_ribo} \
     --max_ribo ${params.QC.max_ribo} \
@@ -283,6 +285,7 @@ process scflow_qc {
     --drop_unmapped ${params.QC.drop_unmapped} \
     --drop_mito ${params.QC.drop_mito} \
     --drop_ribo ${params.QC.drop_ribo} \
+    --nmads ${params.QC.nmads} \
     --find_singlets ${params.singlets.find_singlets} \
     --singlets_method ${params.singlets.singlets_method} \
     --vars_to_regress_out ${params.singlets.vars_to_regress_out.join(',')} \
@@ -343,8 +346,7 @@ process scflow_merge {
     --unique_id_var ${params.QC.key_colname} \
     --plot_vars ${params.merge.plot_vars.join(',')} \
     --facet_vars ${params.merge.facet_vars.join(',')} \
-    --outlier_vars ${params.merge.outlier_vars.join(',')} \
-    --outlier_mads ${params.merge.outlier_mads}
+    --outlier_vars ${params.merge.outlier_vars.join(',')}
 
     """
 
@@ -374,19 +376,13 @@ process scflow_integrate {
     --combine ${params.integrate.combine} \
     --keep_unique ${params.integrate.keep_unique} \
     --capitalize ${params.integrate.capitalize} \
-    --do_plot ${params.integrate.do_plot} \
-    --cex_use ${params.integrate.cex_use} \
     --use_cols ${params.integrate.use_cols} \
     --k ${params.integrate.k} \
     --lambda ${params.integrate.lambda} \
     --thresh ${params.integrate.thresh} \
     --max_iters ${params.integrate.max_iters} \
     --nrep ${params.integrate.nrep} \
-    --h_init ${params.integrate.h_init} \
-    --w_init ${params.integrate.w_init} \
-	  --v_init ${params.integrate.v_init} \
     --rand_seed ${params.integrate.rand_seed} \
-    --print_obj ${params.integrate.print_obj} \
     --knn_k ${params.integrate.knn_k} \
     --k2 ${params.integrate.k2} \
     --prune_thresh ${params.integrate.prune_thresh} \
@@ -398,10 +394,7 @@ process scflow_integrate {
 	  --dims_use ${params.integrate.dims_use} \
     --dist_use ${params.integrate.dist_use} \
     --center ${params.integrate.center} \
-    --small_clust_thresh ${params.integrate.small_clust_thresh} \
-    --id_number ${params.integrate.id_number} \
-    --print_mod ${params.integrate.print_mod} \
-    --print_align_summary ${params.integrate.print_align_summary}
+    --small_clust_thresh ${params.integrate.small_clust_thresh}
 	
 	"""
 
@@ -455,6 +448,7 @@ process scflow_cluster {
 
   output:
     path 'clustered_sce/', emit: clustered_sce
+    path 'integration_report/', emit: integration_report
 
   script:
     """
@@ -465,7 +459,9 @@ process scflow_cluster {
     --reduction_method ${params.cluster.reduction_method} \
     --res ${params.cluster.res} \
     --k ${params.cluster.k} \
-    --louvain_iter ${params.cluster.louvain_iter}
+    --louvain_iter ${params.cluster.louvain_iter}  \
+    --categorical_covariates ${params.integration_report.categorical_covariates.join(',')} \
+    --input_reduced_dim ${params.integration_report.input_reduced_dim}
 
     """
 
@@ -511,6 +507,7 @@ process scflow_finalize {
   output:
     path 'final_sce/', emit: final_sce
     path 'celltypes.tsv', emit: celltypes
+    path 'celltype_metrics_report', emit: celltype_metrics_report
 
 
   script:
@@ -525,11 +522,15 @@ process scflow_finalize {
     else
 
       """
-      echo "Applying revised celltype mappings.."
       scflow_finalize_sce.r \
       --sce_path ${sce} \
       --celltype_mappings ${celltype_mappings} \
-      --clusters_colname ${params.mapct.clusters_colname}
+      --clusters_colname ${params.celltype_metrics.clusters_colname} \
+      --celltype_var ${params.celltype_metrics.celltype_var} \
+      --unique_id_var ${params.celltype_metrics.unique_id_var} \
+      --facet_vars ${params.celltype_metrics.facet_vars.join(',')} \
+      --input_reduced_dim ${params.cluster.reduction_method} \
+      --metric_vars ${params.celltype_metrics.metric_vars.join(',')}
       """
 
 }
@@ -561,8 +562,6 @@ process scflow_perform_de {
   tag "${celltype} (${n_cells_str} cells) | ${de_method}"
   label 'process_medium'
   maxRetries 3
-  
-  echo true
    
   input:
     path( sce )
@@ -631,6 +630,33 @@ process scflow_perform_ipa {
     """
 }
 
+
+process scflow_dirichlet {
+
+  tag "merged"
+  label  'process_low'
+
+  echo true
+  
+  input:
+    path (sce)
+
+  output:
+    path 'dirichlet_report', emit: dirichlet_report
+
+  script:
+      """
+      scflow_dirichlet.r \
+      --sce_path ${sce} \
+      --unique_id_var ${params.dirichlet.unique_id_var} \
+      --celltype_var ${params.dirichlet.celltype_var} \
+      --dependent_var ${params.dirichlet.dependent_var} \
+      --ref_class ${params.dirichlet.ref_class} \
+      --var_order ${params.dirichlet.var_order.join(',')} 
+      """
+
+}
+
 process scflow_traject {
 
   label 'process_low'
@@ -668,37 +694,44 @@ workflow {
     scflow_perform_ipa( scflow_perform_de.out.de_table )
     //
     scflow_traject( scflow_finalize.out.final_sce )
+    //
+    scflow_dirichlet ( scflow_finalize.out.final_sce )
     // plotting
     scflow_plot_reddim_genes( scflow_finalize.out.final_sce, ch_reddim_genes_yml)
 
   
   publish:
-    check_inputs.out.checked_manifest to: "$params.outdir/", mode: 'copy'
+    check_inputs.out.checked_manifest to: "$params.outdir/", mode: 'copy', overwrite: 'true'
     // Quality-control
-    scflow_qc.out.qc_report to: "$params.outdir/qc/", mode: 'copy'
-    scflow_qc.out.qc_plot_data to: "$params.outdir/qc/", mode: 'copy'
-    scflow_qc.out.qc_plots to: "$params.outdir/qc/", mode: 'copy'
-    scflow_qc.out.qc_sce to: "$params.outdir/sce", mode: 'copy'
-    merge_qc_summaries.out.qc_summary to: "$params.outdir/qc", mode: 'copy'
+    scflow_qc.out.qc_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    scflow_qc.out.qc_plot_data to: "$params.outdir/Tables/Quality_Control/", mode: 'copy', overwrite: 'true'
+    scflow_qc.out.qc_plots to: "$params.outdir/Plots/Quality_Control/", mode: 'copy', overwrite: 'true'
+    scflow_qc.out.qc_sce to: "$params.outdir/SCE/Individual/", mode: 'copy', overwrite: 'true'
+    merge_qc_summaries.out.qc_summary to: "$params.outdir/Tables/Merged/", mode: 'copy', overwrite: 'true'
     // Merged SCE
-    scflow_merge.out.merged_report to: "$params.outdir/merge/", mode: 'copy'
-    scflow_merge.out.merge_plots to: "$params.outdir/merge/plots", mode: 'copy'
-    scflow_merge.out.merge_summary_plots to: "$params.outdir/merge/plots/summary_plots", mode: 'copy'
+    scflow_merge.out.merged_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    scflow_merge.out.merge_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
+    scflow_merge.out.merge_summary_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
+    // cluster
+    scflow_cluster.out.integration_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // ct
-    scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/celltype_mappings", mode: 'copy'
+    scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
     // final
-    scflow_finalize.out.final_sce to: "$params.outdir/", mode: 'copy', overwrite: 'true'
-    scflow_finalize.out.celltypes to: "$params.outdir/celltype_mappings", mode: 'copy', overwrite: 'true'
+    scflow_finalize.out.final_sce to: "$params.outdir/SCE/", mode: 'copy', overwrite: 'true'
+    scflow_finalize.out.celltypes to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
+    scflow_finalize.out.celltype_metrics_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // DE
-    scflow_perform_de.out.de_table to: "$params.outdir/de", mode: 'copy', optional: true
-    scflow_perform_de.out.de_report to: "$params.outdir/de/", mode: 'copy'
-    scflow_perform_de.out.de_plot to: "$params.outdir/de/", mode: 'copy'
-    scflow_perform_de.out.de_plot_data to: "$params.outdir/de/", mode: 'copy'
+    scflow_perform_de.out.de_table to: "$params.outdir/Tables/DGE", mode: 'copy', optional: true, overwrite: 'true'
+    scflow_perform_de.out.de_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    scflow_perform_de.out.de_plot to: "$params.outdir/Plots/DGE/", mode: 'copy', overwrite: 'true'
+    scflow_perform_de.out.de_plot_data to: "$params.outdir/Tables/DGE", mode: 'copy', overwrite: 'true'
     // IPA
-    scflow_perform_ipa.out.ipa_results to: "$params.outdir/", mode: 'copy', optional: true
-    scflow_perform_ipa.out.ipa_report to: "$params.outdir/", mode: 'copy', optional: true
+    scflow_perform_ipa.out.ipa_results to: "$params.outdir/Tables/", mode: 'copy', optional: true, overwrite: 'true'
+    scflow_perform_ipa.out.ipa_report to: "$params.outdir/Reports/", mode: 'copy', optional: true, overwrite: 'true'
+    // Dirichlet
+    scflow_dirichlet.out.dirichlet_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // plots
-    scflow_plot_reddim_genes.out.reddim_gene_plots to: "$params.outdir/", mode: 'copy'
+    scflow_plot_reddim_genes.out.reddim_gene_plots to: "$params.outdir/Plots/", mode: 'copy', overwrite: 'true'
 
 }
 

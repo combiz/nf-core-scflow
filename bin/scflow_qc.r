@@ -74,10 +74,24 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--max_library_size",
+  help = "maximum library size (counts) per cell or adaptive",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
   "--min_features",
   type = "integer", 
   default = 100,
   help = "minimum features (expressive genes) per cell",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--max_features",
+  help = "maximum features (expressive genes) per cell or adaptive",
   metavar = "N", 
   required = TRUE
 )
@@ -145,6 +159,15 @@ required$add_argument(
   "--drop_ribo",
   help = "drop ribosomal genes (lgl)",
   metavar = "TRUE", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--nmads",
+  type = "double", 
+  default = 3.5,
+  help = "number of median absolute deviations for adaptive thresholding",
+  metavar = "N", 
   required = TRUE
 )
 
@@ -252,6 +275,21 @@ required$add_argument(
 args <- parser$parse_args()
 args[startsWith(names(args), "drop_")] <- 
   as.logical(args[startsWith(names(args), "drop_")])
+args$max_library_size <- ifelse(
+  args$max_library_size == "adaptive", 
+  args$max_library_size, 
+  as.numeric(as.character(args$max_library_size))
+  )
+args$max_features <- ifelse(
+  args$max_features == "adaptive", 
+  args$max_features, 
+  as.numeric(as.character(args$max_features))
+  )
+args$pK <- ifelse(
+  toupper(args$pK) == "NULL", 
+  NULL, 
+  as.numeric(as.character(args$pK))
+  )
 args$find_singlets <- as.logical(args$find_singlets)
 args$factor_vars <- strsplit(args$factor_vars, ",")[[1]]
 args$vars_to_regress_out <- strsplit(args$vars_to_regress_out, ",")[[1]]
@@ -298,7 +336,9 @@ if (args$find_cells) {
 sce <- annotate_sce(
   sce = sce,
   min_library_size = args$min_library_size,
+  max_library_size = args$max_library_size,
   min_features = args$min_features,
+  max_features = args$max_features,
   max_mito = args$max_mito,
   min_ribo = args$min_ribo,
   max_ribo = args$max_ribo,
@@ -307,6 +347,7 @@ sce <- annotate_sce(
   drop_unmapped = args$drop_unmapped,
   drop_mito = args$drop_mito,
   drop_ribo = args$drop_ribo,
+  nmads = args$nmads,
   annotate_genes = TRUE,
   annotate_cells = TRUE,
   ensembl_mapping_file = args$ensembl_mappings

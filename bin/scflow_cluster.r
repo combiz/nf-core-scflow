@@ -12,6 +12,8 @@ options(mc.cores = future::availableCores())
 library(argparse)
 library(scFlow)
 library(parallel)
+library(SingleCellExperiment) # due to monocle3 missing namespace::
+library(knitr) # due to missing knitr:: namespace in the integrate report
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -71,15 +73,30 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--categorical_covariates",
+  help = "-categorical covariates",
+  metavar = "individual,diagnosis,region,sex",
+  required = TRUE
+)
+
+required$add_argument(
+  "--input_reduced_dim",
+  help = "reduced dimension embedding to use for the integration report",
+  metavar = "UMAP", 
+  required = TRUE
+)
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+args$categorical_covariates <- strsplit(args$categorical_covariates, ",")[[1]]
 
 ##  ............................................................................
 ##  Start                                                                   ####
 
-sce <- read_sce(args$sce_path)
+sce <- read_sce(args$sce_path, read_metadata = TRUE)
 
 sce <- cluster_sce(
     sce,
@@ -90,13 +107,30 @@ sce <- cluster_sce(
     louvain_iter = args$louvain_iter
     )
 
+
+sce <- annotate_integrated_sce(
+sce,
+categorical_covariates = args$categorical_covariates,
+  input_reduced_dim = args$input_reduced_dim
+)
+
+dir.create(file.path(getwd(), "integration_report"))
+
+report_integrated_sce(
+  sce = sce,
+  report_folder_path = file.path(getwd(), "integration_report"),
+  report_file = "integrate_report_scflow"
+)
+
+
 ##  ............................................................................
 ##  Save Outputs                                                            ####
 
 # Save SingleCellExperiment
 write_sce(
   sce = sce,
-  folder_path = file.path(getwd(), "clustered_sce")
+  folder_path = file.path(getwd(), "clustered_sce"),
+  write_metadata = TRUE
   )
 
 ##  ............................................................................

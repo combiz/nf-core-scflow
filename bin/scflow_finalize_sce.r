@@ -42,10 +42,48 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--celltype_var",
+  help = "name of the column with celltype names",
+  metavar = "foo/bar", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--unique_id_var",
+  help = "name of the column with unique sample ids",
+  metavar = "foo/bar", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--facet_vars",
+  help = "names of variables to examine in the celltype metrics report",
+  metavar = "foo/bar", 
+  required = TRUE
+)
+
+
+required$add_argument(
+  "--input_reduced_dim",
+  help = "name of the reduced dimension slot to use for plots in the report",
+  metavar = "foo/bar", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--metric_vars",
+  help = "names of variables to examine in the celltype metrics report",
+  metavar = "foo/bar", 
+  required = TRUE
+)
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+args$facet_vars <- strsplit(args$facet_vars, ",")[[1]]
+args$metric_vars <- strsplit(args$metric_vars, ",")[[1]]
 
 ##  ............................................................................
 ##  Start                                                                   ####
@@ -59,6 +97,24 @@ sce <- map_custom_celltypes(
     mappings = celltype_mappings, 
     clusters_colname = args$clusters_colname
     )
+
+sce <- annotate_celltype_metrics(
+  sce,
+  cluster_var = args$clusters_colname,
+  celltype_var = args$celltype_var,
+  unique_id_var = args$unique_id_var,
+  facet_vars = args$facet_vars,
+  input_reduced_dim = args$input_reduced_dim,
+  metric_vars = args$metric_vars
+)
+
+dir.create(file.path(getwd(), "celltype_metrics_report"))
+
+report_celltype_metrics(
+  sce = sce,
+  report_folder_path = file.path(getwd(), "celltype_metrics_report"),
+  report_file = "scflow_celltype_metrics_report"
+)
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####

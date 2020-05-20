@@ -11,6 +11,7 @@
 ##  Load packages                                                           ####
 library(argparse)
 library(scFlow)
+library(SingleCellExperiment) # due to monocle3 missing namespace::
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -64,15 +65,6 @@ required$add_argument(
   required = TRUE
 )
 
-required$add_argument(
-  "--outlier_mads",
-  type = "integer", 
-  default = 3,
-  help = "minimum median absolute deviations for thresholding",
-  metavar = "N", 
-  required = TRUE
-)
-
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
@@ -115,8 +107,7 @@ sce <- annotate_merged_sce(
   plot_vars = args$plot_vars,
   unique_id_var = args$unique_id_var,
   facet_vars = args$facet_vars,
-  outlier_vars = args$outlier_vars,
-  outlier_mads = args$outlier_mads
+  outlier_vars = args$outlier_vars
 )
 
 report_merged_sce(

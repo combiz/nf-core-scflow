@@ -2,10 +2,12 @@
   "QC": {
     "key_colname": "manifest",
     "factor_vars": [
-      "manifest"
+      "individual"
     ],
     "min_library_size": 300,
+    "max_library_size": "adaptive",
     "min_features": 100,
+    "max_features": "adaptive",
     "max_mito": 0.1,
     "min_ribo": 0,
     "max_ribo": 1,
@@ -13,17 +15,18 @@
     "min_cells": 2,
     "drop_unmapped": true,
     "drop_mito": true,
-    "drop_ribo": true
+    "drop_ribo": true,
+    "nmads": 3.5
   },
   "findcells": {
-    "find_cells": true,
+    "find_cells": false,
     "lower": 100,
     "retain": 300,
     "alpha_cutoff": 0.001,
     "niters": 10000
   },
   "singlets": {
-    "find_singlets": true,
+    "find_singlets": false,
     "singlets_method": "doubletfinder",
     "vars_to_regress_out": [
       "nCount_RNA", 
@@ -33,7 +36,7 @@
     "var_features": 2000,
     "doublet_rate": 0,
     "dpk": 8,
-    "pK": "null"
+    "pK": "NULL"
   },
   "integrate": {
     "method": "Liger",
@@ -62,13 +65,15 @@
     "dims_use": "NULL",
     "dist_use": "CR",
     "center": false,
-    "small_clust_thresh": 0,
-	"categorical_covariates": [
+    "small_clust_thresh": 0
+  },
+  "integration_report": {
+    "categorical_covariates": [
       "individual", 
-      "diagnosis", 
-      "region", 
+      "diagnosis",
       "sex"
-    ]
+    ],
+    "input_reduced_dim": "UMAP"
   },
   "merge": {
     "plot_vars": [
@@ -77,16 +82,16 @@
       "pc_mito",
       "pc_ribo"
     ],
-    "facet_vars": ["NULL"],
+    "facet_vars": ["null"],
     "outlier_vars": [
       "total_features_by_counts",
       "total_counts"
-    ],
-    "outlier_mads": 3
+    ]
   },
   "reddim": {
     "input_reduced_dim": [
-      "PCA"
+      "PCA",
+      "Liger"
     ],
     "reduction_methods": [
       "tSNE", 
@@ -116,7 +121,7 @@
     "cluster_method": "leiden",
     "reduction_method": "UMAP_Liger",
     "res": 0.00001,
-    "k": 100,
+    "k": 50,
     "louvain_iter": 1
   },
   "mapct": {
@@ -127,22 +132,17 @@
     "de_method": [
       "MASTZLM"
     ],
-    "min_counts": 1,
+    "mast_method": "bayesglm",
+    "min_counts": 110,
     "min_cells_pc": 0.1,
     "rescale_numerics": true,
     "pseudobulk": true,
     "celltype_var": "cluster_celltype",
     "sample_var": "manifest",
-    "dependent_var": "group",
-    "ref_class": "Control",
+    "dependent_var": "diagnosis",
+    "ref_class": "Controls",
     "confounding_vars": [
-      "cngeneson", 
-      "sex", 
-      "age", 
-      "PMI", 
-      "RIN", 
-      "seqdate", 
-      "pc_mito"
+      "sex", "age"
     ],
     "random_effects_var": "null",
     "fc_threshold": 1.1,
@@ -164,6 +164,31 @@
   "plot_reddim_genes": {
     "reduction_methods": [
       "UMAP_Liger"
+    ]
+  },
+  "dirichlet": {
+    "unique_id_var": "manifest",
+    "celltype_var": "cluster_celltype",
+    "dependent_var": "diagnosis",
+    "ref_class": "Controls",
+    "var_order": [
+      "null"
+    ]
+  },
+  "celltype_metrics": {
+    "unique_id_var": "manifest",
+    "clusters_colname": "clusters",
+    "celltype_var": "cluster_celltype",
+    "facet_vars": [
+      "manifest",
+      "diagnosis",
+      "sex"
+    ],
+    "metric_vars": [
+      "pc_mito",
+      "pc_ribo",
+      "total_counts",
+      "total_features_by_counts"
     ]
   }
 }

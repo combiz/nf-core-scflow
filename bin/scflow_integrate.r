@@ -259,6 +259,8 @@ help ="Extracts small clusters loading highly on single factor with fewer cells 
 metavar = "N"
 )
 
+
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args ####
 
@@ -278,6 +280,7 @@ return(NULL)
 return(x)
 })
 
+
 ## ............................................................................
 ## Integrate sce ####
 
@@ -289,6 +292,7 @@ method = args$method,
 unique_id_var = args$unique_id_var,
 take_gene_union = args$take_gene_union,
 remove.missing = args$remove_missing,
+make.sparse = T,
 num_genes = args$num_genes,
 combine = args$combine,
 keep_unique = args$keep_unique,
@@ -299,6 +303,9 @@ lambda = args$lambda,
 thresh = args$thresh,
 max_iters = args$max_iters,
 nrep = args$nrep,
+H_init = NULL,
+W_init = NULL,
+V_init = NULL,
 rand_seed = args$rand_seed,
 knn_k = args$knn_k,
 k2 = args$k2,
@@ -312,6 +319,11 @@ dims_use = args$dims_use,
 dist_use = args$dist_use,
 center = args$center,
 small_clust_thresh = args$small_clust_thresh,
+do_plot = FALSE,
+id_number = NULL,
+print_obj = FALSE,
+print_mod = FALSE,
+print_align_summary = FALSE
 )
 
 ## ............................................................................
@@ -320,5 +332,6 @@ small_clust_thresh = args$small_clust_thresh,
 # Save SingleCellExperiment
 write_sce(
 sce = sce,
-folder_path = file.path(getwd(), "integrated_sce")
+folder_path = file.path(getwd(), "integrated_sce"),
+write_metadata = TRUE
 )
