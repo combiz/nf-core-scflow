@@ -249,7 +249,9 @@ process get_software_versions {
 process scflow_qc {
 
   tag "${key}"
-  label 'process_long'
+  label 'process_medium'
+  errorStrategy { task.attempt <= 3 ? 'retry' : 'finish' }
+  maxRetries 3
    
   echo false
    
@@ -441,7 +443,7 @@ process scflow_reduce_dims {
 process scflow_cluster {
   
   tag "merged"
-  label 'process_medium'
+  label 'process_high'
 
   input:
     path( sce )
