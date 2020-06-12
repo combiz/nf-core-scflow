@@ -2,9 +2,12 @@
   "QC": {
     "key_colname": "manifest",
     "factor_vars": [
-      "individual"
+      "capdate",
+      "prepdate",
+      "seqdate",
+      "aplevel"
     ],
-    "min_library_size": 300,
+    "min_library_size": 250,
     "max_library_size": "adaptive",
     "min_features": 100,
     "max_features": "adaptive",
@@ -15,28 +18,27 @@
     "min_cells": 2,
     "drop_unmapped": true,
     "drop_mito": true,
-    "drop_ribo": true,
-    "nmads": 3.5
+    "drop_ribo": false,
+    "nmads": 4.0
   },
   "findcells": {
-    "find_cells": false,
+    "find_cells": true,
     "lower": 100,
-    "retain": 300,
+    "retain": 12000,
     "alpha_cutoff": 0.001,
-    "niters": 10000
+    "niters": 30000
   },
   "singlets": {
-    "find_singlets": false,
+    "find_singlets": true,
     "singlets_method": "doubletfinder",
     "vars_to_regress_out": [
-      "nCount_RNA", 
-      "pc_mito"
+      "null"
     ],
     "pca_dims": 10,
     "var_features": 2000,
     "doublet_rate": 0,
     "dpk": 8,
-    "pK": "NULL"
+    "pK": 0.02
   },
   "integrate": {
     "method": "Liger",
@@ -70,8 +72,12 @@
   "integration_report": {
     "categorical_covariates": [
       "individual", 
+      "group",
       "diagnosis",
-      "sex"
+      "sex",
+      "capdate",
+      "prepdate",
+      "seqdate"
     ],
     "input_reduced_dim": "UMAP"
   },
@@ -102,25 +108,43 @@
       "nCount_RNA", 
       "pc_mito"
     ],
-    "pca_dims": 30,
-    "n_neighbors": 30,
-    "n_components": 2,
-    "init": "pca",
-    "metric": "euclidean",
-    "n_epochs": 500,
-    "learning_rate": 1,
-    "min_dist": 0.3,
-    "spread": 0.3,
-    "set_op_mix_ratio": 1,
-    "local_connectivity": 1,
-    "repulsion_strength": 1,
-    "negative_sample_rate": 5,
-    "fast_sgd": false
+    "umap": {
+      "pca_dims": 30,
+      "n_neighbors": 35,
+      "n_components": 2,
+      "init": "spectral",
+      "metric": "euclidean",
+      "n_epochs": 200,
+      "learning_rate": 1,
+      "min_dist": 0.4,
+      "spread": 0.85,
+      "set_op_mix_ratio": 1,
+      "local_connectivity": 1,
+      "repulsion_strength": 1,
+      "negative_sample_rate": 5,
+      "fast_sgd": false
+    },
+    "tsne": {
+      "dims": 2,
+      "initial_dims": 50,
+      "perplexity": 150,
+      "theta": 0.5,
+      "stop_lying_iter": 250,
+      "mom_switch_iter": 250,
+      "max_iter": 1000,
+      "pca_center": true,
+      "pca_scale": false,
+      "normalize": true,
+      "momentum": 0.5,
+      "final_momentum": 0.8,
+      "eta": 1000,
+      "exaggeration_factor": 12
+    }
   },
   "cluster": {
     "cluster_method": "leiden",
     "reduction_method": "UMAP_Liger",
-    "res": 0.00001,
+    "res": 0.001,
     "k": 50,
     "louvain_iter": 1
   },
@@ -138,11 +162,11 @@
     "rescale_numerics": true,
     "pseudobulk": true,
     "celltype_var": "cluster_celltype",
-    "sample_var": "manifest",
-    "dependent_var": "diagnosis",
-    "ref_class": "Controls",
+    "sample_var": "individual",
+    "dependent_var": "group",
+    "ref_class": "Control",
     "confounding_vars": [
-      "sex", "age"
+      "sex", "age", "seqdate"
     ],
     "random_effects_var": "null",
     "fc_threshold": 1.1,
@@ -167,22 +191,27 @@
     ]
   },
   "dirichlet": {
-    "unique_id_var": "manifest",
+    "unique_id_var": "individual",
     "celltype_var": "cluster_celltype",
-    "dependent_var": "diagnosis",
-    "ref_class": "Controls",
+    "dependent_var": "group",
+    "ref_class": "Control",
     "var_order": [
-      "null"
+      "Control",
+      "Low",
+      "High"
     ]
   },
   "celltype_metrics": {
-    "unique_id_var": "manifest",
+    "unique_id_var": "individual",
     "clusters_colname": "clusters",
     "celltype_var": "cluster_celltype",
     "facet_vars": [
       "manifest",
       "diagnosis",
-      "sex"
+      "sex",
+      "capdate",
+      "prepdate",
+      "seqdate"
     ],
     "metric_vars": [
       "pc_mito",

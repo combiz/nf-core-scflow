@@ -244,10 +244,8 @@ required$add_argument(
 
 required$add_argument(
   "--retain",
-  type = "integer", 
-  default = 300,
   help = "UMI count above which all barcodes are assumed to contain cells",
-  metavar = "N", 
+  default = "NULL",
   required = TRUE
 )
 
@@ -289,6 +287,11 @@ args$pK <- ifelse(
   toupper(args$pK) == "NULL", 
   NULL, 
   as.numeric(as.character(args$pK))
+  )
+args$retain <- ifelse(
+  toupper(args$retain) == "NULL",
+  NULL,
+  as.numeric(as.character(args$retain))
   )
 args$find_singlets <- as.logical(args$find_singlets)
 args$factor_vars <- strsplit(args$factor_vars, ",")[[1]]

@@ -421,20 +421,35 @@ process scflow_reduce_dims {
     --input_reduced_dim ${params.reddim.input_reduced_dim.join(',')} \
     --reduction_methods ${params.reddim.reduction_methods.join(',')} \
     --vars_to_regress_out ${params.reddim.vars_to_regress_out.join(',')} \
-    --pca_dims ${params.reddim.pca_dims} \
-    --n_neighbors ${params.reddim.n_neighbors} \
-    --n_components ${params.reddim.n_components} \
-    --init ${params.reddim.init} \
-    --metric ${params.reddim.metric} \
-    --n_epochs ${params.reddim.n_epochs} \
-    --learning_rate ${params.reddim.learning_rate} \
-    --min_dist ${params.reddim.min_dist} \
-    --spread ${params.reddim.spread} \
-    --set_op_mix_ratio ${params.reddim.set_op_mix_ratio} \
-    --local_connectivity ${params.reddim.local_connectivity} \
-    --repulsion_strength ${params.reddim.repulsion_strength} \
-    --negative_sample_rate ${params.reddim.negative_sample_rate} \
-    --fast_sgd ${params.reddim.fast_sgd}
+    --pca_dims ${params.reddim.umap.pca_dims} \
+    --n_neighbors ${params.reddim.umap.n_neighbors} \
+    --n_components ${params.reddim.umap.n_components} \
+    --init ${params.reddim.umap.init} \
+    --metric ${params.reddim.umap.metric} \
+    --n_epochs ${params.reddim.umap.n_epochs} \
+    --learning_rate ${params.reddim.umap.learning_rate} \
+    --min_dist ${params.reddim.umap.min_dist} \
+    --spread ${params.reddim.umap.spread} \
+    --set_op_mix_ratio ${params.reddim.umap.set_op_mix_ratio} \
+    --local_connectivity ${params.reddim.umap.local_connectivity} \
+    --repulsion_strength ${params.reddim.umap.repulsion_strength} \
+    --negative_sample_rate ${params.reddim.umap.negative_sample_rate} \
+    --fast_sgd ${params.reddim.umap.fast_sgd} \
+    --dims ${params.reddim.tsne.dims} \
+    --initial_dims ${params.reddim.tsne.initial_dims} \
+    --perplexity ${params.reddim.tsne.perplexity} \
+    --theta ${params.reddim.tsne.theta} \
+    --stop_lying_iter ${params.reddim.tsne.stop_lying_iter} \
+    --mom_switch_iter ${params.reddim.tsne.mom_switch_iter} \
+    --max_iter ${params.reddim.tsne.max_iter} \
+    --pca_center ${params.reddim.tsne.pca_center} \
+    --pca_scale ${params.reddim.tsne.pca_scale} \
+    --normalize ${params.reddim.tsne.pca_normalize} \
+    --momentum ${params.reddim.tsne.momentum} \
+    --final_momentum ${params.reddim.tsne.final_momentum} \
+    --eta ${params.reddim.tsne.eta} \
+    --exaggeration_factor ${params.reddim.tsne.exaggeration_factor}
+    
 
     """
 
@@ -498,7 +513,7 @@ process scflow_map_celltypes {
 process scflow_finalize {
 
   tag "merged"
-  label  'process_low'
+  label  'process_high'
 
   echo true
   
@@ -699,7 +714,7 @@ workflow {
     //
     scflow_dirichlet ( scflow_finalize.out.final_sce )
     // plotting
-    scflow_plot_reddim_genes( scflow_finalize.out.final_sce, ch_reddim_genes_yml)
+    scflow_plot_reddim_genes( scflow_cluster.out.clustered_sce, ch_reddim_genes_yml)
 
   
   publish:

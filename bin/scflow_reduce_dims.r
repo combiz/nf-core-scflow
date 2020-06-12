@@ -172,6 +172,124 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--dims",
+  type = "integer", 
+  default = 30,
+  help = "the number of dimensions to output (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--initial_dims",
+  type = "integer", 
+  default = 50,
+  help = "the number of dimensions retained in the PCA init (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--perplexity",
+  type = "integer", 
+  default = 30,
+  help = "perplexity parameter (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--theta",
+  type = "double", 
+  default = 0.5,
+  help = "speed / accuracy trade-off (increase for less accuracy) (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--max_iter",
+  type = "integer", 
+  default = 1000,
+  help = "number of iterations (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+required$add_argument(
+  "--pca_center",
+  help = "should data be centered before pca (rtsne) (lgl)",
+  metavar = "TRUE", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--pca_scale",
+  help = "should data be scaled before pca (rtsne) (lgl)",
+  metavar = "FALSE", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--normalize",
+  help = "should data be normalized before distance calculations (rtsne) (lgl)",
+  metavar = "TRUE", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--stop_lying_iter",
+  type = "integer", 
+  default = 250,
+  help = "iteration after which perplexities are no longer exaggerated (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--mom_switch_iter",
+  type = "integer", 
+  default = 250,
+  help = "iteration after which final momentum is used (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--momentum",
+  type = "double", 
+  default = 0.5,
+  help = "momentum used in the first part of the optimization (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--final_momentum",
+  type = "double", 
+  default = 0.8,
+  help = "momentum used in the final part of the optimization (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--eta",
+  type = "double", 
+  default = 200.0,
+  help = "learning rate (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
+
+required$add_argument(
+  "--exaggeration_factor",
+  type = "double", 
+  default = 12.0,
+  help = "Exaggeration factor used in the first part of the optimization (rtsne)",
+  metavar = "N", 
+  required = TRUE
+)
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
@@ -196,24 +314,39 @@ args <- purrr::map(args, function(x) {
 sce <- read_sce(args$sce_path, read_metadata = TRUE)
 
 sce <- reduce_dims_sce(
-    sce,
-    input_reduced_dim = args$input_reduced_dim,
-    reduction_methods = args$reduction_methods,
-    vars_to_regress_out = args$vars_to_regress_out,
-    pca_dims = args$pca_dims,
-    n_neighbors = args$n_neighbors,
-    n_components = args$n_components,
-    init = args$init,
-    metric = args$metric,
-    n_epochs = args$n_epochs,
-    learning_rate = args$learning_rate,
-    min_dist = args$min_dist,
-    spread = args$spread,
-    set_op_mix_ratio = args$set_op_mix_ratio,
-    local_connectivity = args$local_connectivity,
-    repulsion_strength = args$repulsion_strength,
-    negative_sample_rate = args$negative_sample_rate,
-    fast_sgd = args$fast_sgd)
+  sce,
+  input_reduced_dim = args$input_reduced_dim,
+  reduction_methods = args$reduction_methods,
+  vars_to_regress_out = args$vars_to_regress_out,
+  pca_dims = args$pca_dims,
+  n_neighbors = args$n_neighbors,
+  n_components = args$n_components,
+  init = args$init,
+  metric = args$metric,
+  n_epochs = args$n_epochs,
+  learning_rate = args$learning_rate,
+  min_dist = args$min_dist,
+  spread = args$spread,
+  set_op_mix_ratio = args$set_op_mix_ratio,
+  local_connectivity = args$local_connectivity,
+  repulsion_strength = args$repulsion_strength,
+  negative_sample_rate = args$negative_sample_rate,
+  fast_sgd = args$fast_sgd,
+  dims = args$dims,
+  initial_dims = args$initial_dims,
+  perplexity = args$perplexity,
+  theta = args$theta,
+  stop_lying_iter = args$stop_lying_iter,
+  mom_switch_iter = args$mom_switch_iter,
+  max_iter = args$max_iter,
+  pca_center = args$pca_center,
+  pca_scale = args$pca_scale,
+  pca_normalize = args$pca_normalize,
+  momentum = args$momentum,
+  final_momentum = args$final_momentum,
+  eta = args$eta,
+  exaggeration_factor = args$exaggeration_factor
+  )
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####
@@ -223,7 +356,7 @@ write_sce(
   sce = sce,
   folder_path = file.path(getwd(), "reddim_sce"),
   write_metadata = TRUE
-  )
+)
 
 ##  ............................................................................
 ##  Clean up                                                                ####
