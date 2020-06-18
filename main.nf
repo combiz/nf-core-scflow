@@ -236,9 +236,7 @@ process get_software_versions {
   script:
 
     """
-    check_inputs.r \
-    --samplesheet $samplesheet \
-    --manifest $manifest    
+    cp $manifest checked_manifest.txt
     """     
 
 }
@@ -253,10 +251,10 @@ process scflow_qc {
   errorStrategy { task.attempt <= 3 ? 'retry' : 'finish' }
   maxRetries 3
    
-  echo false
+  echo true
    
   input:
-    tuple val(key), val(mat_path)
+    tuple val(key), path(mat_path)
     path samplesheet
 
   output:
