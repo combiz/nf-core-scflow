@@ -223,6 +223,8 @@ process get_software_versions {
 
   tag "check_inputs"
   label 'process_tiny'
+  //label 'process_local'
+  container 'alpine'
 
   echo true
 
