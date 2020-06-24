@@ -107,8 +107,14 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
  if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
  if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
+ if (params.ensembl_mappings) { ch_ensembl_mappings = file(params.ensembl_mappings, checkIfExists: false) }
+ if (params.ensembl_mappings) { ch_ensembl_mappings2 = file(params.ensembl_mappings, checkIfExists: false) }
+ if (params.ensembl_mappings) { ch_ensembl_mappings3 = file(params.ensembl_mappings, checkIfExists: false) }
  if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: false) }
 
+//Channel
+//  .fromPath( params.ensembl_mappings , checkIfExists: false)
+//  .set{ ch_ensembl_mappings }
 
 
  /*
@@ -224,7 +230,7 @@ process get_software_versions {
   tag "check_inputs"
   label 'process_tiny'
   //label 'process_local'
-  container 'alpine'
+  container 'google/cloud-sdk:alpine'
 
   echo true
 
@@ -258,6 +264,7 @@ process scflow_qc {
   input:
     tuple val(key), path(mat_path)
     path samplesheet
+    path ensembl_mappings
 
   output:
     path 'qc_report/*.html', emit: qc_report
@@ -274,7 +281,7 @@ process scflow_qc {
     --key ${key} \
     --key_colname ${params.QC.key_colname} \
     --factor_vars ${params.QC.factor_vars.join(',')} \
-    --ensembl_mappings ${params.ensembl_mappings} \
+    --ensembl_mappings ${ensembl_mappings} \
     --min_library_size ${params.QC.min_library_size} \
     --max_library_size ${params.QC.max_library_size} \
     --min_features ${params.QC.min_features} \
@@ -310,7 +317,7 @@ process merge_qc_summaries {
   label 'process_tiny'
 
   input:
-    path( qcs_tsv )
+    path qcs_tsv
 
   output:
     path '*.tsv', emit: qc_summary
@@ -331,7 +338,8 @@ process scflow_merge {
   label 'process_medium'
 
   input:
-    path( qc_passed_sces )
+    path qc_passed_sces
+    path ensembl_mappings
 
   output:
     path 'merged_sce/', emit: merged_sce
@@ -344,7 +352,7 @@ process scflow_merge {
 
     scflow_merge.r \
     --sce_paths ${qc_passed_sces.join(',')} \
-    --ensembl_mappings ${params.ensembl_mappings} \
+    --ensembl_mappings ${ensembl_mappings} \
     --unique_id_var ${params.QC.key_colname} \
     --plot_vars ${params.merge.plot_vars.join(',')} \
     --facet_vars ${params.merge.facet_vars.join(',')} \
@@ -360,7 +368,7 @@ process scflow_integrate {
   label 'process_medium'
 
   input:
-    path( sce )
+    path sce
 
   output:
     path 'integrated_sce/', emit: integrated_sce
@@ -408,7 +416,7 @@ process scflow_reduce_dims {
   label 'process_medium'
 
   input:
-    path( sce )
+    path sce
 
   output:
     path 'reddim_sce/', emit: reddim_sce
@@ -461,7 +469,7 @@ process scflow_cluster {
   label 'process_high'
 
   input:
-    path( sce )
+    path sce
 
   output:
     path 'clustered_sce/', emit: clustered_sce
@@ -490,7 +498,7 @@ process scflow_map_celltypes {
   label 'process_high'
 
   input:
-    path( sce )
+    path sce
     path ctd_folder
 
   output:
@@ -518,7 +526,7 @@ process scflow_finalize {
   echo true
   
   input:
-    path (sce)
+    path sce
     path celltype_mappings
 
   output:
@@ -557,8 +565,8 @@ process scflow_plot_reddim_genes {
   label 'process_low'
    
   input:
-    path( sce )
-    path ( reddim_genes_yml )
+    path sce
+    path reddim_genes_yml
 
   output:
     path 'reddim_gene_plots/', emit: reddim_gene_plots
@@ -581,9 +589,10 @@ process scflow_perform_de {
   maxRetries 3
    
   input:
-    path( sce )
+    path sce
     each de_method
     each ct_tuple
+    path ensembl_mappings
 
   output:
     path 'de_table/*.tsv', emit: de_table, optional: true
@@ -615,7 +624,7 @@ process scflow_perform_de {
     --confounding_vars ${params.de.confounding_vars.join(',')} \
     --random_effects_var ${params.de.random_effects_var} \
     --fc_threshold ${params.de.fc_threshold} \
-    --ensembl_mappings ${params.ensembl_mappings} 
+    --ensembl_mappings ${ensembl_mappings} 
      
     """
 }
@@ -625,7 +634,7 @@ process scflow_perform_ipa {
   label 'process_low'
    
   input:
-    path( de_table )
+    path de_table
     //each de_method
     //each celltype
 
@@ -656,7 +665,7 @@ process scflow_dirichlet {
   echo true
   
   input:
-    path (sce)
+    path sce
 
   output:
     path 'dirichlet_report', emit: dirichlet_report
@@ -681,7 +690,7 @@ process scflow_traject {
   echo true
    
   input:
-    path( sce )
+    path sce
 
   output:
     //path '*.tsv', emit: de_table
@@ -697,17 +706,17 @@ workflow {
     
   main:
     check_inputs(ch_manifest, ch_samplesheet)
-    scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:['key', 'filepath'], skip: 1, sep: '\t').map{ row-> tuple(row.key, row.filepath)} , ch_samplesheet2 )
+    scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:['key', 'filepath'], skip: 1, sep: '\t').map{ row-> tuple(row.key, row.filepath)} , ch_samplesheet2, ch_ensembl_mappings)
     //scflow_qc ( check_inputs.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
     merge_qc_summaries ( scflow_qc.out.qc_summary.collect() )
-    scflow_merge ( scflow_qc.out.qc_sce.collect() )
+    scflow_merge ( scflow_qc.out.qc_sce.collect() , ch_ensembl_mappings2 )
 	  scflow_integrate ( scflow_merge.out.merged_sce )
     scflow_reduce_dims ( scflow_integrate.out.integrated_sce )
     scflow_cluster ( scflow_reduce_dims.out.reddim_sce )
     scflow_map_celltypes ( scflow_cluster.out.clustered_sce, ch_ctd_folder )
     scflow_finalize ( scflow_map_celltypes.out.celltype_mapped_sce, ch_celltype_mappings )
     // 
-    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, scflow_finalize.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> tuple(row.celltype, row.n_cells) } )
+    scflow_perform_de( scflow_finalize.out.final_sce, params.de.de_method, scflow_finalize.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> tuple(row.celltype, row.n_cells) } , ch_ensembl_mappings3 )
     scflow_perform_ipa( scflow_perform_de.out.de_table )
     //
     scflow_traject( scflow_finalize.out.final_sce )
