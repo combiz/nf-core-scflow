@@ -205,7 +205,7 @@ process get_software_versions {
 process SCFLOW_QC {
 
   tag "${key}"
-  label 'process_medium'
+  label 'process_low'
   errorStrategy { task.attempt <= 3 ? 'retry' : 'finish' }
   maxRetries 3
    
@@ -251,13 +251,13 @@ process SCFLOW_QC {
     --pca_dims ${params.mult_pca_dims} \
     --var_features ${params.mult_var_features} \
     --doublet_rate ${params.mult_doublet_rate} \
-    --dpk ${params.mult_dpk} \
     --pK ${params.mult_pK} \
     --find_cells ${params.amb_find_cells} \
     --lower ${params.amb_lower} \
     --retain ${params.amb_retain} \
     --alpha_cutoff ${params.amb_alpha_cutoff} \
-    --niters ${params.amb_niters}
+    --niters ${params.amb_niters}  \
+    --expect_cells ${params.amb_expect_cells}
      
     """
 }
@@ -636,8 +636,8 @@ process SCFLOW_DIRICHLET {
 workflow {  
     
   main:
-    CHECK_INPUTS(ch_manifest, ch_samplesheet)
-    SCFLOW_QC ( CHECK_INPUTS.out.checked_manifest.splitCsv(header:['key', 'filepath'], skip: 1, sep: '\t').map{ row-> tuple(row.key, row.filepath)} , ch_samplesheet2, ch_ensembl_mappings)
+    SCFLOW_CHECK_INPUTS(ch_manifest, ch_samplesheet)
+    SCFLOW_QC ( SCFLOW_CHECK_INPUTS.out.checked_manifest.splitCsv(header:['key', 'filepath'], skip: 1, sep: '\t').map{ row-> tuple(row.key, row.filepath)} , ch_samplesheet2, ch_ensembl_mappings)
     //SCFLOW_QC ( CHECK_INPUTS.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
     SCFLOW_MERGE_QC_SUMMARIES ( SCFLOW_QC.out.qc_summary.collect() )
     SCFLOW_MERGE ( SCFLOW_QC.out.qc_sce.collect() , ch_ensembl_mappings2 )
@@ -654,9 +654,9 @@ workflow {
     // plotting
     SCFLOW_PLOT_REDDIM_GENES( SCFLOW_CLUSTER.out.clustered_sce, ch_reddim_genes_yml)
 
-  
+  /*
   publish:
-    CHECK_INPUTS.out.checked_manifest to: "$params.outdir/", mode: 'copy', overwrite: 'true'
+    SCFLOW_CHECK_INPUTS.out.checked_manifest to: "$params.outdir/", mode: 'copy', overwrite: 'true'
     // Quality-control
     SCFLOW_QC.out.qc_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     SCFLOW_QC.out.qc_plot_data to: "$params.outdir/Tables/Quality_Control/", mode: 'copy', overwrite: 'true'
@@ -687,7 +687,7 @@ workflow {
     SCFLOW_DIRICHLET.out.dirichlet_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // plots
     SCFLOW_PLOT_REDDIM_GENES.out.reddim_gene_plots to: "$params.outdir/Plots/", mode: 'copy', overwrite: 'true'
-
+*/
 }
 
 /*
