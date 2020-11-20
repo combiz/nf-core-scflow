@@ -11,6 +11,9 @@ nextflow.preview.dsl=2
 ----------------------------------------------------------------------------------------
 */
 
+include { getSoftwareName;initOptions;getPathFromList;saveFiles } from './modules/local/process/functions.nf' 
+params.options = [:]
+
 def helpMessage() {
     // TODO nf-core: Add to this help message with new command line parameters
     log.info nfcoreHeader()
@@ -172,7 +175,7 @@ process get_software_versions {
 }
 
 /*
- * STEP 1 - Check Inputs
+ * Check manifest and samplesheet inputs are valid
  */
  process SCFLOW_CHECK_INPUTS {
 
@@ -200,12 +203,17 @@ process get_software_versions {
 }
 
 /*
- * STEP 2 - Single Sample QC
+ * Single Sample QC
  */
 process SCFLOW_QC {
 
   tag "${key}"
   label 'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
   errorStrategy { task.attempt <= 3 ? 'retry' : 'finish' }
   maxRetries 3
    
@@ -217,11 +225,11 @@ process SCFLOW_QC {
     path ensembl_mappings
 
   output:
-    path 'qc_report/*.html', emit: qc_report
-    path 'qc_plot_data/*.tsv', emit: qc_plot_data
-    path 'qc_summary/*.tsv', emit: qc_summary
-    path 'qc_plots/*.png', emit: qc_plots
-    path '*_sce', emit: qc_sce
+    path 'qc_report/*.html'     , emit: qc_report
+    path 'qc_plot_data/*.tsv'   , emit: qc_plot_data
+    path 'qc_summary/*.tsv'     , emit: qc_summary
+    path 'qc_plots/*.png'       , emit: qc_plots
+    path '*_sce'                , emit: qc_sce
 
   script:
     """
@@ -262,10 +270,17 @@ process SCFLOW_QC {
     """
 }
 
+/*
+ * Merge individual quality-control tsv summaries into combined tsv file
+ */
 process SCFLOW_MERGE_QC_SUMMARIES {
   
   tag 'merged'
   label 'process_tiny'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
   input:
     path qcs_tsv
@@ -283,20 +298,27 @@ process SCFLOW_MERGE_QC_SUMMARIES {
 
 }
 
+/*
+ * Merge quality-control passed SCEs
+ */
 process SCFLOW_MERGE {
   
   tag 'merged'
   label 'process_medium'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
   input:
     path qc_passed_sces
     path ensembl_mappings
 
   output:
-    path 'merged_sce/', emit: merged_sce
-    path 'merge_plots/*.png', emit: merge_plots
+    path 'merged_sce/'              , emit: merged_sce
+    path 'merge_plots/*.png'        , emit: merge_plots
     path 'merge_summary_plots/*.png', emit: merge_summary_plots    
-    path 'merged_report/*.html', emit: merged_report
+    path 'merged_report/*.html'     , emit: merged_report
 
   script:
     """
@@ -313,10 +335,17 @@ process SCFLOW_MERGE {
 
 }
 
+/*
+ * Integrate data for batch-effect correction
+ */
 process SCFLOW_INTEGRATE {
 
   tag 'merged'
   label 'process_medium'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
   input:
     path sce
@@ -361,10 +390,18 @@ process SCFLOW_INTEGRATE {
 
 }
 
+/*
+ * Perform dimensionality reduction
+ */
 process SCFLOW_REDUCE_DIMS {
   
   tag 'merged'
   label 'process_medium'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
 
   input:
     path sce
@@ -403,7 +440,7 @@ process SCFLOW_REDUCE_DIMS {
     --max_iter ${params.reddim_tsne_max_iter} \
     --pca_center ${params.reddim_tsne_pca_center} \
     --pca_scale ${params.reddim_tsne_pca_scale} \
-    --normalize ${params.reddim_tsne_pca_normalize} \
+    --normalize ${params.reddim_tsne_normalize} \
     --momentum ${params.reddim_tsne_momentum} \
     --final_momentum ${params.reddim_tsne_final_momentum} \
     --eta ${params.reddim_tsne_eta} \
@@ -414,17 +451,25 @@ process SCFLOW_REDUCE_DIMS {
 
 }
 
+/*
+ * Cluster cells
+ */
 process SCFLOW_CLUSTER {
   
   tag 'merged'
-  label 'process_high'
+  label 'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
 
   input:
     path sce
 
   output:
-    path 'clustered_sce/', emit: clustered_sce
-    path 'integration_report/', emit: integration_report
+    path 'clustered_sce/'       , emit: clustered_sce
+    path 'integration_report/'  , emit: integration_report
 
   script:
     """
@@ -436,24 +481,31 @@ process SCFLOW_CLUSTER {
     --res ${params.clust_res} \
     --k ${params.clust_k} \
     --louvain_iter ${params.clust_louvain_iter}  \
-    --categorical_covariates ${params.integ_categorical_covariates} \
-    --input_reduced_dim ${params.integ_input_reduced_dim}
+    --categorical_covariates ${params.integ_categorical_covariates}
 
     """
 
 }
 
+/*
+ * Annotate cluster celltypes
+ */
 process SCFLOW_MAP_CELLTYPES {
   
   tag 'merged'
-  label 'process_high'
+  label 'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
 
   input:
     path sce
     path ctd_folder
 
   output:
-    path 'celltype_mapped_sce/', emit: celltype_mapped_sce
+    path 'celltype_mapped_sce/' , emit: celltype_mapped_sce
     path 'celltype_mappings.tsv', emit: celltype_mappings
 
   script:
@@ -469,10 +521,18 @@ process SCFLOW_MAP_CELLTYPES {
 
 }
 
+/*
+ * Generate final SCE with optionally revised cell-types
+ */
 process SCFLOW_FINALIZE {
 
   tag 'merged'
-  label  'process_high'
+  label  'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
 
   echo true
   
@@ -481,22 +541,12 @@ process SCFLOW_FINALIZE {
     path celltype_mappings
 
   output:
-    path 'final_sce/', emit: final_sce
-    path 'celltypes.tsv', emit: celltypes
-    path 'celltype_metrics_report', emit: celltype_metrics_report
+    path 'final_sce/'               , emit: final_sce
+    path 'celltypes.tsv'            , emit: celltypes
+    path 'celltype_metrics_report'  , emit: celltype_metrics_report
 
 
   script:
-  //def ctmappings = celltype_mappings.name != 'NO_FILE' ? "--celltype_mappings $celltype_mappings" : ''
-    if( celltype_mappings.name == 'NO_FILE' )
-
-      """
-      echo "Revised celltype mappings not found: using automated celltype predictions."
-      cp -R ${sce} ./final_sce
-      """
-
-    else
-
       """
       scflow_finalize_sce.r \
       --sce_path ${sce} \
@@ -511,9 +561,17 @@ process SCFLOW_FINALIZE {
 
 }
 
+/*
+ * Generate 2D reduced dimension plots of gene expression
+ */
 process SCFLOW_PLOT_REDDIM_GENES {
 
   label 'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
    
   input:
     path sce
@@ -533,10 +591,18 @@ process SCFLOW_PLOT_REDDIM_GENES {
     """
 }
 
+/*
+ * Perform differential gene expression
+ */
 process SCFLOW_DGE {
 
   tag "${celltype} (${n_cells_str} cells) | ${de_method}"
   label 'process_medium'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
   maxRetries 3
    
   input:
@@ -546,14 +612,14 @@ process SCFLOW_DGE {
     path ensembl_mappings
 
   output:
-    path 'de_table/*.tsv', emit: de_table, optional: true
-    path 'de_report/*.html', emit: de_report
-    path 'de_plot/*.png', emit: de_plot
-    path 'de_plot_data/*.tsv', emit: de_plot_data
+    path 'de_table/*.tsv'       , emit: de_table, optional: true
+    path 'de_report/*.html'     , emit: de_report
+    path 'de_plot/*.png'        , emit: de_plot
+    path 'de_plot_data/*.tsv'   , emit: de_plot_data
 
   script:
-    celltype = ct_tuple[0]
-    n_cells = ct_tuple[1].toInteger()
+    celltype    = ct_tuple[0]
+    n_cells     = ct_tuple[1].toInteger()
     n_cells_str = (Math.round(n_cells * 100) / 100000).round(1).toString() + 'k'
 
     """
@@ -580,9 +646,17 @@ process SCFLOW_DGE {
     """
 }
 
+/*
+ * Integrated pathway analysis of differentially expressed genes
+ */
 process SCFLOW_IPA {
 
   label 'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
    
   input:
     path de_table
@@ -590,8 +664,8 @@ process SCFLOW_IPA {
     //each celltype
 
   output:
-    path 'ipa/**/*', optional: true, type: 'dir', emit: ipa_results
-    path 'ipa/*.html', optional: true, emit: ipa_report
+    path 'ipa/**/*'     , emit: ipa_results , optional: true, type: 'dir'
+    path 'ipa/*.html'   , emit: ipa_report  , optional: true
 
   script:
     """
@@ -605,11 +679,18 @@ process SCFLOW_IPA {
     """
 }
 
-
+/*
+ * Dirichlet modeling of relative cell-type abundance
+ */
 process SCFLOW_DIRICHLET {
 
   tag "merged"
   label  'process_low'
+
+  publishDir "${params.outdir}",
+    mode: params.publish_dir_mode,
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+
 
   echo true
   
@@ -636,23 +717,74 @@ process SCFLOW_DIRICHLET {
 workflow {  
     
   main:
-    SCFLOW_CHECK_INPUTS(ch_manifest, ch_samplesheet)
-    SCFLOW_QC ( SCFLOW_CHECK_INPUTS.out.checked_manifest.splitCsv(header:['key', 'filepath'], skip: 1, sep: '\t').map{ row-> tuple(row.key, row.filepath)} , ch_samplesheet2, ch_ensembl_mappings)
-    //SCFLOW_QC ( CHECK_INPUTS.out.checked_manifest.splitCsv(header:true, sep: '\t').map{ row-> tuple(row.key, row.filepath)} )
-    SCFLOW_MERGE_QC_SUMMARIES ( SCFLOW_QC.out.qc_summary.collect() )
-    SCFLOW_MERGE ( SCFLOW_QC.out.qc_sce.collect() , ch_ensembl_mappings2 )
-    SCFLOW_INTEGRATE ( SCFLOW_MERGE.out.merged_sce )
-    SCFLOW_REDUCE_DIMS ( SCFLOW_INTEGRATE.out.integrated_sce )
-    SCFLOW_CLUSTER ( SCFLOW_REDUCE_DIMS.out.reddim_sce )
-    SCFLOW_MAP_CELLTYPES ( SCFLOW_CLUSTER.out.clustered_sce, ch_ctd_folder )
-    SCFLOW_FINALIZE ( SCFLOW_MAP_CELLTYPES.out.celltype_mapped_sce, ch_celltype_mappings )
-    // 
-    SCFLOW_DGE( SCFLOW_FINALIZE.out.final_sce, params.dge_de_method, SCFLOW_FINALIZE.out.celltypes.splitCsv(header:['celltype', 'n_cells'], skip: 1, sep: '\t').map {row -> tuple(row.celltype, row.n_cells) } , ch_ensembl_mappings3 )
-    SCFLOW_IPA( SCFLOW_DGE.out.de_table )
-    //
-    SCFLOW_DIRICHLET ( SCFLOW_FINALIZE.out.final_sce )
-    // plotting
-    SCFLOW_PLOT_REDDIM_GENES( SCFLOW_CLUSTER.out.clustered_sce, ch_reddim_genes_yml)
+    SCFLOW_CHECK_INPUTS ( 
+        ch_manifest, 
+        ch_samplesheet
+    )
+
+    SCFLOW_QC ( 
+        SCFLOW_CHECK_INPUTS.out.checked_manifest.splitCsv(
+            header:['key', 'filepath'], 
+            skip: 1, sep: '\t'
+            )
+        .map { row -> tuple(row.key, row.filepath) }, 
+        ch_samplesheet2, 
+        ch_ensembl_mappings
+    )
+    
+    SCFLOW_MERGE_QC_SUMMARIES ( 
+        SCFLOW_QC.out.qc_summary.collect() 
+    )
+    
+    SCFLOW_MERGE ( 
+        SCFLOW_QC.out.qc_sce.collect(), 
+        ch_ensembl_mappings2 
+    )
+
+    SCFLOW_INTEGRATE ( 
+        SCFLOW_MERGE.out.merged_sce 
+    )
+
+    SCFLOW_REDUCE_DIMS ( 
+        SCFLOW_INTEGRATE.out.integrated_sce 
+    )
+    
+    SCFLOW_CLUSTER ( 
+        SCFLOW_REDUCE_DIMS.out.reddim_sce 
+    )
+
+    SCFLOW_MAP_CELLTYPES ( 
+        SCFLOW_CLUSTER.out.clustered_sce, 
+        ch_ctd_folder 
+    )
+
+    SCFLOW_FINALIZE ( 
+        SCFLOW_MAP_CELLTYPES.out.celltype_mapped_sce, 
+        ch_celltype_mappings 
+    )
+
+    SCFLOW_DGE ( 
+        SCFLOW_FINALIZE.out.final_sce, 
+        params.dge_de_method, 
+        SCFLOW_FINALIZE.out.celltypes.splitCsv (
+            header:['celltype', 'n_cells'], skip: 1, sep: '\t'
+        )
+        .map { row -> tuple(row.celltype, row.n_cells) }, 
+        ch_ensembl_mappings3 
+    )
+
+    SCFLOW_IPA ( 
+        SCFLOW_DGE.out.de_table 
+    )
+
+    SCFLOW_DIRICHLET ( 
+        SCFLOW_FINALIZE.out.final_sce 
+    )
+
+    SCFLOW_PLOT_REDDIM_GENES ( 
+        SCFLOW_CLUSTER.out.clustered_sce, 
+        ch_reddim_genes_yml
+    )
 
   /*
   publish:
