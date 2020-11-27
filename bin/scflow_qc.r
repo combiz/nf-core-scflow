@@ -98,9 +98,13 @@ required$add_argument(
 
 required$add_argument(
   "--max_mito",
+<<<<<<< HEAD
   type = "double", 
   default = 0.1,
   help = "maximum proportion of counts mapping to mitochondrial genes",
+=======
+  help = "maximum proportion of counts mapping to mitochondrial genes or adaptive",
+>>>>>>> dev
   metavar = "N", 
   required = TRUE
 )
@@ -292,6 +296,14 @@ args$max_features <- ifelse(
   args$max_features, 
   as.numeric(as.character(args$max_features))
   )
+<<<<<<< HEAD
+=======
+args$max_mito <- ifelse(
+  args$max_mito == "adaptive", 
+  args$max_mito, 
+  as.numeric(as.character(args$max_mito))
+  )
+>>>>>>> dev
 args$pK <- if(toupper(args$pK) == "NULL") NULL else { 
   as.numeric(as.character(args$pK))
 }

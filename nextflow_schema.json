@@ -10,70 +10,692 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
+            "properties": {
+                "samplesheet": {
+                    "type": "string",
+                    "default": "./refs/SampleSheet.tsv",
+                    "fa_icon": "fas fa-table"
+                },
+                "ensembl_mappings": {
+                    "type": "string",
+                    "default": "./src/ensembl-ids/ensembl_mappings.tsv",
+                    "fa_icon": "fas fa-table"
+                },
+                "celltype_mappings": {
+                    "type": "string",
+                    "default": "./conf/celltype_mappings.tsv",
+                    "fa_icon": "fas fa-table"
+                },
+                "ctd_folder": {
+                    "type": "string",
+                    "default": "./refs/ctd",
+                    "fa_icon": "fas fa-folder"
+                },
+                "reddim_genes_yml": {
+                    "type": "string",
+                    "default": "./conf/reddim_genes.yml",
+                    "fa_icon": "fas fa-list"
+                }
+            },
             "required": [
-                "input"
+                "samplesheet",
+                "ensembl_mappings",
+                "celltype_mappings",
+                "ctd_folder",
+                "reddim_genes_yml"
             ],
-            "properties": {
-                "input": {
-                    "type": "string",
-                    "fa_icon": "fas fa-dna",
-                    "description": "Input FastQ files.",
-                    "help_text": "Use this to specify the location of your input FastQ files. For example:\n\n```bash\n--input 'path/to/data/sample_*_{1,2}.fastq'\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The path must have at least one `*` wildcard character\n3. When using the pipeline with paired end data, the path must use `{1,2}` notation to specify read pairs.\n\nIf left unspecified, a default pattern is used: `data/*{1,2}.fastq.gz`"
-                },
-                "single_end": {
-                    "type": "boolean",
-                    "description": "Specifies that the input is single-end reads.",
-                    "fa_icon": "fas fa-align-center",
-                    "help_text": "By default, the pipeline expects paired-end data. If you have single-end data, you need to specify `--single_end` on the command line when you launch the pipeline. A normal glob pattern, enclosed in quotation marks, can then be used for `--input`. For example:\n\n```bash\n--single_end --input '*.fastq'\n```\n\nIt is not possible to run a mixture of single-end and paired-end files in one run."
-                },
-                "outdir": {
-                    "type": "string",
-                    "description": "The output directory where the results will be saved.",
-                    "default": "./results",
-                    "fa_icon": "fas fa-folder-open"
-                },
-                "email": {
-                    "type": "string",
-                    "description": "Email address for completion summary.",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
-                }
-            }
+            "help_text": ""
         },
-        "reference_genome_options": {
-            "title": "Reference genome options",
+        "quality_control": {
+            "title": "Quality-Control",
             "type": "object",
-            "fa_icon": "fas fa-dna",
-            "description": "Options for the reference genome indices used to align reads.",
+            "description": "Parameters for quality-control and thresholding.",
+            "default": "",
             "properties": {
-                "genome": {
+                "qc_key_colname": {
                     "type": "string",
-                    "description": "Name of iGenomes reference.",
-                    "fa_icon": "fas fa-book",
-                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`.\n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
+                    "default": "manifest",
+                    "description": "The sample sheet column name with unique sample identifiers.",
+                    "fa_icon": "fas fa-user-tag"
                 },
-                "fasta": {
+                "qc_factor_vars": {
                     "type": "string",
-                    "fa_icon": "fas fa-font",
-                    "description": "Path to FASTA genome file.",
-                    "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
+                    "default": "seqdate",
+                    "description": "The sample sheet variables to treat as factors.",
+                    "help_text": "All sample sheet columns with numbers which should be treated as factors should be specified here separated by commas.   Examples include columns with dates, numeric sample identifiers, etc.",
+                    "fa_icon": "fas fa-quote-left"
                 },
-                "igenomes_base": {
+                "qc_min_library_size": {
+                    "type": "integer",
+                    "default": 250,
+                    "description": "Minimum library size (counts) per cell.",
+                    "fa_icon": "fas fa-greater-than-equal"
+                },
+                "qc_max_library_size": {
                     "type": "string",
-                    "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes/",
-                    "fa_icon": "fas fa-cloud-download-alt",
-                    "hidden": true
+                    "default": "adaptive",
+                    "description": "Maximum library size (counts) per cell.",
+                    "fa_icon": "fas fa-less-than-equal"
                 },
-                "igenomes_ignore": {
+                "qc_min_features": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Minimum features (expressive genes) per cell.",
+                    "fa_icon": "fas fa-greater-than-equal"
+                },
+                "qc_max_features": {
+                    "type": "string",
+                    "default": "adaptive",
+                    "description": "Maximum features (expressive genes) per cell.",
+                    "fa_icon": "fas fa-less-than-equal"
+                },
+                "qc_min_ribo": {
+                    "type": "number",
+                    "description": "Minimum proportion of counts mapping to ribosomal genes.",
+                    "fa_icon": "fas fa-greater-than-equal"
+                },
+                "qc_max_mito": {
+                    "type": "string",
+                    "default": "adaptive",
+                    "description": "Maximum proportion of counts mapping to mitochondrial genes.",
+                    "fa_icon": "fas fa-less-than-equal"
+                },
+                "qc_max_ribo": {
+                    "type": "number",
+                    "default": 1,
+                    "description": "Maximum proportion of counts mapping to ribosomal genes.",
+                    "fa_icon": "fas fa-less-than-equal"
+                },
+                "qc_min_counts": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Minimum counts for gene expressivity.",
+                    "help_text": "Expressive genes must have >=min_counts in >=min_cells",
+                    "fa_icon": "fas fa-greater-than-equal"
+                },
+                "qc_min_cells": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "Minimum cells for gene expressivity.",
+                    "help_text": "Expressive genes must have >=min_counts in >=min_cells",
+                    "fa_icon": "fas fa-greater-than-equal"
+                },
+                "qc_drop_unmapped": {
                     "type": "boolean",
-                    "description": "Do not load the iGenomes reference config.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                    "default": true,
+                    "description": "Option to drop unmapped genes.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "qc_drop_mito": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Option to drop mitochondrial genes.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "qc_drop_ribo": {
+                    "type": "boolean",
+                    "description": "Option to drop ribosomal genes.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "qc_nmads": {
+                    "type": "number",
+                    "default": 4,
+                    "description": "The number of MADs for outlier detection.",
+                    "help_text": "The number of median absolute deviations (MADs) used to define outliers for adaptive thresholding.",
+                    "fa_icon": "fas fa-mountain"
                 }
-            }
+            },
+            "fa_icon": "far fa-check-circle",
+            "required": [
+                "qc_key_colname",
+                "qc_factor_vars",
+                "qc_min_library_size",
+                "qc_max_library_size",
+                "qc_min_features",
+                "qc_max_features",
+                "qc_min_ribo",
+                "qc_max_mito",
+                "qc_max_ribo",
+                "qc_min_counts",
+                "qc_min_cells",
+                "qc_drop_unmapped",
+                "qc_drop_mito",
+                "qc_drop_ribo",
+                "qc_nmads"
+            ]
+        },
+        "ambient_rna_profiling": {
+            "title": "Ambient RNA Profiling",
+            "type": "object",
+            "description": "Options for profiling ambient RNA/empty droplets.",
+            "default": "",
+            "properties": {
+                "amb_find_cells": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "amb_retain": {
+                    "type": "integer",
+                    "default": 12000
+                },
+                "amb_lower": {
+                    "type": "integer",
+                    "default": 100
+                },
+                "amb_alpha_cutoff": {
+                    "type": "number",
+                    "default": 0.001
+                },
+                "amb_niters": {
+                    "type": "integer",
+                    "default": 10000
+                }
+            },
+            "fa_icon": "far fa-chart-bar"
+        },
+        "multiplet_identification": {
+            "title": "Multiplet Identification",
+            "type": "object",
+            "description": "Parameters for identifying singlets/doublets/multiplets.",
+            "default": "",
+            "properties": {
+                "mult_find_singlets": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "mult_singlets_method": {
+                    "type": "string",
+                    "default": "doubletfinder"
+                },
+                "mult_vars_to_regress_out": {
+                    "type": "string",
+                    "default": "nCount_RNA,pc_mito"
+                },
+                "mult_pca_dims": {
+                    "type": "integer",
+                    "default": 10
+                },
+                "mult_var_features": {
+                    "type": "integer",
+                    "default": 2000
+                },
+                "mult_doublet_rate": {
+                    "type": "integer"
+                },
+                "mult_dpk": {
+                    "type": "integer",
+                    "default": 8
+                },
+                "mult_pK": {
+                    "type": "number",
+                    "default": 0.02
+                }
+            },
+            "fa_icon": "fas fa-adjust"
+        },
+        "merge": {
+            "title": "Merge",
+            "type": "object",
+            "description": "Parameters used in the merged quality-control report.",
+            "default": "",
+            "properties": {
+                "merge_plot_vars": {
+                    "type": "string",
+                    "default": "total_features_by_counts,total_counts,pc_mito,pc_ribo"
+                },
+                "merge_facet_vars": {
+                    "type": "string",
+                    "default": "NULL"
+                },
+                "merge_outlier_vars": {
+                    "type": "string",
+                    "default": "total_features_by_counts,total_counts"
+                }
+            },
+            "fa_icon": "fas fa-object-ungroup"
+        },
+        "integration": {
+            "title": "Integration",
+            "type": "object",
+            "description": "Parameters for integrating datasets and batch correction.",
+            "default": "",
+            "properties": {
+                "integ_method": {
+                    "type": "string",
+                    "default": "Liger"
+                },
+                "integ_unique_id_var": {
+                    "type": "string",
+                    "default": "manifest"
+                },
+                "integ_take_gene_union": {
+                    "type": "string"
+                },
+                "integ_remove_missing": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "integ_num_genes": {
+                    "type": "integer",
+                    "default": 3000
+                },
+                "integ_combine": {
+                    "type": "string",
+                    "default": "union"
+                },
+                "integ_keep_unique": {
+                    "type": "string"
+                },
+                "integ_capitalize": {
+                    "type": "string"
+                },
+                "integ_use_cols": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "integ_k": {
+                    "type": "integer",
+                    "default": 30
+                },
+                "integ_lambda": {
+                    "type": "integer",
+                    "default": 5
+                },
+                "integ_thresh": {
+                    "type": "number",
+                    "default": 0.0001
+                },
+                "integ_max_iters": {
+                    "type": "integer",
+                    "default": 100
+                },
+                "integ_nrep": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "integ_rand_seed": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "integ_knn_k": {
+                    "type": "integer",
+                    "default": 20
+                },
+                "integ_k2": {
+                    "type": "integer",
+                    "default": 500
+                },
+                "integ_prune_thresh": {
+                    "type": "number",
+                    "default": 0.2
+                },
+                "integ_ref_dataset": {
+                    "type": "string",
+                    "default": "NULL"
+                },
+                "integ_min_cells": {
+                    "type": "integer",
+                    "default": 2
+                },
+                "integ_quantiles": {
+                    "type": "integer",
+                    "default": 50
+                },
+                "integ_nstart": {
+                    "type": "integer",
+                    "default": 10
+                },
+                "integ_resolution": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "integ_dims_use": {
+                    "type": "string",
+                    "default": "NULL"
+                },
+                "integ_dist_use": {
+                    "type": "string",
+                    "default": "CR"
+                },
+                "integ_center": {
+                    "type": "string"
+                },
+                "integ_small_clust_thresh": {
+                    "type": "integer"
+                },
+                "integ_categorical_covariates": {
+                    "type": "string",
+                    "default": "individual,diagnosis,region,sex"
+                },
+                "integ_input_reduced_dim": {
+                    "type": "string",
+                    "default": "UMAP"
+                }
+            },
+            "fa_icon": "far fa-object-group"
+        },
+        "dimensionality_reduction": {
+            "title": "Dimensionality Reduction",
+            "type": "object",
+            "description": "Settings for dimensionality reduction algorithms.",
+            "default": "",
+            "properties": {
+                "reddim_input_reduced_dim": {
+                    "type": "string",
+                    "default": "PCA,Liger"
+                },
+                "reddim_reduction_methods": {
+                    "type": "string",
+                    "default": "tSNE,UMAP,UMAP3D"
+                },
+                "reddim_vars_to_regress_out": {
+                    "type": "string",
+                    "default": "nCount_RNA,pc_mito"
+                },
+                "reddim_umap_pca_dims": {
+                    "type": "integer",
+                    "default": 30
+                },
+                "reddim_umap_n_neighbors": {
+                    "type": "integer",
+                    "default": 35
+                },
+                "reddim_umap_n_components": {
+                    "type": "integer",
+                    "default": 2
+                },
+                "reddim_umap_init": {
+                    "type": "string",
+                    "default": "spectral"
+                },
+                "reddim_umap_metric": {
+                    "type": "string",
+                    "default": "euclidean"
+                },
+                "reddim_umap_n_epochs": {
+                    "type": "integer",
+                    "default": 200
+                },
+                "reddim_umap_learning_rate": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "reddim_umap_min_dist": {
+                    "type": "number",
+                    "default": 0.4
+                },
+                "reddim_umap_spread": {
+                    "type": "number",
+                    "default": 0.85
+                },
+                "reddim_umap_set_op_mix_ratio": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "reddim_umap_local_connectivity": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "reddim_umap_repulsion_strength": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "reddim_umap_negative_sample_rate": {
+                    "type": "integer",
+                    "default": 5
+                },
+                "reddim_umap_fast_sgd": {
+                    "type": "string"
+                },
+                "reddim_tsne_dims": {
+                    "type": "integer",
+                    "default": 2
+                },
+                "reddim_tsne_initial_dims": {
+                    "type": "integer",
+                    "default": 50
+                },
+                "reddim_tsne_perplexity": {
+                    "type": "integer",
+                    "default": 150
+                },
+                "reddim_tsne_theta": {
+                    "type": "number",
+                    "default": 0.5
+                },
+                "reddim_tsne_stop_lying_iter": {
+                    "type": "integer",
+                    "default": 250
+                },
+                "reddim_tsne_mom_switch_iter": {
+                    "type": "integer",
+                    "default": 250
+                },
+                "reddim_tsne_max_iter": {
+                    "type": "integer",
+                    "default": 1000
+                },
+                "reddim_tsne_pca_center": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "reddim_tsne_pca_scale": {
+                    "type": "string"
+                },
+                "reddim_tsne_normalize": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "reddim_tsne_momentum": {
+                    "type": "number",
+                    "default": 0.5
+                },
+                "reddim_tsne_final_momentum": {
+                    "type": "number",
+                    "default": 0.8
+                },
+                "reddim_tsne_eta": {
+                    "type": "integer",
+                    "default": 1000
+                },
+                "reddim_tsne_exaggeration_factor": {
+                    "type": "integer",
+                    "default": 12
+                }
+            },
+            "fa_icon": "fas fa-cubes"
+        },
+        "clustering": {
+            "title": "Clustering",
+            "type": "object",
+            "description": "Parameters used to tune louvain/leiden clustering.",
+            "default": "",
+            "properties": {
+                "clust_method": {
+                    "type": "string",
+                    "default": "leiden"
+                },
+                "clust_reduction_method": {
+                    "type": "string",
+                    "default": "UMAP_Liger"
+                },
+                "clust_res": {
+                    "type": "number",
+                    "default": 0.001
+                },
+                "clust_k": {
+                    "type": "integer",
+                    "default": 50
+                },
+                "clust_louvain_iter": {
+                    "type": "integer",
+                    "default": 1
+                }
+            },
+            "fa_icon": "fas fa-braille"
+        },
+        "cell_type_annotation": {
+            "title": "Cell-type Annotation",
+            "type": "object",
+            "description": "Parameters used for cell-type annotation and the associated report.",
+            "default": "",
+            "properties": {
+                "cta_clusters_colname": {
+                    "type": "string",
+                    "default": "clusters"
+                },
+                "cta_cells_to_sample": {
+                    "type": "integer",
+                    "default": 10000
+                },
+                "cta_unique_id_var": {
+                    "type": "string",
+                    "default": "individual"
+                },
+                "cta_celltype_var": {
+                    "type": "string",
+                    "default": "cluster_celltype"
+                },
+                "cta_facet_vars": {
+                    "type": "string",
+                    "default": "manifest,diagnosis,sex,capdate,prepdate,seqdate"
+                }
+            },
+            "fa_icon": "fas fa-brain"
+        },
+        "differential_gene_expression": {
+            "title": "Differential Gene Expression",
+            "type": "object",
+            "description": "Parameters for differential gene expression.",
+            "default": "",
+            "properties": {
+                "dge_method": {
+                    "type": "string",
+                    "default": "MASTZLM"
+                },
+                "dge_mast_method": {
+                    "type": "string",
+                    "default": "bayesglm"
+                },
+                "dge_min_counts": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "dge_min_cells_pc": {
+                    "type": "number",
+                    "default": 0.1
+                },
+                "dge_rescale_numerics": {
+                    "type": "string",
+                    "default": "true"
+                },
+                "dge_pseudobulk": {
+                    "type": "string"
+                },
+                "dge_celltype_var": {
+                    "type": "string",
+                    "default": "cluster_celltype"
+                },
+                "dge_sample_var": {
+                    "type": "string",
+                    "default": "manifest"
+                },
+                "dge_dependent_var": {
+                    "type": "string",
+                    "default": "group"
+                },
+                "dge_ref_class": {
+                    "type": "string",
+                    "default": "Control"
+                },
+                "dge_confounding_vars": {
+                    "type": "string",
+                    "default": "cngeneson,seqdate,pc_mito"
+                },
+                "dge_random_effects_var": {
+                    "type": "string",
+                    "default": "NULL"
+                },
+                "dge_fc_threshold": {
+                    "type": "number",
+                    "default": 1.1
+                },
+                "dge_pval_cutoff": {
+                    "type": "number",
+                    "default": 0.05
+                },
+                "dge_force_run": {
+                    "type": "string"
+                }
+            },
+            "fa_icon": "fas fa-chart-bar"
+        },
+        "impacted_pathway_analysis": {
+            "title": "Impacted Pathway Analysis",
+            "type": "object",
+            "description": "Parameters for impacted pathway analysis of differentially expressed genes.",
+            "default": "",
+            "properties": {
+                "ipa_reference_file": {
+                    "type": "string",
+                    "default": "NULL"
+                },
+                "ipa_enrichment_tool": {
+                    "type": "string",
+                    "default": "WebGestaltR"
+                },
+                "ipa_enrichment_method": {
+                    "type": "string",
+                    "default": "ORA"
+                },
+                "ipa_enrichment_database": {
+                    "type": "string",
+                    "default": "GO_Biological_Process"
+                }
+            },
+            "fa_icon": "fas fa-project-diagram"
+        },
+        "dirichlet_modeling": {
+            "title": "Dirichlet Modeling",
+            "type": "object",
+            "description": "Parameters for dirichlet modeling of relative cell-type proportions.",
+            "default": "",
+            "properties": {
+                "dirich_unique_id_var": {
+                    "type": "string",
+                    "default": "individual"
+                },
+                "dirich_celltype_var": {
+                    "type": "string",
+                    "default": "cluster_celltype"
+                },
+                "dirich_dependent_var": {
+                    "type": "string",
+                    "default": "group"
+                },
+                "dirich_ref_class": {
+                    "type": "string",
+                    "default": "Control"
+                },
+                "dirich_var_order": {
+                    "type": "string",
+                    "default": "Control,Low,High"
+                }
+            },
+            "fa_icon": "fas fa-chart-pie"
+        },
+        "general_plotting": {
+            "title": "General - Plotting",
+            "type": "object",
+            "description": "General parameters for plotting.",
+            "default": "",
+            "properties": {
+                "plotreddim_reduction_methods": {
+                    "type": "string",
+                    "default": "UMAP_Liger"
+                }
+            },
+            "fa_icon": "fas fa-chart-area"
         },
         "generic_options": {
             "title": "Generic options",
@@ -88,28 +710,19 @@
                     "hidden": true,
                     "fa_icon": "fas fa-question-circle"
                 },
-                "publish_dir_mode": {
-                    "type": "string",
-                    "default": "copy",
-                    "hidden": true,
-                    "description": "Method used to save pipeline results to output directory.",
-                    "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
-                    "fa_icon": "fas fa-copy",
-                    "enum": [
-                        "symlink",
-                        "rellink",
-                        "link",
-                        "copy",
-                        "copyNoFollow",
-                        "move"
-                    ]
-                },
                 "name": {
                     "type": "string",
                     "description": "Workflow name.",
                     "fa_icon": "fas fa-fingerprint",
                     "hidden": true,
                     "help_text": "A custom name for the pipeline run. Unlike the core nextflow `-name` option with one hyphen this parameter can be reused multiple times, for example if using `-resume`. Passed through to steps such as MultiQC and used for things like report filenames and titles."
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email address for completion summary.",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
+                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
                 "email_on_fail": {
                     "type": "string",
@@ -126,14 +739,6 @@
                     "hidden": true,
                     "help_text": "Set to receive plain-text e-mails instead of HTML formatted."
                 },
-                "max_multiqc_email_size": {
-                    "type": "string",
-                    "description": "File size limit when attaching MultiQC reports to summary emails.",
-                    "default": "25.MB",
-                    "fa_icon": "fas fa-file-upload",
-                    "hidden": true,
-                    "help_text": "If file generated by pipeline exceeds the threshold, it will not be attached."
-                },
                 "monochrome_logs": {
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
@@ -141,51 +746,12 @@
                     "hidden": true,
                     "help_text": "Set to disable colourful command line output and live life in monochrome."
                 },
-                "multiqc_config": {
-                    "type": "string",
-                    "description": "Custom config file to supply to MultiQC.",
-                    "fa_icon": "fas fa-cog",
-                    "hidden": true
-                },
                 "tracedir": {
                     "type": "string",
                     "description": "Directory to keep pipeline Nextflow logs and reports.",
                     "default": "${params.outdir}/pipeline_info",
                     "fa_icon": "fas fa-cogs",
                     "hidden": true
-                }
-            }
-        },
-        "max_job_request_options": {
-            "title": "Max job request options",
-            "type": "object",
-            "fa_icon": "fab fa-acquisitions-incorporated",
-            "description": "Set the top limit for requested resources for any single job.",
-            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-            "properties": {
-                "max_cpus": {
-                    "type": "integer",
-                    "description": "Maximum number of CPUs that can be requested    for any single job.",
-                    "default": 16,
-                    "fa_icon": "fas fa-microchip",
-                    "hidden": true,
-                    "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
-                },
-                "max_memory": {
-                    "type": "string",
-                    "description": "Maximum amount of memory that can be requested for any single job.",
-                    "default": "128.GB",
-                    "fa_icon": "fas fa-memory",
-                    "hidden": true,
-                    "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
-                },
-                "max_time": {
-                    "type": "string",
-                    "description": "Maximum amount of time that can be requested for any single job.",
-                    "default": "240.h",
-                    "fa_icon": "far fa-clock",
-                    "hidden": true,
-                    "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
                 }
             }
         },
@@ -237,6 +803,39 @@
                     "fa_icon": "fas fa-users-cog"
                 }
             }
+        },
+        "max_job_request_options": {
+            "title": "Max job request options",
+            "type": "object",
+            "fa_icon": "fab fa-acquisitions-incorporated",
+            "description": "Set the top limit for requested resources for any single job.",
+            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
+            "properties": {
+                "max_cpus": {
+                    "type": "integer",
+                    "description": "Maximum number of CPUs that can be requested    for any single job.",
+                    "default": 16,
+                    "fa_icon": "fas fa-microchip",
+                    "hidden": true,
+                    "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
+                },
+                "max_memory": {
+                    "type": "string",
+                    "description": "Maximum amount of memory that can be requested for any single job.",
+                    "default": "128.GB",
+                    "fa_icon": "fas fa-memory",
+                    "hidden": true,
+                    "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
+                },
+                "max_time": {
+                    "type": "string",
+                    "description": "Maximum amount of time that can be requested for any single job.",
+                    "default": "240.h",
+                    "fa_icon": "far fa-clock",
+                    "hidden": true,
+                    "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
+                }
+            }
         }
     },
     "allOf": [
@@ -244,16 +843,49 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/definitions/reference_genome_options"
+            "$ref": "#/definitions/quality_control"
+        },
+        {
+            "$ref": "#/definitions/ambient_rna_profiling"
+        },
+        {
+            "$ref": "#/definitions/multiplet_identification"
+        },
+        {
+            "$ref": "#/definitions/merge"
+        },
+        {
+            "$ref": "#/definitions/integration"
+        },
+        {
+            "$ref": "#/definitions/dimensionality_reduction"
+        },
+        {
+            "$ref": "#/definitions/clustering"
+        },
+        {
+            "$ref": "#/definitions/cell_type_annotation"
+        },
+        {
+            "$ref": "#/definitions/differential_gene_expression"
+        },
+        {
+            "$ref": "#/definitions/impacted_pathway_analysis"
+        },
+        {
+            "$ref": "#/definitions/dirichlet_modeling"
+        },
+        {
+            "$ref": "#/definitions/general_plotting"
         },
         {
             "$ref": "#/definitions/generic_options"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/definitions/institutional_config_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/definitions/max_job_request_options"
         }
     ]
 }

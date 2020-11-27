@@ -10,6 +10,7 @@
 library(argparse)
 library(scFlow)
 library(magrittr)
+library(SingleCellExperiment)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -88,15 +89,18 @@ args$metric_vars <- strsplit(args$metric_vars, ",")[[1]]
 ##  ............................................................................
 ##  Start                                                                   ####
 
-celltype_mappings <- read_celltype_mappings(args$celltype_mappings)
-
 sce <- read_sce(args$sce_path)
 
-sce <- map_custom_celltypes(
-    sce, 
-    mappings = celltype_mappings, 
-    clusters_colname = args$clusters_colname
-    )
+if (file.exists(args$celltype_mappings)) {
+    celltype_mappings <- read_celltype_mappings(args$celltype_mappings)
+    sce <- map_custom_celltypes(
+        sce,
+        mappings = celltype_mappings,
+        clusters_colname = args$clusters_colname
+        )
+} else {
+    print("Revised cell-type mappings not provided, using auto-annotations")
+}
 
 sce <- annotate_celltype_metrics(
   sce,
