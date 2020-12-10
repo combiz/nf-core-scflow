@@ -274,6 +274,14 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--species",
+  help = "the biological species (e.g. mouse, human)",
+  default = "human",
+  required = TRUE
+  )
+options("scflow_species" = args$species)
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
@@ -318,6 +326,8 @@ args <- purrr::map(args, function(x) {
   }
   return(x)
 })
+
+
 
 ##  ............................................................................
 ##  Start QC                                                                ####

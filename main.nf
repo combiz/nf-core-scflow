@@ -265,7 +265,8 @@ process SCFLOW_QC {
     --retain ${params.amb_retain} \
     --alpha_cutoff ${params.amb_alpha_cutoff} \
     --niters ${params.amb_niters}  \
-    --expect_cells ${params.amb_expect_cells}
+    --expect_cells ${params.amb_expect_cells} \
+    --species ${params.species}
      
     """
 }
@@ -329,7 +330,8 @@ process SCFLOW_MERGE {
     --unique_id_var ${params.qc_key_colname} \
     --plot_vars ${params.merge_plot_vars} \
     --facet_vars ${params.merge_facet_vars} \
-    --outlier_vars ${params.merge_outlier_vars}
+    --outlier_vars ${params.merge_outlier_vars} \
+    --species ${params.species}
 
     """
 
@@ -543,7 +545,8 @@ process SCFLOW_MAP_CELLTYPES {
     --sce_path ${sce} \
     --ctd_folder ${ctd_folder} \
     --clusters_colname ${params.cta_clusters_colname} \
-    --cells_to_sample ${params.cta_cells_to_sample}
+    --cells_to_sample ${params.cta_cells_to_sample} \
+    --species ${params.species}
 
     """
 
@@ -670,7 +673,8 @@ process SCFLOW_DGE {
     --confounding_vars ${params.dge_confounding_vars} \
     --random_effects_var ${params.dge_random_effects_var} \
     --fc_threshold ${params.dge_fc_threshold} \
-    --ensembl_mappings ${ensembl_mappings} 
+    --ensembl_mappings ${ensembl_mappings} \
+    --species ${params.species}
      
     """
 }

@@ -155,6 +155,14 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--species",
+  help = "the biological species (e.g. mouse, human)",
+  default = "human",
+  required = TRUE
+  )
+options("scflow_species" = args$species)
+
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults
 args <- parser$parse_args()
