@@ -280,12 +280,14 @@ required$add_argument(
   default = "human",
   required = TRUE
   )
-options("scflow_species" = args$species)
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+
+options("scflow_species" = args$species)
+
 args[startsWith(names(args), "drop_")] <- 
   as.logical(args[startsWith(names(args), "drop_")])
 args$max_library_size <- ifelse(

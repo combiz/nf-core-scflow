@@ -59,12 +59,14 @@ required$add_argument(
   default = "human",
   required = TRUE
   )
-options("scflow_species" = args$species)
+
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+
+options("scflow_species" = args$species)
 
 ##  ............................................................................
 ##  Start                                                                   ####

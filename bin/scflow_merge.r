@@ -71,12 +71,14 @@ required$add_argument(
   default = "human",
   required = TRUE
   )
-options("scflow_species" = args$species)
+
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+
+options("scflow_species" = args$species)
 
 args$sce_paths <- strsplit(args$sce_paths, ",")[[1]]
 args$facet_vars <- strsplit(args$facet_vars, ",")[[1]]

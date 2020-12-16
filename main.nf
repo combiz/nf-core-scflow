@@ -23,19 +23,20 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/scflow --manifest "refs/Manifest.txt" --samplesheet "refs/SampleSheet.tsv" -params-file conf/nfx-params.json
+    nextflow run nf-core/scflow --manifest "refs/Manifest.txt" --samplesheet "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
 
     Mandatory arguments:
       --manifest [file]             Path to Manifest.txt file (must be surrounded with quotes)
       --samplesheet [file]          Path to SampleSheet.tsv file (must be surrounded with quotes)
-      -params-file [file]           Path to nfx-params.json file
       -profile [str]                Configuration profile to use. Can use multiple (comma separated)
                                     Available: conda, docker, singularity, test, awsbatch, <institute> and more
                                     TODO: This feature will be available when configs are submitted to nf-core
 
     References                        If not specified in the configuration file or you wish to overwrite any of the references
       --ensembl_mappings [file]       Path to ensembl_mappings file
+      --celltype_mappings [file]      Path to manual cell-type mappings file
       --ctd_folder [path]             Path to the folder containing .ctd files for celltype annotation
+      --reddim_genes [file]           Path to a file containing genes of interest for expression plotting
 
     Other options:
       --outdir [file]                 The output directory where the results will be saved
@@ -212,12 +213,10 @@ process SCFLOW_QC {
 
   publishDir "${params.outdir}",
     mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:key) }
 
   errorStrategy { task.attempt <= 3 ? 'retry' : 'finish' }
   maxRetries 3
-   
-  echo false
    
   input:
     tuple val(key), path(mat_path)
@@ -229,10 +228,12 @@ process SCFLOW_QC {
     path 'qc_plot_data/*.tsv'   , emit: qc_plot_data
     path 'qc_summary/*.tsv'     , emit: qc_summary
     path 'qc_plots/*.png'       , emit: qc_plots
-    path '*_sce'                , emit: qc_sce
+    path '*_sce'                , emit: qc_sce, type: 'dir'
 
   script:
     """
+    export MC_CORES=${task.cpus}
+
     scflow_qc.r \
     --samplesheet ${samplesheet} \
     --mat_path ${mat_path} \
@@ -316,7 +317,7 @@ process SCFLOW_MERGE {
     path ensembl_mappings
 
   output:
-    path 'merged_sce/'              , emit: merged_sce
+    path 'merged_sce/'              , emit: merged_sce, type: 'dir'
     path 'merge_plots/*.png'        , emit: merge_plots
     path 'merge_summary_plots/*.png', emit: merge_summary_plots    
     path 'merged_report/*.html'     , emit: merged_report
@@ -357,6 +358,7 @@ process SCFLOW_INTEGRATE {
 
   script:
     """
+    export MC_CORES=${task.cpus}
 
     scflow_integrate.r \
     --sce_path ${sce} \
@@ -413,6 +415,7 @@ process SCFLOW_REDUCE_DIMS {
 
   script:
     """
+    export MC_CORES=${task.cpus}
 
     scflow_reduce_dims.r \
     --sce_path ${sce} \
@@ -470,10 +473,11 @@ process SCFLOW_CLUSTER {
     path sce
 
   output:
-    path 'clustered_sce/'       , emit: clustered_sce
+    path 'clustered_sce/'       , emit: clustered_sce, type: 'dir'
 
   script:
     """
+    export MC_CORES=${task.cpus}
 
     scflow_cluster.r \
     --sce_path ${sce} \
@@ -535,11 +539,13 @@ process SCFLOW_MAP_CELLTYPES {
     path ctd_folder
 
   output:
-    path 'celltype_mapped_sce/' , emit: celltype_mapped_sce
+    path 'celltype_mapped_sce/' , emit: celltype_mapped_sce, type: 'dir'
     path 'celltype_mappings.tsv', emit: celltype_mappings
 
   script:
     """
+    export MC_CORES=${task.cpus}
+
 
     scflow_map_celltypes.r \
     --sce_path ${sce} \
@@ -564,17 +570,14 @@ process SCFLOW_FINALIZE {
     mode: params.publish_dir_mode,
     saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-
-  echo true
-  
   input:
     path sce
     path celltype_mappings
 
   output:
-    path 'final_sce/'               , emit: final_sce
+    path 'final_sce/'               , emit: final_sce, type: 'dir'
     path 'celltypes.tsv'            , emit: celltypes
-    path 'celltype_metrics_report'  , emit: celltype_metrics_report
+    path 'celltype_metrics_report'  , emit: celltype_metrics_report, type: 'dir'
 
 
   script:
@@ -645,9 +648,9 @@ process SCFLOW_DGE {
 
   output:
     path 'de_table/*.tsv'       , emit: de_table, optional: true
-    path 'de_report/*.html'     , emit: de_report
-    path 'de_plot/*.png'        , emit: de_plot
-    path 'de_plot_data/*.tsv'   , emit: de_plot_data
+    path 'de_report/*.html'     , emit: de_report, optional: true
+    path 'de_plot/*.png'        , emit: de_plot, optional: true
+    path 'de_plot_data/*.tsv'   , emit: de_plot_data, optional: true
 
   script:
     celltype    = ct_tuple[0]
@@ -656,6 +659,13 @@ process SCFLOW_DGE {
 
     """
     echo "celltype: ${celltype} n_cells: ${n_cells_str}"
+    export MC_CORES=${task.cpus}
+    export MKL_NUM_THREADS=1
+    export NUMEXPR_NUM_THREADS=1
+    export OMP_NUM_THREADS=1
+    export OPENBLAS_NUM_THREADS=1
+    export VECLIB_MAXIMUM_THREADS=1
+
     scflow_dge.r \
     --sce ${sce} \
     --celltype ${celltype} \
@@ -674,7 +684,8 @@ process SCFLOW_DGE {
     --random_effects_var ${params.dge_random_effects_var} \
     --fc_threshold ${params.dge_fc_threshold} \
     --ensembl_mappings ${ensembl_mappings} \
-    --species ${params.species}
+    --species ${params.species} \
+    --max_cores ${params.dge_max_cores}
      
     """
 }
@@ -693,8 +704,6 @@ process SCFLOW_IPA {
    
   input:
     path de_table
-    //each de_method
-    //each celltype
 
   output:
     path 'ipa/**/*'     , emit: ipa_results , optional: true, type: 'dir'
@@ -704,7 +713,6 @@ process SCFLOW_IPA {
     """
     scflow_ipa.r \
     --gene_file ${de_table.join(',')} \
-    --reference_file ${params.ipa_reference_file} \
     --enrichment_tool ${params.ipa_enrichment_tool} \
     --enrichment_method ${params.ipa_enrichment_method} \
     --enrichment_database ${params.ipa_enrichment_database}
@@ -723,9 +731,6 @@ process SCFLOW_DIRICHLET {
   publishDir "${params.outdir}",
     mode: params.publish_dir_mode,
     saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-
-  echo true
   
   input:
     path sce
@@ -845,10 +850,10 @@ workflow {
     SCFLOW_FINALIZE.out.celltypes to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
     SCFLOW_FINALIZE.out.celltype_metrics_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // DE
-    SCFLOW_DGE.out.de_table to: "$params.outdir/Tables/DGE", mode: 'copy', optional: true, overwrite: 'true'
-    SCFLOW_DGE.out.de_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    SCFLOW_DGE.out.de_plot to: "$params.outdir/Plots/DGE/", mode: 'copy', overwrite: 'true'
-    SCFLOW_DGE.out.de_plot_data to: "$params.outdir/Tables/DGE", mode: 'copy', overwrite: 'true'
+    SCFLOW_DGE.out.de_table to: "$params.outdir/Tables/DGE", mode: 'copy', optional: 'true', overwrite: 'true'
+    SCFLOW_DGE.out.de_report to: "$params.outdir/Reports/", mode: 'copy', optional: 'true', overwrite: 'true'
+    SCFLOW_DGE.out.de_plot to: "$params.outdir/Plots/DGE/", mode: 'copy', optional: 'true', overwrite: 'true'
+    SCFLOW_DGE.out.de_plot_data to: "$params.outdir/Tables/DGE", mode: 'copy', optional: 'true', overwrite: 'true'
     // IPA
     SCFLOW_IPA.out.ipa_results to: "$params.outdir/Tables/", mode: 'copy', optional: true, overwrite: 'true'
     SCFLOW_IPA.out.ipa_report to: "$params.outdir/Reports/", mode: 'copy', optional: true, overwrite: 'true'
@@ -891,77 +896,6 @@ workflow.onComplete {
     email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
     email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
     email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
-
-    // TODO nf-core: If not using MultiQC, strip out this code (including params.max_multiqc_email_size)
-    // On success try attach the multiqc report
-    def mqc_report = null
-    try {
-        if (workflow.success) {
-            mqc_report = ch_multiqc_report.getVal()
-            if (mqc_report.getClass() == ArrayList) {
-                log.warn "[nf-core/scflow] Found multiple reports from process 'multiqc', will use only one"
-                mqc_report = mqc_report[0]
-            }
-        }
-    } catch (all) {
-        log.warn "[nf-core/scflow] Could not attach MultiQC report to summary email"
-    }
-
-    // Check if we are only sending emails on failure
-    email_address = params.email
-    if (!params.email && params.email_on_fail && !workflow.success) {
-        email_address = params.email_on_fail
-    }
-
-    // Render the TXT template
-    def engine = new groovy.text.GStringTemplateEngine()
-    def tf = new File("$baseDir/assets/email_template.txt")
-    def txt_template = engine.createTemplate(tf).make(email_fields)
-    def email_txt = txt_template.toString()
-
-    // Render the HTML template
-    def hf = new File("$baseDir/assets/email_template.html")
-    def html_template = engine.createTemplate(hf).make(email_fields)
-    def email_html = html_template.toString()
-
-    // Render the sendmail template
-    def smail_fields = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, baseDir: "$baseDir", mqcFile: mqc_report, mqcMaxSize: params.max_multiqc_email_size.toBytes() ]
-    def sf = new File("$baseDir/assets/sendmail_template.txt")
-    def sendmail_template = engine.createTemplate(sf).make(smail_fields)
-    def sendmail_html = sendmail_template.toString()
-
-    // Send the HTML e-mail
-    if (email_address) {
-        try {
-            if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
-            // Try to send HTML e-mail using sendmail
-            [ 'sendmail', '-t' ].execute() << sendmail_html
-            log.info "[nf-core/scflow] Sent summary e-mail to $email_address (sendmail)"
-        } catch (all) {
-            // Catch failures and try with plaintext
-            def mail_cmd = [ 'mail', '-s', subject, '--content-type=text/html', email_address ]
-            if ( mqc_report.size() <= params.max_multiqc_email_size.toBytes() ) {
-              mail_cmd += [ '-A', mqc_report ]
-            }
-            mail_cmd.execute() << email_html
-            log.info "[nf-core/scflow] Sent summary e-mail to $email_address (mail)"
-        }
-    }
-
-    // Write summary e-mail HTML to a file
-    def output_d = new File("${params.outdir}/pipeline_info/")
-    if (!output_d.exists()) {
-        output_d.mkdirs()
-    }
-    def output_hf = new File(output_d, "pipeline_report.html")
-    output_hf.withWriter { w -> w << email_html }
-    def output_tf = new File(output_d, "pipeline_report.txt")
-    output_tf.withWriter { w -> w << email_txt }
-
-    c_green = params.monochrome_logs ? '' : "\033[0;32m";
-    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
-    c_red = params.monochrome_logs ? '' : "\033[0;31m";
-    c_reset = params.monochrome_logs ? '' : "\033[0m";
 
     if (workflow.stats.ignoredCount > 0 && workflow.success) {
         log.info "-${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}-"
