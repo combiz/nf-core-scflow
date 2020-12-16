@@ -175,6 +175,10 @@ process get_software_versions {
     """
 }
 
+// Don't overwrite global params.modules, create a copy instead and use that within the main script.
+def modules = params.modules.clone()
+println(modules)
+
 /*
  * Check manifest and samplesheet inputs are valid
  */
