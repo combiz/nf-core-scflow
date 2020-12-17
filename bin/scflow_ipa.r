@@ -85,7 +85,10 @@ args <- purrr::map(args, function(x) {
 ##  Start impacted pathway analysis(IPA)                                    ####
 
 output_dir <- file.path(getwd(), "ipa")
+report_dir <- file.path(getwd(), "ipa_report")
+
 dir.create(output_dir)
+dir.create(report_dir)
 
 for (gene_file in args$gene_file) {
 
@@ -103,7 +106,7 @@ for (gene_file in args$gene_file) {
   
   report_impacted_pathway(
       res = enrichment_result,
-      report_folder_path = output_dir,
+      report_folder_path = report_dir,
       report_file = report_fp
     )
 

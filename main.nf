@@ -100,7 +100,7 @@ summary['Run Name']         = custom_runName ?: workflow.runName
 summary['Manifest']         = params.manifest
 summary['SampleSheet']      = params.samplesheet
 summary['Run EmptyDrops']   = params.amb_find_cells ? "Yes" : "No"
-summary['Find Singlets']    = params.mult_find_singlets ? "Yes ($params.singlets.singlets_method)" : 'No'
+summary['Find Singlets']    = params.mult_find_singlets ? "Yes ($params.mult_singlets_method)" : 'No'
 summary['Dimension Reds.']  = params.reddim_reduction_methods
 summary['Clustering Input'] = params.clust_reduction_method
 summary['DGE Method']       = params.dge_de_method == "MASTZLM" ? "$params.dge_de_method ($params.dge_mast_method)": "$params.dge_de_method"
@@ -343,7 +343,7 @@ scflow_dge_options.args              =
     --max_cores ${params.dge_max_cores}"
 
 def scflow_ipa_options               = modules['scflow_ipa']
-scflow_dge_options.args              =
+scflow_ipa_options.args              =
     "--enrichment_tool ${params.ipa_enrichment_tool} \
     --enrichment_method ${params.ipa_enrichment_method} \
     --enrichment_database ${params.ipa_enrichment_database}"

@@ -13,7 +13,7 @@ process SCFLOW_QC {
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${key}") }
 
     container 'combiz/scflow-docker:0.6.1'
     
@@ -23,10 +23,10 @@ process SCFLOW_QC {
     path ensembl_mappings
     
     output:
-    path 'qc_report/*.html'     , emit: qc_report
-    path 'qc_plot_data/*.tsv'   , emit: qc_plot_data
+    path '*.html'               , emit: qc_report
+    path 'qc_plot_data'         , emit: qc_plot_data, type: 'dir'
     path 'qc_summary/*.tsv'     , emit: qc_summary
-    path 'qc_plots/*.png'       , emit: qc_plots
+    path 'qc_plots'             , emit: qc_plots, type: 'dir'
     path '*_sce'                , emit: qc_sce, type: 'dir'
 
     script:

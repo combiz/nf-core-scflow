@@ -21,7 +21,7 @@ process SCFLOW_REPORTINTEGRATED {
     path( sce )
 
     output:
-    path 'integration_report/', emit: integration_report
+    path 'integration_report', emit: integration_report, type: 'dir'
 
     script:
     def software = getSoftwareName(task.process)

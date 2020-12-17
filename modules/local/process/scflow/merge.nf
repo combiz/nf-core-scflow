@@ -22,10 +22,10 @@ process SCFLOW_MERGE {
     path ensembl_mappings
 
     output:
-    path 'merged_sce/'              , emit: merged_sce, type: 'dir'
-    path 'merge_plots/*.png'        , emit: merge_plots
-    path 'merge_summary_plots/*.png', emit: merge_summary_plots    
-    path 'merged_report/*.html'     , emit: merged_report
+    path 'merged_sce/'              , emit: merged_sce          , type: 'dir'
+    path 'merge_plots'              , emit: merge_plots         , type: 'dir'
+    path 'merge_summary_plots'      , emit: merge_summary_plots , type: 'dir'
+    path 'merged_report'            , emit: merged_report       , type: 'dir'
 
     script:
     def software = getSoftwareName(task.process)

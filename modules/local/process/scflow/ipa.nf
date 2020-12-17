@@ -22,7 +22,7 @@ process SCFLOW_IPA {
 
     output:
     path 'ipa/**/*'     , emit: ipa_results , optional: true, type: 'dir'
-    path 'ipa/*.html'   , emit: ipa_report  , optional: true
+    path 'ipa_report'   , emit: ipa_report  , optional: true, type: 'dir'
 
     script:
     def software = getSoftwareName(task.process)

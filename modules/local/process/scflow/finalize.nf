@@ -22,7 +22,7 @@ process SCFLOW_FINALIZE {
     path celltype_mappings
 
     output:
-    path 'final_sce/'               , emit: final_sce, type: 'dir'
+    path 'final_sce'                , emit: final_sce, type: 'dir'
     path 'celltypes.tsv'            , emit: celltypes
     path 'celltype_metrics_report'  , emit: celltype_metrics_report, type: 'dir'
 

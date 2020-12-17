@@ -411,7 +411,8 @@ dir.create(file.path(getwd(), "qc_report"))
 
 report_qc_sce(
   sce = sce,
-  report_folder_path = file.path(getwd(), "qc_report"),
+  #report_folder_path = file.path(getwd(), "qc_report"),
+  report_folder_path = file.path(getwd()),
   report_file = paste0(args$key, "_scflow_qc_report")
 )
 

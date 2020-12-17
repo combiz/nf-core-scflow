@@ -13,7 +13,7 @@ process SCFLOW_DGE {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${celltype}_${de_method}") }
 
     container 'combiz/scflow-docker:0.6.1'
     
@@ -24,15 +24,15 @@ process SCFLOW_DGE {
     path ensembl_mappings
 
     output:
-    path 'de_table/*.tsv'       , emit: de_table, optional: true
-    path 'de_report/*.html'     , emit: de_report, optional: true
-    path 'de_plot/*.png'        , emit: de_plot, optional: true
-    path 'de_plot_data/*.tsv'   , emit: de_plot_data, optional: true
+    path 'de_table/*.tsv' , emit: de_table      , optional: true
+    path 'de_report'      , emit: de_report     , type: 'dir', optional: true
+    path 'de_plot'        , emit: de_plot       , type: 'dir', optional: true
+    path 'de_plot_data'   , emit: de_plot_data  , type: 'dir', optional: true
 
     script:
-    celltype    = ct_tuple[0]
-    n_cells     = ct_tuple[1].toInteger()
-    n_cells_str = (Math.round(n_cells * 100) / 100000).round(1).toString() + 'k'
+    celltype     = ct_tuple[0]
+    n_cells      = ct_tuple[1].toInteger()
+    n_cells_str  = (Math.round(n_cells * 100) / 100000).round(1).toString() + 'k'
     def software = getSoftwareName(task.process)
 
 
