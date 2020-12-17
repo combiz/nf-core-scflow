@@ -175,76 +175,20 @@ process get_software_versions {
     """
 }
 
+////////////////////////////////////////////////////
+/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
+////////////////////////////////////////////////////
+
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
-println(modules)
 
-/*
- * Check manifest and samplesheet inputs are valid
- */
- process SCFLOW_CHECK_INPUTS {
+def scflow_checkinputs_options         = modules['scflow_checkinputs']
+scflow_checkinputs_options.args        = ''
 
-  tag 'SCFLOW_CHECK_INPUTS'
-  label 'process_tiny'
-  //container 'google/cloud-sdk:alpine'
-
-  echo true
-
-  input:
-    path manifest
-    path samplesheet
-
-  output:
-    path 'checked_manifest.txt', emit: checked_manifest
-
-  script:
-
-    """
-    check_inputs.r \
-    --samplesheet $samplesheet \
-    --manifest $manifest    
-    """     
-
-}
-
-/*
- * Single Sample QC
- */
-process SCFLOW_QC {
-
-  tag "${key}"
-  label 'process_low'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:key) }
-
-  errorStrategy { task.attempt <= 3 ? 'retry' : 'finish' }
-  maxRetries 3
-   
-  input:
-    tuple val(key), path(mat_path)
-    path samplesheet
-    path ensembl_mappings
-
-  output:
-    path 'qc_report/*.html'     , emit: qc_report
-    path 'qc_plot_data/*.tsv'   , emit: qc_plot_data
-    path 'qc_summary/*.tsv'     , emit: qc_summary
-    path 'qc_plots/*.png'       , emit: qc_plots
-    path '*_sce'                , emit: qc_sce, type: 'dir'
-
-  script:
-    """
-    export MC_CORES=${task.cpus}
-
-    scflow_qc.r \
-    --samplesheet ${samplesheet} \
-    --mat_path ${mat_path} \
-    --key ${key} \
-    --key_colname ${params.qc_key_colname} \
+def scflow_qc_options                  = modules['scflow_qc']
+scflow_qc_options.args                 = 
+    "--key_colname ${params.qc_key_colname} \
     --factor_vars ${params.qc_factor_vars} \
-    --ensembl_mappings ${ensembl_mappings} \
     --min_library_size ${params.qc_min_library_size} \
     --max_library_size ${params.qc_max_library_size} \
     --min_features ${params.qc_min_features} \
@@ -271,102 +215,22 @@ process SCFLOW_QC {
     --alpha_cutoff ${params.amb_alpha_cutoff} \
     --niters ${params.amb_niters}  \
     --expect_cells ${params.amb_expect_cells} \
-    --species ${params.species}
-     
-    """
-}
+    --species ${params.species} "
 
-/*
- * Merge individual quality-control tsv summaries into combined tsv file
- */
-process SCFLOW_MERGE_QC_SUMMARIES {
-  
-  tag 'merged'
-  label 'process_tiny'
+def scflow_mergeqctables_options  = modules['scflow_mergeqctables']
+scflow_mergeqctables_options.args = ''
 
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-  input:
-    path qcs_tsv
-
-  output:
-    path '*.tsv', emit: qc_summary
-
-  script:
-    """
-
-    merge_tables.r \
-    --filepaths ${qcs_tsv.join(',')}
-
-    """
-
-}
-
-/*
- * Merge quality-control passed SCEs
- */
-process SCFLOW_MERGE {
-  
-  tag 'merged'
-  label 'process_medium'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-  input:
-    path qc_passed_sces
-    path ensembl_mappings
-
-  output:
-    path 'merged_sce/'              , emit: merged_sce, type: 'dir'
-    path 'merge_plots/*.png'        , emit: merge_plots
-    path 'merge_summary_plots/*.png', emit: merge_summary_plots    
-    path 'merged_report/*.html'     , emit: merged_report
-
-  script:
-    """
-
-    scflow_merge.r \
-    --sce_paths ${qc_passed_sces.join(',')} \
-    --ensembl_mappings ${ensembl_mappings} \
-    --unique_id_var ${params.qc_key_colname} \
+def scflow_merge_options             = modules['scflow_merge']
+scflow_merge_options.args            =
+    "--unique_id_var ${params.qc_key_colname} \
     --plot_vars ${params.merge_plot_vars} \
     --facet_vars ${params.merge_facet_vars} \
     --outlier_vars ${params.merge_outlier_vars} \
-    --species ${params.species}
+    --species ${params.species}"
 
-    """
-
-}
-
-/*
- * Integrate data for batch-effect correction
- */
-process SCFLOW_INTEGRATE {
-
-  tag 'merged'
-  label 'process_medium'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-  input:
-    path sce
-
-  output:
-    path 'integrated_sce/', emit: integrated_sce
-
-  script:
-    """
-    export MC_CORES=${task.cpus}
-
-    scflow_integrate.r \
-    --sce_path ${sce} \
-    --method ${params.integ_method} \
+def scflow_integrate_options         = modules['scflow_integrate']
+scflow_integrate_options.args        =
+    "--method ${params.integ_method} \
     --unique_id_var ${params.integ_unique_id_var} \
     --take_gene_union ${params.integ_take_gene_union} \
     --remove_missing ${params.integ_remove_missing} \
@@ -392,38 +256,11 @@ process SCFLOW_INTEGRATE {
     --dims_use ${params.integ_dims_use} \
     --dist_use ${params.integ_dist_use} \
     --center ${params.integ_center} \
-    --small_clust_thresh ${params.integ_small_clust_thresh}
-    
-    """
+    --small_clust_thresh ${params.integ_small_clust_thresh}"
 
-}
-
-/*
- * Perform dimensionality reduction
- */
-process SCFLOW_REDUCE_DIMS {
-  
-  tag 'merged'
-  label 'process_medium'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-
-  input:
-    path sce
-
-  output:
-    path 'reddim_sce/', emit: reddim_sce
-
-  script:
-    """
-    export MC_CORES=${task.cpus}
-
-    scflow_reduce_dims.r \
-    --sce_path ${sce} \
-    --input_reduced_dim ${params.reddim_input_reduced_dim} \
+def scflow_reducedims_options        = modules['scflow_reducedims']
+scflow_reducedims_options.args       = 
+    "--input_reduced_dim ${params.reddim_input_reduced_dim} \
     --reduction_methods ${params.reddim_reduction_methods} \
     --vars_to_regress_out ${params.reddim_vars_to_regress_out} \
     --pca_dims ${params.reddim_umap_pca_dims} \
@@ -453,228 +290,43 @@ process SCFLOW_REDUCE_DIMS {
     --momentum ${params.reddim_tsne_momentum} \
     --final_momentum ${params.reddim_tsne_final_momentum} \
     --eta ${params.reddim_tsne_eta} \
-    --exaggeration_factor ${params.reddim_tsne_exaggeration_factor}
-    
+    --exaggeration_factor ${params.reddim_tsne_exaggeration_factor}"
 
-    """
-
-}
-
-/*
- * Cluster cells
- */
-process SCFLOW_CLUSTER {
-  
-  tag 'merged'
-  label 'process_low'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-
-  input:
-    path sce
-
-  output:
-    path 'clustered_sce/'       , emit: clustered_sce, type: 'dir'
-
-  script:
-    """
-    export MC_CORES=${task.cpus}
-
-    scflow_cluster.r \
-    --sce_path ${sce} \
-    --cluster_method ${params.clust_cluster_method} \
+def scflow_cluster_options          = modules['scflow_cluster']
+scflow_cluster_options.args         =
+    "--cluster_method ${params.clust_cluster_method} \
     --reduction_method ${params.clust_reduction_method} \
     --res ${params.clust_res} \
     --k ${params.clust_k} \
-    --louvain_iter ${params.clust_louvain_iter}
+    --louvain_iter ${params.clust_louvain_iter}"
 
-    """
+def scflow_reportintegrated_options  = modules['scflow_reportintegrated']
+scflow_reportintegrated_options.args =
+   "--categorical_covariates ${params.integ_categorical_covariates} \
+    --input_reduced_dim ${params.integ_input_reduced_dim}"
 
-}
-
-
-/*
- * Generate integration report
- */
-process SCFLOW_REPORT_INTEGRATED {
-  
-  tag "merged"
-  label 'process_medium'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-  input:
-    path( sce )
-
-  output:
-    path 'integration_report/', emit: integration_report
-
-  script:
-    """
-    scflow_report_integrated.r \
-    --sce_path ${sce} \
-    --categorical_covariates ${params.integ_categorical_covariates} \
-    --input_reduced_dim ${params.integ_input_reduced_dim}
-    """
-
-}
-
-
-/*
- * Annotate cluster celltypes
- */
-process SCFLOW_MAP_CELLTYPES {
-  
-  tag 'merged'
-  label 'process_low'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-
-  input:
-    path sce
-    path ctd_folder
-
-  output:
-    path 'celltype_mapped_sce/' , emit: celltype_mapped_sce, type: 'dir'
-    path 'celltype_mappings.tsv', emit: celltype_mappings
-
-  script:
-    """
-    export MC_CORES=${task.cpus}
-
-
-    scflow_map_celltypes.r \
-    --sce_path ${sce} \
-    --ctd_folder ${ctd_folder} \
-    --clusters_colname ${params.cta_clusters_colname} \
+def scflow_mapcelltypes_options      = modules['scflow_mapcelltypes']
+scflow_mapcelltypes_options.args     =
+    "--clusters_colname ${params.cta_clusters_colname} \
     --cells_to_sample ${params.cta_cells_to_sample} \
-    --species ${params.species}
+    --species ${params.species}"
 
-    """
+def scflow_finalize_options          = modules['scflow_finalize']
+scflow_finalize_options.args         =
+    "--clusters_colname ${params.cta_clusters_colname} \
+     --celltype_var ${params.cta_celltype_var} \
+     --unique_id_var ${params.cta_unique_id_var} \
+     --facet_vars ${params.cta_facet_vars} \
+     --input_reduced_dim ${params.clust_reduction_method} \
+     --metric_vars ${params.cta_metric_vars}"
 
-}
+def scflow_plotreddimgenes_options          = modules['scflow_plotreddimgenes']
+scflow_plotreddimgenes_options.args          =
+    "--reduction_methods ${params.plotreddim_reduction_methods}"
 
-/*
- * Generate final SCE with optionally revised cell-types
- */
-process SCFLOW_FINALIZE {
-
-  tag 'merged'
-  label  'process_high'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-  input:
-    path sce
-    path celltype_mappings
-
-  output:
-    path 'final_sce/'               , emit: final_sce, type: 'dir'
-    path 'celltypes.tsv'            , emit: celltypes
-    path 'celltype_metrics_report'  , emit: celltype_metrics_report, type: 'dir'
-
-
-  script:
-
-      """
-      scflow_finalize_sce.r \
-      --sce_path ${sce} \
-      --celltype_mappings ${celltype_mappings} \
-      --clusters_colname ${params.cta_clusters_colname} \
-      --celltype_var ${params.cta_celltype_var} \
-      --unique_id_var ${params.cta_unique_id_var} \
-      --facet_vars ${params.cta_facet_vars} \
-      --input_reduced_dim ${params.clust_reduction_method} \
-      --metric_vars ${params.cta_metric_vars}
-      """
-
-}
-
-/*
- * Generate 2D reduced dimension plots of gene expression
- */
-process SCFLOW_PLOT_REDDIM_GENES {
-
-  label 'process_low'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-   
-  input:
-    path sce
-    path reddim_genes_yml
-
-  output:
-    path 'reddim_gene_plots/', emit: reddim_gene_plots
-
-  script:
-    
-    """
-    scflow_plot_reddim_genes.r \
-    --sce ${sce} \
-    --reduction_methods ${params.plotreddim_reduction_methods} \
-    --reddim_genes_yml ${reddim_genes_yml}
-     
-    """
-}
-
-/*
- * Perform differential gene expression
- */
-process SCFLOW_DGE {
-
-  tag "${celltype} (${n_cells_str} cells) | ${de_method}"
-  label 'process_medium'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-  maxRetries 3
-   
-  input:
-    path sce
-    each de_method
-    each ct_tuple
-    path ensembl_mappings
-
-  output:
-    path 'de_table/*.tsv'       , emit: de_table, optional: true
-    path 'de_report/*.html'     , emit: de_report, optional: true
-    path 'de_plot/*.png'        , emit: de_plot, optional: true
-    path 'de_plot_data/*.tsv'   , emit: de_plot_data, optional: true
-
-  script:
-    celltype    = ct_tuple[0]
-    n_cells     = ct_tuple[1].toInteger()
-    n_cells_str = (Math.round(n_cells * 100) / 100000).round(1).toString() + 'k'
-
-    """
-    echo "celltype: ${celltype} n_cells: ${n_cells_str}"
-    export MC_CORES=${task.cpus}
-    export MKL_NUM_THREADS=1
-    export NUMEXPR_NUM_THREADS=1
-    export OMP_NUM_THREADS=1
-    export OPENBLAS_NUM_THREADS=1
-    export VECLIB_MAXIMUM_THREADS=1
-
-    scflow_dge.r \
-    --sce ${sce} \
-    --celltype ${celltype} \
-    --de_method ${de_method} \
-    --mast_method ${params.dge_mast_method} \
+def scflow_dge_options               = modules['scflow_dge']
+scflow_dge_options.args              =
+    "--mast_method ${params.dge_mast_method} \
     --min_counts ${params.dge_min_counts} \
     --min_cells_pc ${params.dge_min_cells_pc} \
     --rescale_numerics ${params.dge_rescale_numerics} \
@@ -687,85 +339,49 @@ process SCFLOW_DGE {
     --confounding_vars ${params.dge_confounding_vars} \
     --random_effects_var ${params.dge_random_effects_var} \
     --fc_threshold ${params.dge_fc_threshold} \
-    --ensembl_mappings ${ensembl_mappings} \
     --species ${params.species} \
-    --max_cores ${params.dge_max_cores}
-     
-    """
-}
+    --max_cores ${params.dge_max_cores}"
 
-/*
- * Integrated pathway analysis of differentially expressed genes
- */
-process SCFLOW_IPA {
-
-  label 'process_low'
-
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-
-   
-  input:
-    path de_table
-
-  output:
-    path 'ipa/**/*'     , emit: ipa_results , optional: true, type: 'dir'
-    path 'ipa/*.html'   , emit: ipa_report  , optional: true
-
-  script:
-    """
-    scflow_ipa.r \
-    --gene_file ${de_table.join(',')} \
-    --enrichment_tool ${params.ipa_enrichment_tool} \
+def scflow_ipa_options               = modules['scflow_ipa']
+scflow_dge_options.args              =
+    "--enrichment_tool ${params.ipa_enrichment_tool} \
     --enrichment_method ${params.ipa_enrichment_method} \
-    --enrichment_database ${params.ipa_enrichment_database}
-     
-    """
-}
+    --enrichment_database ${params.ipa_enrichment_database}"
 
-/*
- * Dirichlet modeling of relative cell-type abundance
- */
-process SCFLOW_DIRICHLET {
+def scflow_dirichlet_options         = modules['scflow_dirichlet']
+scflow_dirichlet_options.args = 
+    "--unique_id_var ${params.dirich_unique_id_var} \
+    --celltype_var ${params.dirich_celltype_var} \
+    --dependent_var ${params.dirich_dependent_var} \
+    --ref_class ${params.dirich_ref_class} \
+    --var_order ${params.dirich_var_order}"
 
-  tag "merged"
-  label  'process_low'
 
-  publishDir "${params.outdir}",
-    mode: params.publish_dir_mode,
-    saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-  
-  input:
-    path sce
-
-  output:
-    path 'dirichlet_report', emit: dirichlet_report
-
-  script:
-      """
-      scflow_dirichlet.r \
-      --sce_path ${sce} \
-      --unique_id_var ${params.dirich_unique_id_var} \
-      --celltype_var ${params.dirich_celltype_var} \
-      --dependent_var ${params.dirich_dependent_var} \
-      --ref_class ${params.dirich_ref_class} \
-      --var_order ${params.dirich_var_order} 
-      """
-
-}
-
+include { SCFLOW_CHECKINPUTS         } from './modules/local/process/scflow/checkinputs'       addParams( options: scflow_checkinputs_options       ) 
+include { SCFLOW_QC                  } from './modules/local/process/scflow/qc'                addParams( options: scflow_qc_options                )
+include { SCFLOW_MERGEQCTABLES       } from './modules/local/process/scflow/mergeqctables'     addParams( options: scflow_mergeqctables_options  )
+include { SCFLOW_MERGE               } from './modules/local/process/scflow/merge'             addParams( options: scflow_merge_options             )
+include { SCFLOW_INTEGRATE           } from './modules/local/process/scflow/integrate'         addParams( options: scflow_integrate_options         )
+include { SCFLOW_REDUCEDIMS          } from './modules/local/process/scflow/reducedims'        addParams( options: scflow_reducedims_options        )
+include { SCFLOW_CLUSTER             } from './modules/local/process/scflow/cluster'           addParams( options: scflow_cluster_options           )
+include { SCFLOW_REPORTINTEGRATED    } from './modules/local/process/scflow/reportintegrated'  addParams( options: scflow_reportintegrated_options  )
+include { SCFLOW_MAPCELLTYPES        } from './modules/local/process/scflow/mapcelltypes'      addParams( options: scflow_mapcelltypes_options      )
+include { SCFLOW_FINALIZE            } from './modules/local/process/scflow/finalize'          addParams( options: scflow_finalize_options          )
+include { SCFLOW_PLOTREDDIMGENES     } from './modules/local/process/scflow/plotreddimgenes'   addParams( options: scflow_plotreddimgenes_options   )
+include { SCFLOW_DGE                 } from './modules/local/process/scflow/dge'               addParams( options: scflow_dge_options               )
+include { SCFLOW_IPA                 } from './modules/local/process/scflow/ipa'               addParams( options: scflow_ipa_options               )
+include { SCFLOW_DIRICHLET           } from './modules/local/process/scflow/dirichlet'         addParams( options: scflow_dirichlet_options         )
 
 workflow {  
     
   main:
-    SCFLOW_CHECK_INPUTS ( 
+    SCFLOW_CHECKINPUTS ( 
         ch_manifest, 
         ch_samplesheet
     )
 
     SCFLOW_QC ( 
-        SCFLOW_CHECK_INPUTS.out.checked_manifest.splitCsv(
+        SCFLOW_CHECKINPUTS.out.checked_manifest.splitCsv(
             header:['key', 'filepath'], 
             skip: 1, sep: '\t'
             )
@@ -774,7 +390,7 @@ workflow {
         ch_ensembl_mappings
     )
     
-    SCFLOW_MERGE_QC_SUMMARIES ( 
+    SCFLOW_MERGEQCTABLES ( 
         SCFLOW_QC.out.qc_summary.collect() 
     )
     
@@ -787,25 +403,26 @@ workflow {
         SCFLOW_MERGE.out.merged_sce 
     )
 
-    SCFLOW_REDUCE_DIMS ( 
+
+    SCFLOW_REDUCEDIMS ( 
         SCFLOW_INTEGRATE.out.integrated_sce 
     )
     
     SCFLOW_CLUSTER ( 
-        SCFLOW_REDUCE_DIMS.out.reddim_sce 
+        SCFLOW_REDUCEDIMS.out.reddim_sce 
     )
 
-    SCFLOW_REPORT_INTEGRATED (
+    SCFLOW_REPORTINTEGRATED (
         SCFLOW_CLUSTER.out.clustered_sce
     )
 
-    SCFLOW_MAP_CELLTYPES ( 
+    SCFLOW_MAPCELLTYPES ( 
         SCFLOW_CLUSTER.out.clustered_sce, 
         ch_ctd_folder 
     )
 
     SCFLOW_FINALIZE ( 
-        SCFLOW_MAP_CELLTYPES.out.celltype_mapped_sce, 
+        SCFLOW_MAPCELLTYPES.out.celltype_mapped_sce, 
         ch_celltype_mappings 
     )
 
@@ -827,7 +444,7 @@ workflow {
         SCFLOW_FINALIZE.out.final_sce 
     )
 
-    SCFLOW_PLOT_REDDIM_GENES ( 
+    SCFLOW_PLOTREDDIMGENES ( 
         SCFLOW_CLUSTER.out.clustered_sce, 
         ch_reddim_genes_yml
     )
