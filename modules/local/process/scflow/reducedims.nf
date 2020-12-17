@@ -29,6 +29,11 @@ process SCFLOW_REDUCEDIMS {
 
     """
     export MC_CORES=${task.cpus}
+    export MKL_NUM_THREADS=1
+    export NUMEXPR_NUM_THREADS=1
+    export OMP_NUM_THREADS=1
+    export OPENBLAS_NUM_THREADS=1
+    export VECLIB_MAXIMUM_THREADS=1
 
     scflow_reduce_dims.r \
     $options.args \
