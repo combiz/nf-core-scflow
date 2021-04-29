@@ -202,7 +202,10 @@ de_results <- perform_de(
   pval_cutoff = args$pval_cutoff,
   mast_method = args$mast_method,
   force_run = args$force_run,
-  ensembl_mapping_file = args$ensembl_mappings
+  ensembl_mapping_file = args$ensembl_mappings,
+  sctransform = FALSE,
+  quantile_norm = FALSE,
+  pseudobulk = FALSE
   )
 
 new_dirs <- c(

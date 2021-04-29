@@ -233,7 +233,7 @@ process get_software_versions {
   container 'google/cloud-sdk:alpine'
 
   echo true
-
+  publishDir "$params.outdir/", pattern: 'checked_manifest.txt',  mode: 'copy', overwrite: 'true'
   input:
     path manifest
     path samplesheet
@@ -726,38 +726,38 @@ workflow {
     scflow_plot_reddim_genes( scflow_cluster.out.clustered_sce, ch_reddim_genes_yml)
 
   
-  publish:
-    check_inputs.out.checked_manifest to: "$params.outdir/", mode: 'copy', overwrite: 'true'
+  //publishDir:
+    //check_inputs.out.checked_manifest to: "$params.outdir/", mode: 'copy', overwrite: 'true'
     // Quality-control
-    scflow_qc.out.qc_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    scflow_qc.out.qc_plot_data to: "$params.outdir/Tables/Quality_Control/", mode: 'copy', overwrite: 'true'
-    scflow_qc.out.qc_plots to: "$params.outdir/Plots/Quality_Control/", mode: 'copy', overwrite: 'true'
-    scflow_qc.out.qc_sce to: "$params.outdir/SCE/Individual/", mode: 'copy', overwrite: 'true'
-    merge_qc_summaries.out.qc_summary to: "$params.outdir/Tables/Merged/", mode: 'copy', overwrite: 'true'
+    //scflow_qc.out.qc_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    //scflow_qc.out.qc_plot_data to: "$params.outdir/Tables/Quality_Control/", mode: 'copy', overwrite: 'true'
+    //scflow_qc.out.qc_plots to: "$params.outdir/Plots/Quality_Control/", mode: 'copy', overwrite: 'true'
+    //scflow_qc.out.qc_sce to: "$params.outdir/SCE/Individual/", mode: 'copy', overwrite: 'true'
+    //merge_qc_summaries.out.qc_summary to: "$params.outdir/Tables/Merged/", mode: 'copy', overwrite: 'true'
     // Merged SCE
-    scflow_merge.out.merged_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    scflow_merge.out.merge_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
-    scflow_merge.out.merge_summary_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
+    //scflow_merge.out.merged_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    //scflow_merge.out.merge_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
+    //scflow_merge.out.merge_summary_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
     // cluster
-    scflow_cluster.out.integration_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    //scflow_cluster.out.integration_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // ct
-    scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
+    //scflow_map_celltypes.out.celltype_mappings to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
     // final
-    scflow_finalize.out.final_sce to: "$params.outdir/SCE/", mode: 'copy', overwrite: 'true'
-    scflow_finalize.out.celltypes to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
-    scflow_finalize.out.celltype_metrics_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    //scflow_finalize.out.final_sce to: "$params.outdir/SCE/", mode: 'copy', overwrite: 'true'
+    //scflow_finalize.out.celltypes to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
+    //scflow_finalize.out.celltype_metrics_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // DE
-    scflow_perform_de.out.de_table to: "$params.outdir/Tables/DGE", mode: 'copy', optional: true, overwrite: 'true'
-    scflow_perform_de.out.de_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    scflow_perform_de.out.de_plot to: "$params.outdir/Plots/DGE/", mode: 'copy', overwrite: 'true'
-    scflow_perform_de.out.de_plot_data to: "$params.outdir/Tables/DGE", mode: 'copy', overwrite: 'true'
+    //scflow_perform_de.out.de_table to: "$params.outdir/Tables/DGE", mode: 'copy', optional: true, overwrite: 'true'
+    //scflow_perform_de.out.de_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    //scflow_perform_de.out.de_plot to: "$params.outdir/Plots/DGE/", mode: 'copy', overwrite: 'true'
+    //scflow_perform_de.out.de_plot_data to: "$params.outdir/Tables/DGE", mode: 'copy', overwrite: 'true'
     // IPA
-    scflow_perform_ipa.out.ipa_results to: "$params.outdir/Tables/", mode: 'copy', optional: true, overwrite: 'true'
-    scflow_perform_ipa.out.ipa_report to: "$params.outdir/Reports/", mode: 'copy', optional: true, overwrite: 'true'
+    //scflow_perform_ipa.out.ipa_results to: "$params.outdir/Tables/", mode: 'copy', optional: true, overwrite: 'true'
+    //scflow_perform_ipa.out.ipa_report to: "$params.outdir/Reports/", mode: 'copy', optional: true, overwrite: 'true'
     // Dirichlet
-    scflow_dirichlet.out.dirichlet_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
+    //scflow_dirichlet.out.dirichlet_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // plots
-    scflow_plot_reddim_genes.out.reddim_gene_plots to: "$params.outdir/Plots/", mode: 'copy', overwrite: 'true'
+    //scflow_plot_reddim_genes.out.reddim_gene_plots to: "$params.outdir/Plots/", mode: 'copy', overwrite: 'true'
 
 }
 
