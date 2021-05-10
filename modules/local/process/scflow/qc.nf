@@ -15,7 +15,7 @@ process SCFLOW_QC {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${key}") }
 
-    container 'combiz/scflow-docker:0.6.1'
+//    container 'combiz/scflow-docker:0.6.1'
     
     input:
     tuple val(key), path(mat_path)

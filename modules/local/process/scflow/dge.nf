@@ -15,7 +15,7 @@ process SCFLOW_DGE {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${celltype}_${de_method}") }
 
-    container 'combiz/scflow-docker:0.6.1'
+//    container 'combiz/scflow-docker:0.6.1'
     
     input:
     path sce
