@@ -318,7 +318,6 @@ if(toupper(args$retain) == "NULL") {
 }
 
 args$find_singlets <- as.logical(args$find_singlets)
-args$factor_vars <- strsplit(args$factor_vars, ",")[[1]]
 args$vars_to_regress_out <- strsplit(args$vars_to_regress_out, ",")[[1]]
 args <- purrr::map(args, function(x) {
   if (length(x) == 1) {
@@ -329,6 +328,14 @@ args <- purrr::map(args, function(x) {
   return(x)
 })
 
+if(!is.null(args$factor_vars)) {
+    args$factor_vars <- strsplit(args$factor_vars, ",")[[1]]
+    col_classes <- rep("factor", length(args$factor_vars))
+    names(col_classes) <- args$factor_vars
+} else {
+    col_classes <- NA
+}
+
 
 
 ##  ............................................................................
@@ -337,9 +344,6 @@ args <- purrr::map(args, function(x) {
 cli::boxx(paste0("Analysing: ", args$key), float = "center")
 
 mat <- scFlow::read_sparse_matrix(args$mat_path)
-
-col_classes <- rep("factor", length(args$factor_vars))
-names(col_classes) <- args$factor_vars
 
 metadata <- read_metadata(
   unique_key = args$key,
