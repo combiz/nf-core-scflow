@@ -53,10 +53,20 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--species",
+  help = "the biological species (e.g. mouse, human)",
+  default = "human",
+  required = TRUE
+  )
+
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+
+options("scflow_species" = args$species)
 
 ##  ............................................................................
 ##  Start                                                                   ####
