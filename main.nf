@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-nextflow.preview.dsl=2
+nextflow.enable.dsl=2
 
 /*
 ========================================================================================
@@ -50,33 +50,48 @@ def helpMessage() {
       --awscli [str]                  Path to the AWS CLI tool
     """.stripIndent()
 }
+log.info Headers.nf_core(workflow, params.monochrome_logs)
 
-// Show help message
+////////////////////////////////////////////////////
+/* --               PRINT HELP                 -- */
+////////////////////////////////////////////////////+
+def json_schema = "$projectDir/nextflow_schema.json"
 if (params.help) {
-    helpMessage()
+    def command = "nextflow run nf-core/scflow --input '*_R{1,2}.fastq.gz' -profile docker"
+    log.info NfcoreSchema.params_help(workflow, params, json_schema, command)
     exit 0
 }
 
-/*
- * SET UP CONFIGURATION VARIABLES
- */
+////////////////////////////////////////////////////
+/* --         VALIDATE PARAMETERS              -- */
+////////////////////////////////////////////////////+
+if (params.validate_params) {
+    NfcoreSchema.validateParameters(params, json_schema, log)
+}
+
+////////////////////////////////////////////////////
+/* --     Collect configuration parameters     -- */
+////////////////////////////////////////////////////
 
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
+// TODO ERROR: You used a core Nextflow option with two hyphens: '--name'. Please resubmit with '-name'
+/*
 custom_runName = params.name
 if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
     custom_runName = workflow.runName
 }
+*/
 
 // Check AWS batch settings
 if (workflow.profile.contains('awsbatch')) {
     // AWSBatch sanity checking
-    if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
+    if (!params.awsqueue || !params.awsregion) exit 1, 'Specify correct --awsqueue and --awsregion parameters on AWSBatch!'
     // Check outdir paths to be S3 buckets if running on AWSBatch
     // related: https://github.com/nextflow-io/nextflow/issues/813
-    if (!params.outdir.startsWith('s3:')) exit 1, "Outdir not on S3 - specify S3 Bucket to run on AWSBatch!"
+    if (!params.outdir.startsWith('s3:')) exit 1, 'Outdir not on S3 - specify S3 Bucket to run on AWSBatch!'
     // Prevent trace files to be stored on S3 since S3 does not support rolling files.
-    if (params.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
+    if (params.tracedir.startsWith('s3:')) exit 1, 'Specify a local tracedir or run without trace! S3 cannot be used for tracefiles.'
 }
 
 /*
@@ -92,11 +107,16 @@ if (workflow.profile.contains('awsbatch')) {
  if (params.ensembl_mappings) { ch_ensembl_mappings3 = file(params.ensembl_mappings, checkIfExists: false) }
  if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: false) }
 
+////////////////////////////////////////////////////
+/* --         PRINT PARAMETER SUMMARY          -- */
+////////////////////////////////////////////////////
+log.info NfcoreSchema.params_summary_log(workflow, params, json_schema)
+
 // Header log info
-log.info nfcoreHeader()
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
-summary['Run Name']         = custom_runName ?: workflow.runName
+//summary['Run Name']         = custom_runName ?: workflow.runName
+summary['Run Name']         = workflow.runName
 summary['Manifest']         = params.manifest
 summary['SampleSheet']      = params.samplesheet
 summary['Run EmptyDrops']   = params.amb_find_cells ? "Yes" : "No"
@@ -107,6 +127,8 @@ summary['DGE Method']       = params.dge_de_method == "MASTZLM" ? "$params.dge_d
 summary['DGE Dependent Var']= params.dge_dependent_var
 summary['DGE Ref Class']    = params.dge_ref_class
 summary['DGE Confound Vars']= params.dge_confounding_vars
+summary['Run Name']         = workflow.runName
+
 summary['Max Resources']    = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output dir']       = params.outdir
@@ -129,8 +151,6 @@ if (params.email || params.email_on_fail) {
     summary['E-mail on failure'] = params.email_on_fail
     summary['MultiQC maxsize']   = params.max_multiqc_email_size
 }
-log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
-log.info "-\033[2m--------------------------------------------------\033[0m-"
 
 // Check the hostnames against configured profiles
 checkHostname()
@@ -157,13 +177,13 @@ Channel.from(summary.collect{ [it.key, it.value] })
 process get_software_versions {
     publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (filename.indexOf(".csv") > 0) filename
+                      if (filename.indexOf('.csv') > 0) filename
                       else null
-                }
+        }
 
     output:
     file 'software_versions_mqc.yaml' into ch_software_versions_yaml
-    file "software_versions.csv"
+    file 'software_versions.csv'
 
     script:
     // TODO nf-core: Get all tools to print their version number here
@@ -448,6 +468,7 @@ workflow {
         SCFLOW_CLUSTER.out.clustered_sce, 
         ch_reddim_genes_yml
     )
+}
 
   /*
   publish:
@@ -482,9 +503,7 @@ workflow {
     SCFLOW_DIRICHLET.out.dirichlet_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     // plots
     SCFLOW_PLOT_REDDIM_GENES.out.reddim_gene_plots to: "$params.outdir/Plots/", mode: 'copy', overwrite: 'true'
-*/
 }
-
 /*
  * Completion e-mail notification
  */
@@ -497,7 +516,7 @@ workflow.onComplete {
     }
     def email_fields = [:]
     email_fields['version'] = workflow.manifest.version
-    email_fields['runName'] = custom_runName ?: workflow.runName
+    email_fields['runName'] = workflow.runName
     email_fields['success'] = workflow.success
     email_fields['dateComplete'] = workflow.complete
     email_fields['duration'] = workflow.duration
@@ -533,28 +552,9 @@ workflow.onComplete {
 
 }
 
-
-def nfcoreHeader() {
-    // Log colors ANSI codes
-    c_black = params.monochrome_logs ? '' : "\033[0;30m";
-    c_blue = params.monochrome_logs ? '' : "\033[0;34m";
-    c_cyan = params.monochrome_logs ? '' : "\033[0;36m";
-    c_dim = params.monochrome_logs ? '' : "\033[2m";
-    c_green = params.monochrome_logs ? '' : "\033[0;32m";
-    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
-    c_reset = params.monochrome_logs ? '' : "\033[0m";
-    c_white = params.monochrome_logs ? '' : "\033[0;37m";
-    c_yellow = params.monochrome_logs ? '' : "\033[0;33m";
-
-    return """    -${c_dim}--------------------------------------------------${c_reset}-
-                                            ${c_green},--.${c_black}/${c_green},-.${c_reset}
-    ${c_blue}        ___     __   __   __   ___     ${c_green}/,-._.--~\'${c_reset}
-    ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
-    ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
-                                            ${c_green}`._,._,\'${c_reset}
-    ${c_purple}  nf-core/scflow v${workflow.manifest.version}${c_reset}
-    -${c_dim}--------------------------------------------------${c_reset}-
-    """.stripIndent()
+workflow.onError {
+    // Print unexpected parameters - easiest is to just rerun validation
+    NfcoreSchema.validateParameters(params, json_schema, log)
 }
 
 def checkHostname() {
@@ -563,15 +563,15 @@ def checkHostname() {
     def c_red = params.monochrome_logs ? '' : "\033[1;91m"
     def c_yellow_bold = params.monochrome_logs ? '' : "\033[1;93m"
     if (params.hostnames) {
-        def hostname = "hostname".execute().text.trim()
+        def hostname = 'hostname'.execute().text.trim()
         params.hostnames.each { prof, hnames ->
             hnames.each { hname ->
                 if (hostname.contains(hname) && !workflow.profile.contains(prof)) {
-                    log.error "====================================================\n" +
+                    log.error "${c_red}====================================================${c_reset}\n" +
                             "  ${c_red}WARNING!${c_reset} You are running with `-profile $workflow.profile`\n" +
                             "  but your machine hostname is ${c_white}'$hostname'${c_reset}\n" +
                             "  ${c_yellow_bold}It's highly recommended that you use `-profile $prof${c_reset}`\n" +
-                            "============================================================"
+                            "${c_red}====================================================${c_reset}\n"
                 }
             }
         }
