@@ -75,15 +75,13 @@ if (params.validate_params) {
 
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
+// TODO ERROR: You used a core Nextflow option with two hyphens: '--name'. Please resubmit with '-name'
+/*
 custom_runName = params.name
 if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
     custom_runName = workflow.runName
 }
-
-// Check if genome exists in the config file
-if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(', ')}"
-}
+*/
 
 // Check AWS batch settings
 if (workflow.profile.contains('awsbatch')) {
@@ -117,7 +115,8 @@ log.info NfcoreSchema.params_summary_log(workflow, params, json_schema)
 // Header log info
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
-summary['Run Name']         = custom_runName ?: workflow.runName
+//summary['Run Name']         = custom_runName ?: workflow.runName
+summary['Run Name']         = workflow.runName
 summary['Manifest']         = params.manifest
 summary['SampleSheet']      = params.samplesheet
 summary['Run EmptyDrops']   = params.amb_find_cells ? "Yes" : "No"

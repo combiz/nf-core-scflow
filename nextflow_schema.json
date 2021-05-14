@@ -116,7 +116,7 @@
                 },
                 "qc_max_ribo": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "description": "Maximum proportion of counts mapping to ribosomal genes.",
                     "fa_icon": "fas fa-less-than-equal",
                     "minimum": 0,
@@ -162,7 +162,7 @@
                 },
                 "qc_nmads": {
                     "type": "number",
-                    "default": 4.0,
+                    "default": 4,
                     "description": "The number of MADs for outlier detection.",
                     "help_text": "The number of median absolute deviations (MADs) used to define outliers for adaptive thresholding.",
                     "fa_icon": "fas fa-mountain"
@@ -176,7 +176,6 @@
                 "qc_max_library_size",
                 "qc_min_features",
                 "qc_max_features",
-                "qc_min_ribo",
                 "qc_max_ribo",
                 "qc_max_mito",
                 "qc_min_counts",
@@ -279,7 +278,9 @@
                     "type": "integer",
                     "default": 8,
                     "description": "Doublets per thousand cells increment.",
-                    "help_text": "The doublets per thousand cell increment specifies the expected doublet rate based on the number of cells, i.e. with a dpk of 8 (recommended by 10X), a dataset with 1000 cells is expected to contain 8 doublets per thousand cells, a dataset with 2000 cells is expected to contain 16 doublets per thousand cells, and a dataset with 10000 cells is expected to contain 80 cells per thousand cells (or 800 doublets in total).  If the \"doublet_rate\" parameter is manually specified this recommended incremental behaviour is overridden."
+                    "help_text": "The doublets per thousand cell increment specifies the expected doublet rate based on the number of cells, i.e. with a dpk of 8 (recommended by 10X), a dataset with 1000 cells is expected to contain 8 doublets per thousand cells, a dataset with 2000 cells is expected to contain 16 doublets per thousand cells, and a dataset with 10000 cells is expected to contain 80 cells per thousand cells (or 800 doublets in total).  If the \"doublet_rate\" parameter is manually specified this recommended incremental behaviour is overridden.",
+                    "minimum": 0,
+                    "maximum": 1000
                 },
                 "mult_pK": {
                     "type": "number",
@@ -295,7 +296,6 @@
                 "mult_vars_to_regress_out",
                 "mult_pca_dims",
                 "mult_var_features",
-                "mult_doublet_rate",
                 "mult_dpk",
                 "mult_pK"
             ]
@@ -374,7 +374,7 @@
                 },
                 "integ_lambda": {
                     "type": "number",
-                    "default": 5.0
+                    "default": 5
                 },
                 "integ_thresh": {
                     "type": "number",
@@ -476,7 +476,6 @@
                 "integ_dims_use",
                 "integ_dist_use",
                 "integ_center",
-                "integ_small_clust_thresh",
                 "integ_categorical_covariates",
                 "integ_input_reduced_dim"
             ]
@@ -803,6 +802,10 @@
                 "dge_force_run": {
                     "type": "string",
                     "default": "false"
+                },
+                "dge_max_cores": {
+                    "type": "string",
+                    "default": "'null'"
                 }
             },
             "fa_icon": "fas fa-chart-bar",
@@ -821,7 +824,8 @@
                 "dge_random_effects_var",
                 "dge_fc_threshold",
                 "dge_pval_cutoff",
-                "dge_force_run"
+                "dge_force_run",
+                "dge_max_cores"
             ]
         },
         "impacted_pathway_analysis": {
@@ -1142,10 +1146,10 @@
             "$ref": "#/definitions/generic_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/definitions/max_job_request_options"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/definitions/institutional_config_options"
         },
         {
             "$ref": "#/definitions/nextflow_configuration"
