@@ -35,7 +35,7 @@ def helpMessage() {
     References                        If not specified in the configuration file or you wish to overwrite any of the references
       --ensembl_mappings [file]       Path to ensembl_mappings file
       --celltype_mappings [file]      Path to manual cell-type mappings file
-      --ctd_folder [path]             Path to the folder containing .ctd files for celltype annotation
+      --ctd_path [file]               Path to the zip file containing .ctd files for celltype annotation
       --reddim_genes [file]           Path to a file containing genes of interest for expression plotting
 
     Other options:
@@ -100,7 +100,7 @@ if (workflow.profile.contains('awsbatch')) {
  if (params.manifest) { ch_manifest = file(params.manifest, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
- if (params.ctd_folder) { ch_ctd_folder = file(params.ctd_folder, checkIfExists: true) }
+ if (params.ctd_path) { ch_ctd_path = file(params.ctd_path, checkIfExists: true) }
  if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
  if (params.ensembl_mappings) { ch_ensembl_mappings = file(params.ensembl_mappings, checkIfExists: false) }
  if (params.ensembl_mappings) { ch_ensembl_mappings2 = file(params.ensembl_mappings, checkIfExists: false) }
@@ -438,7 +438,7 @@ workflow {
 
     SCFLOW_MAPCELLTYPES ( 
         SCFLOW_CLUSTER.out.clustered_sce, 
-        ch_ctd_folder 
+        ch_ctd_path 
     )
 
     SCFLOW_FINALIZE ( 

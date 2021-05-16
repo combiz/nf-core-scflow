@@ -25,21 +25,22 @@
                 },
                 "ensembl_mappings": {
                     "type": "string",
-                    "default": "./src/ensembl-ids/ensembl_mappings.tsv",
+                    "default": "https://raw.githubusercontent.com/nf-core/test-datasets/scflow/assets/ensembl_mappings.tsv",
                     "fa_icon": "fas fa-table",
                     "description": "Optional tsv file containing mappings between ensembl_gene_id's and gene_names's"
+                },
+                "ctd_path": {
+                    "type": "string",
+                    "default": "https://s3-eu-west-1.amazonaws.com/pfigshare-u-files/28033407/ctd_v1.zip",
+                    "description": "Cell-type annotations reference file path",
+                    "help_text": "This is a zip file containing cell-type annotation reference files for the EWCE package.",
+                    "fa_icon": "fas fa-file-archive"
                 },
                 "celltype_mappings": {
                     "type": "string",
                     "default": "./conf/celltype_mappings.tsv",
                     "fa_icon": "fas fa-table",
                     "description": "Optional tsv file specifying manual revisions of cell-type annotations."
-                },
-                "ctd_folder": {
-                    "type": "string",
-                    "default": "./refs/ctd",
-                    "fa_icon": "fas fa-folder",
-                    "description": "Path to folder containing CTD reference files for cell-type annotation."
                 },
                 "reddim_genes_yml": {
                     "type": "string",
@@ -59,8 +60,8 @@
                 "manifest",
                 "samplesheet",
                 "ensembl_mappings",
-                "ctd_folder",
-                "species"
+                "species",
+                "ctd_path"
             ],
             "help_text": ""
         },
@@ -116,7 +117,7 @@
                 },
                 "qc_max_ribo": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "description": "Maximum proportion of counts mapping to ribosomal genes.",
                     "fa_icon": "fas fa-less-than-equal",
                     "minimum": 0,
@@ -162,7 +163,7 @@
                 },
                 "qc_nmads": {
                     "type": "number",
-                    "default": 4,
+                    "default": 4.0,
                     "description": "The number of MADs for outlier detection.",
                     "help_text": "The number of median absolute deviations (MADs) used to define outliers for adaptive thresholding.",
                     "fa_icon": "fas fa-mountain"
@@ -374,7 +375,7 @@
                 },
                 "integ_lambda": {
                     "type": "number",
-                    "default": 5
+                    "default": 5.0
                 },
                 "integ_thresh": {
                     "type": "number",

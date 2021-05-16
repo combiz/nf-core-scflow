@@ -19,7 +19,7 @@ process SCFLOW_MAPCELLTYPES {
     
     input:
     path sce
-    path ctd_folder
+    path ctd_path
 
     output:
     path 'celltype_mapped_sce/' , emit: celltype_mapped_sce, type: 'dir'
@@ -32,10 +32,13 @@ process SCFLOW_MAPCELLTYPES {
     """
     export MC_CORES=${task.cpus}
 
+    mkdir ctd_folder && unzip ${ctd_path} -d ./ctd_folder
+    
+
     scflow_map_celltypes.r \
     $options.args \
     --sce_path ${sce} \
-    --ctd_folder ${ctd_folder}
+    --ctd_folder ctd_folder
 
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """

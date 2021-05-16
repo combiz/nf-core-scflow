@@ -36,10 +36,23 @@ process SCFLOW_QC {
     """
     export MC_CORES=${task.cpus}
 
+    if [[ -d ${mat_path} ]]; then
+        echo "${mat_path} is a directory"
+        MATPATH=${mat_path}
+    elif [[ -f ${mat_path} ]]; then
+        echo "${mat_path} is a file"
+        mkdir mat_folder && unzip ${mat_path} -d ./mat_folder
+        MATPATH=mat_folder
+    else
+        echo "${mat_path} is not valid"
+        MATPATH=${mat_path}
+        exit 1
+    fi
+
     scflow_qc.r \
     $options.args \
     --samplesheet ${samplesheet} \
-    --mat_path ${mat_path} \
+    --mat_path \${MATPATH} \
     --key ${key} \
     --ensembl_mappings ${ensembl_mappings}
 
