@@ -27,7 +27,7 @@ process SCFLOW_QC {
     path 'qc_plot_data'         , emit: qc_plot_data, type: 'dir'
     path 'qc_summary/*.tsv'     , emit: qc_summary
     path 'qc_plots'             , emit: qc_plots, type: 'dir'
-    path '*_sce'                , emit: qc_sce, type: 'dir'
+    path 'sce/*_sce'            , emit: qc_sce, type: 'dir'
 
     script:
     def software = getSoftwareName(task.process)
@@ -55,6 +55,8 @@ process SCFLOW_QC {
     --mat_path \${MATPATH} \
     --key ${key} \
     --ensembl_mappings ${ensembl_mappings}
+
+    mkdir sce; mv ${key}_sce sce/
 
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """

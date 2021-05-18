@@ -383,7 +383,8 @@ sce <- annotate_sce(
   nmads = args$nmads,
   annotate_genes = TRUE,
   annotate_cells = TRUE,
-  ensembl_mapping_file = args$ensembl_mappings
+  ensembl_mapping_file = args$ensembl_mappings,
+  species = args$species
 )
 
 sce <- filter_sce(

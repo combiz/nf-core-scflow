@@ -79,7 +79,8 @@ sce <- map_celltypes_sce(
   sce, 
   ctd_folder = args$ctd_folder,
   clusters_colname = args$clusters_colname,
-  cells_to_sample = args$cells_to_sample
+  cells_to_sample = args$cells_to_sample,
+  species = args$species
   )
 
 ##  ............................................................................
