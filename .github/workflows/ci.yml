@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['20.11.0-edge']
+        nxf_ver: ['21.04.0']
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -37,13 +37,13 @@ jobs:
 
       #- name: Build new docker image
         if: env.MATCHED_FILES
-        run: docker build --no-cache . -t nfcore/scflow:dev
+        run: docker build --no-cache . -t combiz/scflow-docker:dev
 
       - name: Pull docker image
         if: ${{ !env.MATCHED_FILES }}
         run: |
-          docker pull nfcore/scflow:dev
-          docker tag nfcore/scflow:dev nfcore/scflow:dev
+          docker pull combiz/scflow-docker:dev
+          docker tag combiz/scflow-docker:dev combiz/scflow-docker:dev
 
       - name: Install Nextflow
         env:
