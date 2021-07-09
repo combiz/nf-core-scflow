@@ -1,5 +1,5 @@
 /*
- * Check manifest and samplesheet inputs are valid
+ * Check input manifest and samplesheet inputs are valid
  */
  
 
@@ -19,11 +19,11 @@ process SCFLOW_CHECKINPUTS {
     //container "combiz/scflow-docker:0.6.1"
     
     input:
-    path manifest
+    path input
     path samplesheet
     
     output:
-    path 'checked_manifest.txt', emit: checked_manifest
+    path 'checked_input.txt', emit: checked_input
 
     script:
     def software = getSoftwareName(task.process)
@@ -31,7 +31,7 @@ process SCFLOW_CHECKINPUTS {
     """
     check_inputs.r \\
         --samplesheet $samplesheet \
-        --manifest $manifest 
+        --input $input 
         
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """

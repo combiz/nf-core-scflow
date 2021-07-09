@@ -15,7 +15,6 @@ include { getSoftwareName;initOptions;getPathFromList;saveFiles } from './module
 params.options = [:]
 
 def helpMessage() {
-    // TODO nf-core: Add to this help message with new command line parameters
     log.info nfcoreHeader()
     log.info"""
 
@@ -23,14 +22,13 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/scflow --manifest "refs/Manifest.txt" --samplesheet "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
+    nextflow run nf-core/scflow --input "refs/Manifest.txt" --samplesheet "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
 
     Mandatory arguments:
-      --manifest [file]             Path to Manifest.txt file (must be surrounded with quotes)
+      --input [file]                Path to Manifest.txt file (must be surrounded with quotes)
       --samplesheet [file]          Path to SampleSheet.tsv file (must be surrounded with quotes)
       -profile [str]                Configuration profile to use. Can use multiple (comma separated)
                                     Available: conda, docker, singularity, test, awsbatch, <institute> and more
-                                    TODO: This feature will be available when configs are submitted to nf-core
 
     References                        If not specified in the configuration file or you wish to overwrite any of the references
       --ensembl_mappings [file]       Path to ensembl_mappings file
@@ -75,7 +73,6 @@ if (params.validate_params) {
 
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
-// TODO ERROR: You used a core Nextflow option with two hyphens: '--name'. Please resubmit with '-name'
 /*
 custom_runName = params.name
 if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
@@ -97,7 +94,7 @@ if (workflow.profile.contains('awsbatch')) {
 /*
  * Create a channel for input read files
  */
- if (params.manifest) { ch_manifest = file(params.manifest, checkIfExists: true) }
+ if (params.input) { ch_input = file(params.input, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
  if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
  if (params.ctd_path) { ch_ctd_path = file(params.ctd_path, checkIfExists: true) }
@@ -115,9 +112,9 @@ log.info NfcoreSchema.params_summary_log(workflow, params, json_schema)
 // Header log info
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
-//summary['Run Name']         = custom_runName ?: workflow.runName
+//summary['Run Name']       = custom_runName ?: workflow.runName
 summary['Run Name']         = workflow.runName
-summary['Manifest']         = params.manifest
+summary['Input']            = params.input
 summary['SampleSheet']      = params.samplesheet
 summary['Run EmptyDrops']   = params.amb_find_cells ? "Yes" : "No"
 summary['Find Singlets']    = params.mult_find_singlets ? "Yes ($params.mult_singlets_method)" : 'No'
@@ -186,7 +183,6 @@ process get_software_versions {
     file 'software_versions.csv'
 
     script:
-    // TODO nf-core: Get all tools to print their version number here
     """
     echo $workflow.manifest.version > v_pipeline.txt
     echo $workflow.nextflow.version > v_nextflow.txt
@@ -228,6 +224,7 @@ scflow_qc_options.args                 =
     --pca_dims ${params.mult_pca_dims} \
     --var_features ${params.mult_var_features} \
     --doublet_rate ${params.mult_doublet_rate} \
+    --dpk ${params.mult_dpk} \
     --pK ${params.mult_pK} \
     --find_cells ${params.amb_find_cells} \
     --lower ${params.amb_lower} \
@@ -358,6 +355,7 @@ scflow_dge_options.args              =
     --ref_class ${params.dge_ref_class} \
     --confounding_vars ${params.dge_confounding_vars} \
     --random_effects_var ${params.dge_random_effects_var} \
+    --pval_cutoff ${params.dge_pval_cutoff} \
     --fc_threshold ${params.dge_fc_threshold} \
     --species ${params.species} \
     --max_cores ${params.dge_max_cores}"
@@ -396,12 +394,12 @@ workflow {
     
   main:
     SCFLOW_CHECKINPUTS ( 
-        ch_manifest, 
+        ch_input, 
         ch_samplesheet
     )
 
     SCFLOW_QC ( 
-        SCFLOW_CHECKINPUTS.out.checked_manifest.splitCsv(
+        SCFLOW_CHECKINPUTS.out.checked_input.splitCsv(
             header:['key', 'filepath'], 
             skip: 1, sep: '\t'
             )
@@ -472,7 +470,7 @@ workflow {
 
   /*
   publish:
-    SCFLOW_CHECK_INPUTS.out.checked_manifest to: "$params.outdir/", mode: 'copy', overwrite: 'true'
+    SCFLOW_CHECK_INPUTS.out.checked_input to: "$params.outdir/", mode: 'copy', overwrite: 'true'
     // Quality-control
     SCFLOW_QC.out.qc_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
     SCFLOW_QC.out.qc_plot_data to: "$params.outdir/Tables/Quality_Control/", mode: 'copy', overwrite: 'true'

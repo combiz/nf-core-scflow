@@ -225,6 +225,13 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--dpk",
+  default = "NULL",
+  help = "doublets per thousands cells increment if doublet_rate is 0",
+  required = TRUE
+)
+
+required$add_argument(
   "--find_cells",
   help = "run empty drops (ambient RNA) algorithm (lgl)",
   metavar = "TRUE", 
@@ -307,6 +314,9 @@ args$max_mito <- ifelse(
   )
 args$pK <- if(toupper(args$pK) == "NULL") NULL else { 
   as.numeric(as.character(args$pK))
+}
+args$dpk <- if(toupper(args$dpk) == "NULL") NULL else { 
+  as.numeric(as.character(args$dpk))
 }
 
 if(toupper(args$retain) == "NULL") {
@@ -401,6 +411,7 @@ if(args$find_singlets) {
     pca_dims = args$pca_dims,
     var_features = args$var_features,
     doublet_rate = args$doublet_rate,
+    dpk = args$dpk,
     pK = args$pK,
     num.cores = future::availableCores()
   )

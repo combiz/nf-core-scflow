@@ -1,6 +1,6 @@
 # ![nf-core/scflow](docs/images/nf-core-scflow_logo.png)
 
-**Complete analysis workflow for single-cell/nuclei RNA-sequencing data.**.
+**Complete analysis workflow for single-cell/nuclei RNA-sequencing data.**
 
 [![GitHub Actions CI Status](https://github.com/nf-core/scflow/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/scflow/actions)
 [![GitHub Actions Linting Status](https://github.com/nf-core/scflow/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/scflow/actions)
@@ -12,16 +12,32 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
-**nf-core/scflow** is a bioinformatics best-practise analysis pipeline for
+**nf-core/scflow** is a bioinformatics pipeline for the automated analysis of single-cell/nuclei RNA sequencing data.
 
-The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
+The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible.
+
+## Pipeline Summary
+
+The nf-core/scflow pipeline automates the major analytical steps of a single-cell/nuclei analysis using the scFlow R package, which is built on top of popular single-cell/nuclei analysis packages within the R ecosystem (e.g. Seurat, Monocle, DoubletFinder, MAST, etc.)
+
+The **nf-core/scflow** pipeline records and allows fine control over analytical parameters (https://nf-co.re/scflow/dev/parameters), efficiently parallelizes and distributes compute load on diverse infrastructure (e.g. local, HPC, GCP, AWS, Azure, K8S), generates interactive reports for major analytical steps, and allows iterative parameter optimization using the NextFlow resume/cache functionality.
+
+The major analytical steps include: -
+
+1. Individual sample annotation and quality-control, including ambient RNA-profiling, thresholding, and doublet/multiplet identification. [Example Report]
+2. Multi-sample merge and inter-sample quality control metrics. [Example Report]
+3. Dimensionality reduction, clustering, and dataset integration. [Example Report]
+4. Automated cell-typing, marker gene analysis, and cell-type metrics. [Example Report]
+5. Differential gene expression, including mixed models. [Example Report]
+6. Impacted Pathway Analysis. [Example Report]
+
+In addition to interactive reports, the **nf-core/scflow** pipeline also exports publication quality tables and figures.  The final SingleCellExperiment object is also exported and can be easily loaded into R for tertiary analyses using the `scFlow::read_sce()` function.
 
 ## Quick Start
 
 1. Install [`nextflow`](https://nf-co.re/usage/installation) (`>=21.04.0`)
 
-2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(please only use [`Conda`](https://conda.io/miniconda.html) as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_
+2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility.
 
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
@@ -33,37 +49,29 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 4. Start running your own analysis!
 
-    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
-
     ```bash
-    nextflow run nf-core/scflow -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input '*_R{1,2}.fastq.gz' --genome GRCh37
+    nextflow run nf-core/scflow -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c ./conf/scflow_analysis.config
     ```
 
 See [usage docs](https://nf-co.re/scflow/usage) for all of the available options when running the pipeline.
 
-## Pipeline Summary
-
-By default, the pipeline currently performs the following:
-
-<!-- TODO nf-core: Fill in short bullet-pointed list of default steps of pipeline -->
-
-* Sequencing quality control (`FastQC`)
-* Overall pipeline run summaries (`MultiQC`)
-
 ## Documentation
 
-The nf-core/scflow pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/scflow/usage) and [output](https://nf-co.re/scflow/output).
+The nf-core/scflow pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/scflow/usage), [parameters](https://nf-co.re/scflow/parameters), and [output](https://nf-co.re/scflow/output).
 
-<!-- TODO nf-core: Add a brief overview of what the pipeline does and how it works -->
+A manual describing a typical usage of nf-core/scflow is [here](https://combiz.github.io/scflow-manual/).
+
+The underlying R package GitHub repository is available [here](https://github.com/combiz/scflow) and the package function documentation can be found [here](https://combiz.github.io/scFlow/).
+
+The bioRxiv manuscript is in preparation: (URL)
 
 ## Credits
 
-nf-core/scflow was originally written by Dr Combiz Khozoie.
+The nf-core/scflow pipeline and the NextFlow DSL2 update was written by Combiz Khozoie from [The Department of Brain Sciences, Imperial College London](https://www.imperial.ac.uk/brain-sciences).
 
-We thank the following people for their extensive assistance in the development
-of this pipeline:
+The underlying scFlow R package was written by Combiz Khozoie (drcombiz), Nurun Fancy (@FancyNurun), Mahdi Moradi Marjaneh, Alan Murphy (@Al_Murphy_), and Nathan Skene (@n_skene).
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+Many thanks to others who have helped out along the way, including (but not limited to): @pditommaso, @drpatelh, @ewels, @apeltzer.
 
 ## Contributions and Support
 
@@ -73,8 +81,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi. -->
-<!-- If you use  nf-core/scflow for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+If you use nf-core/scflow for your analysis, please cite it using the following doi: [TBC].
 
 You can cite the `nf-core` publication as follows:
 
@@ -84,6 +91,3 @@ You can cite the `nf-core` publication as follows:
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
 
-In addition, references of tools and data used in this pipeline are as follows:
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
