@@ -102,7 +102,7 @@ if (workflow.profile.contains('awsbatch')) {
  if (params.ensembl_mappings) { ch_ensembl_mappings = file(params.ensembl_mappings, checkIfExists: false) }
  if (params.ensembl_mappings) { ch_ensembl_mappings2 = file(params.ensembl_mappings, checkIfExists: false) }
  if (params.ensembl_mappings) { ch_ensembl_mappings3 = file(params.ensembl_mappings, checkIfExists: false) }
- if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: false) }
+ if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: true) }
 
 ////////////////////////////////////////////////////
 /* --         PRINT PARAMETER SUMMARY          -- */
