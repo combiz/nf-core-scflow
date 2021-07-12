@@ -60,6 +60,25 @@ required$add_argument(
   required = TRUE
   )
 
+required$add_argument(   
+"--reddimplot_pointsize",
+default = 0.1,
+type = "double", 
+required = TRUE,
+help = "Point size for reduced dimension plots",
+metavar = "N"
+)
+
+required$add_argument(   
+"--reddimplot_alpha",
+default = 0.2,
+type = "double", 
+required = TRUE,
+help = "Alpha value for reduced dimension plots",
+metavar = "N"
+)
+
+
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
@@ -67,6 +86,8 @@ required$add_argument(
 args <- parser$parse_args()
 
 options("scflow_species" = args$species)
+options("scflow_reddimplot_pointsize" = args$reddimplot_pointsize)
+options("scflow_reddimplot_alpha" = args$reddimplot_alpha)
 
 ##  ............................................................................
 ##  Start                                                                   ####

@@ -273,7 +273,9 @@ scflow_integrate_options.args        =
     --dims_use ${params.integ_dims_use} \
     --dist_use ${params.integ_dist_use} \
     --center ${params.integ_center} \
-    --small_clust_thresh ${params.integ_small_clust_thresh}"
+    --small_clust_thresh ${params.integ_small_clust_thresh} \
+    --reddimplot_pointsize ${params.reddimplot_pointsize} \
+    --reddimplot_alpha ${params.reddimplot_alpha}"
 
 def scflow_reducedims_options        = modules['scflow_reducedims']
 scflow_reducedims_options.args       = 
@@ -320,13 +322,18 @@ scflow_cluster_options.args         =
 def scflow_reportintegrated_options  = modules['scflow_reportintegrated']
 scflow_reportintegrated_options.args =
    "--categorical_covariates ${params.integ_categorical_covariates} \
-    --input_reduced_dim ${params.integ_input_reduced_dim}"
+    --input_reduced_dim ${params.integ_input_reduced_dim} \
+    --reddimplot_pointsize ${params.reddimplot_pointsize} \
+    --reddimplot_alpha ${params.reddimplot_alpha}"
+
 
 def scflow_mapcelltypes_options      = modules['scflow_mapcelltypes']
 scflow_mapcelltypes_options.args     =
     "--clusters_colname ${params.cta_clusters_colname} \
     --cells_to_sample ${params.cta_cells_to_sample} \
-    --species ${params.species}"
+    --species ${params.species} \
+    --reddimplot_pointsize ${params.reddimplot_pointsize} \
+    --reddimplot_alpha ${params.reddimplot_alpha}"
 
 def scflow_finalize_options          = modules['scflow_finalize']
 scflow_finalize_options.args         =
@@ -339,7 +346,10 @@ scflow_finalize_options.args         =
 
 def scflow_plotreddimgenes_options          = modules['scflow_plotreddimgenes']
 scflow_plotreddimgenes_options.args          =
-    "--reduction_methods ${params.plotreddim_reduction_methods}"
+    "--reduction_methods ${params.plotreddim_reduction_methods} \
+    --reddimplot_pointsize ${params.reddimplot_pointsize} \
+    --reddimplot_alpha ${params.reddimplot_alpha}"
+
 
 def scflow_dge_options               = modules['scflow_dge']
 scflow_dge_options.args              =

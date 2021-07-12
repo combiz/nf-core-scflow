@@ -117,7 +117,7 @@
                 },
                 "qc_max_ribo": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "description": "Maximum proportion of counts mapping to ribosomal genes.",
                     "fa_icon": "fas fa-less-than-equal",
                     "minimum": 0,
@@ -163,7 +163,7 @@
                 },
                 "qc_nmads": {
                     "type": "number",
-                    "default": 4,
+                    "default": 4.0,
                     "description": "The number of MADs for outlier detection.",
                     "help_text": "The number of median absolute deviations (MADs) used to define outliers for adaptive thresholding.",
                     "fa_icon": "fas fa-mountain"
@@ -405,7 +405,7 @@
                 },
                 "integ_lambda": {
                     "type": "number",
-                    "default": 5,
+                    "default": 5.0,
                     "description": "Regularization parameter.",
                     "help_text": "See rliger::optimizeALS(). Regularization parameter. Larger values penalize dataset-specific effects more strongly (ie. alignment should increase as lambda increases). Run suggestLambda to determine most appropriate value for balancing dataset alignment and agreement (default 5.0)."
                 },
@@ -644,7 +644,7 @@
                 },
                 "reddim_umap_set_op_mix_ratio": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "description": "Interpolation to combine local fuzzy sets.",
                     "help_text": "See uwot::umap().  The value of this parameter should be between 0.0 and 1.0; a value of 1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy intersection.",
                     "minimum": 0,
