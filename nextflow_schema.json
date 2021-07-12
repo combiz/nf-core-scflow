@@ -60,8 +60,8 @@
                 "input",
                 "samplesheet",
                 "ensembl_mappings",
-                "species",
-                "ctd_path"
+                "ctd_path",
+                "species"
             ],
             "help_text": ""
         },
@@ -1099,12 +1099,29 @@
                 "plotreddim_reduction_methods": {
                     "type": "string",
                     "default": "UMAP_Liger",
-                    "description": "Preferred embedding for plots."
+                    "description": "Preferred embedding for plots.",
+                    "fa_icon": "fas fa-hand-pointer"
+                },
+                "reddimplot_pointsize": {
+                    "type": "number",
+                    "description": "Point size for reduced dimension plots.",
+                    "default": 0.1,
+                    "help_text": "To improve visualization the point size should be adjusted according to the total number of cells plotted.",
+                    "fa_icon": "fas fa-expand-alt"
+                },
+                "reddimplot_alpha": {
+                    "type": "number",
+                    "description": "Alpha (transparency) value for reduced dimension plots.",
+                    "default": 0.2,
+                    "help_text": "To improve visualization the alpha (transparency) value should be adjusted according to the total number of cells plotted.",
+                    "fa_icon": "fas fa-braille"
                 }
             },
             "fa_icon": "fas fa-chart-area",
             "required": [
-                "plotreddim_reduction_methods"
+                "plotreddim_reduction_methods",
+                "reddimplot_pointsize",
+                "reddimplot_alpha"
             ]
         },
         "generic_options": {
