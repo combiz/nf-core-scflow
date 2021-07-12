@@ -34,7 +34,7 @@ def helpMessage() {
       --ensembl_mappings [file]       Path to ensembl_mappings file
       --celltype_mappings [file]      Path to manual cell-type mappings file
       --ctd_path [file]               Path to the zip file containing .ctd files for celltype annotation
-      --reddim_genes [file]           Path to a file containing genes of interest for expression plotting
+      --reddim_genes_yml [file]       Path to a file containing genes of interest for expression plotting
 
     Other options:
       --outdir [file]                 The output directory where the results will be saved
