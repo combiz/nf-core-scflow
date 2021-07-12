@@ -79,7 +79,7 @@ cat("Checks passed!\n")
 
 # write the same manifest back out
 write.table(manifest, 
-            "checked_manifest.txt", 
+            "checked_input.txt", 
             sep = "\t",
             quote = FALSE,
             col.names = TRUE, 
