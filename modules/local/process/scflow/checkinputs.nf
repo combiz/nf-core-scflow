@@ -31,7 +31,7 @@ process SCFLOW_CHECKINPUTS {
     """
     check_inputs.r \\
         --samplesheet $samplesheet \
-        --input $input 
+        --manifest $input
         
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """
