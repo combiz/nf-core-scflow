@@ -79,12 +79,34 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+"--reddimplot_pointsize",
+default = 0.1,
+type = "double",
+required = TRUE,
+help = "Point size for reduced dimension plots",
+metavar = "N"
+)
+
+required$add_argument(
+"--reddimplot_alpha",
+default = 0.2,
+type = "double",
+required = TRUE,
+help = "Alpha value for reduced dimension plots",
+metavar = "N"
+)
+
+
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
 args$facet_vars <- strsplit(args$facet_vars, ",")[[1]]
 args$metric_vars <- strsplit(args$metric_vars, ",")[[1]]
+
+options("scflow_reddimplot_pointsize" = args$reddimplot_pointsize)
+options("scflow_reddimplot_alpha" = args$reddimplot_alpha)
 
 ##  ............................................................................
 ##  Start                                                                   ####

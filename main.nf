@@ -273,9 +273,7 @@ scflow_integrate_options.args        =
     --dims_use ${params.integ_dims_use} \
     --dist_use ${params.integ_dist_use} \
     --center ${params.integ_center} \
-    --small_clust_thresh ${params.integ_small_clust_thresh} \
-    --reddimplot_pointsize ${params.reddimplot_pointsize} \
-    --reddimplot_alpha ${params.reddimplot_alpha}"
+    --small_clust_thresh ${params.integ_small_clust_thresh}"
 
 def scflow_reducedims_options        = modules['scflow_reducedims']
 scflow_reducedims_options.args       = 
@@ -338,18 +336,19 @@ scflow_mapcelltypes_options.args     =
 def scflow_finalize_options          = modules['scflow_finalize']
 scflow_finalize_options.args         =
     "--clusters_colname ${params.cta_clusters_colname} \
-     --celltype_var ${params.cta_celltype_var} \
-     --unique_id_var ${params.cta_unique_id_var} \
-     --facet_vars ${params.cta_facet_vars} \
-     --input_reduced_dim ${params.clust_reduction_method} \
-     --metric_vars ${params.cta_metric_vars}"
+    --celltype_var ${params.cta_celltype_var} \
+    --unique_id_var ${params.cta_unique_id_var} \
+    --facet_vars ${params.cta_facet_vars} \
+    --input_reduced_dim ${params.clust_reduction_method} \
+    --metric_vars ${params.cta_metric_vars} \
+    --reddimplot_pointsize ${params.reddimplot_pointsize} \
+    --reddimplot_alpha ${params.reddimplot_alpha}"
 
 def scflow_plotreddimgenes_options          = modules['scflow_plotreddimgenes']
 scflow_plotreddimgenes_options.args          =
     "--reduction_methods ${params.plotreddim_reduction_methods} \
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
     --reddimplot_alpha ${params.reddimplot_alpha}"
-
 
 def scflow_dge_options               = modules['scflow_dge']
 scflow_dge_options.args              =
