@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 
 /*
 ========================================================================================
-                         nf-core/scflow
+    nf-core/scflow
 ========================================================================================
- nf-core/scflow Analysis Pipeline.
- #### Homepage / Documentation
- https://github.com/nf-core/scflow
+    Github : https://github.com/nf-core/scflow
+    Website: https://nf-co.re/scflow
+    Slack  : https://nfcore.slack.com/channels/scflow
 ----------------------------------------------------------------------------------------
 */
 
