@@ -54,6 +54,11 @@
                     "fa_icon": "fas fa-male",
                     "description": "Input sample species.",
                     "help_text": "Currently, \"human\" and \"mouse\" are supported."
+                },
+                "outdir": {
+                    "type": "string",
+                    "default": "./results",
+                    "description": "Outputs directory."
                 }
             },
             "required": [
@@ -1309,25 +1314,6 @@
                     "hidden": true,
                     "fa_icon": "fas fa-toolbox",
                     "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
-                }
-            }
-        },
-        "nextflow_configuration": {
-            "title": "NextFlow Configuration",
-            "type": "object",
-            "description": "General NextFlow config.",
-            "default": "",
-            "fa_icon": "fab fa-stack-overflow",
-            "properties": {
-                "outdir": {
-                    "type": "string",
-                    "default": "./results",
-                    "description": "Outputs directory."
-                },
-                "options": {
-                    "type": "string",
-                    "hidden": true,
-                    "description": "NA."
                 }
             }
         }
