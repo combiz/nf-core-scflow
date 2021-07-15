@@ -41,7 +41,7 @@ In addition to interactive reports, the **nf-core/scflow** pipeline also exports
 
 ## Quick Start
 
-1. Install [`nextflow`](https://nf-co.re/usage/installation) (`>=21.04.0`)
+1. Install [`Nextflow`](https://nf-co.re/usage/installation) (`>=21.04.0`)
 
 2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility.
 
@@ -80,8 +80,6 @@ The underlying scFlow R package was written by Combiz Khozoie (drcombiz), Nurun 
 Many thanks to others who have helped out along the way, including (but not limited to): @pditommaso, @drpatelh, @ewels, @apeltzer.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
 ## Contributions and Support
 
