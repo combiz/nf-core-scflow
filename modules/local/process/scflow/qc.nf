@@ -19,7 +19,7 @@ process SCFLOW_QC {
     
     input:
     tuple val(key), path(mat_path)
-    path samplesheet
+    path input
     path ensembl_mappings
     
     output:
@@ -51,7 +51,7 @@ process SCFLOW_QC {
 
     scflow_qc.r \
     $options.args \
-    --samplesheet ${samplesheet} \
+    --input ${input} \
     --mat_path \${MATPATH} \
     --key ${key} \
     --ensembl_mappings ${ensembl_mappings}

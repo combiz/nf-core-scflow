@@ -25,6 +25,8 @@ process SCFLOW_FINALIZE {
     path 'final_sce'                , emit: final_sce, type: 'dir'
     path 'celltypes.tsv'            , emit: celltypes
     path 'celltype_metrics_report'  , emit: celltype_metrics_report, type: 'dir'
+    path 'celltype_marker_tables'   , emit: celltype_marker_tables, type: 'dir'
+    path 'celltype_marker_plots'    , emit: celltype_marker_plots, type: 'dir'
 
     script:
     def software = getSoftwareName(task.process)

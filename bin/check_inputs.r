@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Check the manifest and samplesheet inputs are complete
+# Check the manifest and input samplesheet inputs are complete
 #  Combiz Khozoie <c.khozoie@imperial.ac.uk>
 
 ##  ............................................................................
@@ -16,7 +16,7 @@ parser <- ArgumentParser()
 required <- parser$add_argument_group("Required", "required arguments")
 
 required$add_argument(
-  "--samplesheet",
+  "--input",
   help = "full path to the sample sheet tsv file",
   metavar = "SampleSheet.tsv", 
   required = TRUE
@@ -34,15 +34,15 @@ required$add_argument(
 
 args <- parser$parse_args()
 
-if(!file.exists(args$samplesheet)) {
-  stop("The samplesheet was not found.")
+if(!file.exists(args$input)) {
+  stop("The input samplesheet was not found.")
 }
 
 if(!file.exists(args$manifest)) {
   stop("The manifest was not found.")
 }
 
-samplesheet <- read.delim(args$samplesheet)
+input <- read.delim(args$input)
 manifest <- read.delim(args$manifest)
 
 # check manifest paths exist
@@ -61,25 +61,25 @@ if(!all(dir_exists)){
   cat("✓ All paths specified in the manifest were found.\n")
 }
 
-# check samplesheet data present for all keys in manifest
-key_in_samplesheet <- purrr::map_lgl(
+# check input samplesheet data present for all keys in manifest
+key_in_input <- purrr::map_lgl(
   manifest$key, 
-  ~ . %in% samplesheet$manifest
+  ~ . %in% input$manifest
 )
 
-if(!(all(key_in_samplesheet))) {
-  cat("Samplesheet data was not found for the following keys: - \n")
-  print(manifest[!key_in_samplesheet, ]$key)
-  stop("Sample sheet does not contain data for all keys in manifest.")
+if(!(all(key_in_input))) {
+  cat("Input samplesheet data was not found for the following keys: - \n")
+  print(manifest[!key_in_input, ]$key)
+  stop("Input sample sheet does not contain data for all keys in manifest.")
 } else {
-  cat("✓ Samplesheet contains data for all keys in the manifest.\n")
+  cat("✓ Input samplesheet contains data for all keys in the manifest.\n")
 }
 
 cat("Checks passed!\n")
 
 # write the same manifest back out
 write.table(manifest, 
-            "checked_input.txt", 
+            "checked_manifest.txt", 
             sep = "\t",
             quote = FALSE,
             col.names = TRUE, 
