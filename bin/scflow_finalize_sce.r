@@ -171,12 +171,14 @@ dir.create(folder_path)
 
 for (group in names(sce@metadata$markers)) {
 
-  pwidth <- length(unique(sce@metadata$markers[[group]]$marker_plot$data$Group))
+  pwidth <- max(10,
+    length(unique(sce@metadata$markers[[group]]$marker_plot$data$Group))
+  )
   pheight <- length(unique(sce@metadata$markers[[group]]$marker_plot$data$Gene))
   
   p <- sce@metadata$markers[[group]]$marker_plot
   
-  plot_file_name <- paste0(group, "_celltype_markers")
+  plot_file_name <- paste0(group, "_markers")
   
   # save PNG
   png(file.path(folder_path, paste0(plot_file_name, ".png")), 
@@ -201,12 +203,12 @@ folder_path <- file.path(getwd(), "celltype_marker_tables")
 dir.create(folder_path)
 for (group in names(sce@metadata$markers)) {
   
-  marker_test_file_name <- paste0(group, "_celltype_marker_test.tsv")
-  top_markers_file_name <- paste0(group, "_top_celltype_markers.tsv")
+  marker_test_file_name <- paste0(group, "_markers_test.tsv")
+  top_markers_file_name <- paste0(group, "_top_markers.tsv")
   
   write.table(
     sce@metadata$markers[[group]]$marker_test_res, 
-    file = marker_test_file_name, 
+    file = file.path(folder_path, marker_test_file_name), 
     row.names = FALSE, 
     col.names = TRUE, 
     sep = "\t"
@@ -214,7 +216,7 @@ for (group in names(sce@metadata$markers)) {
   
   write.table(
     sce@metadata$markers[[group]]$top_specific_markers, 
-    file = top_markers_file_name, 
+    file = file.path(folder_path, top_markers_file_name), 
     row.names = FALSE, 
     col.names = TRUE, 
     sep = "\t"
