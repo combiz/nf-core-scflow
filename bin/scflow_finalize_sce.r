@@ -80,6 +80,15 @@ required$add_argument(
 )
 
 required$add_argument(
+"--top_n",
+default = 5,
+type = "integer",
+required = TRUE,
+help ="The number of top marker genes",
+metavar = "N"
+)
+
+required$add_argument(
 "--reddimplot_pointsize",
 default = 0.1,
 type = "double",
@@ -131,7 +140,8 @@ sce <- annotate_celltype_metrics(
   unique_id_var = args$unique_id_var,
   facet_vars = args$facet_vars,
   input_reduced_dim = args$input_reduced_dim,
-  metric_vars = args$metric_vars
+  metric_vars = args$metric_vars,
+  top_n = args$top_n
 )
 
 dir.create(file.path(getwd(), "celltype_metrics_report"))
@@ -145,6 +155,7 @@ report_celltype_metrics(
 ##  ............................................................................
 ##  Save Outputs                                                            ####
 
+### Save cell-types/n_cells for NextFlow tags
 celltypes <- as.data.frame(SummarizedExperiment::colData(sce)) %>%
   dplyr::count(cluster_celltype)
 colnames(celltypes) <- c("celltype", "n_cells")
@@ -154,7 +165,67 @@ write.table(
   file = "celltypes.tsv", 
   row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
 
-# Save SingleCellExperiment
+### Save Marker Gene Plots
+folder_path <- file.path(getwd(), "celltype_marker_plots")
+dir.create(folder_path)
+
+for (group in names(sce@metadata$markers)) {
+
+  pwidth <- max(10,
+    length(unique(sce@metadata$markers[[group]]$marker_plot$data$Group))
+  )
+  pheight <- length(unique(sce@metadata$markers[[group]]$marker_plot$data$Gene))
+  
+  p <- sce@metadata$markers[[group]]$marker_plot
+  
+  plot_file_name <- paste0(group, "_markers")
+  
+  # save PNG
+  png(file.path(folder_path, paste0(plot_file_name, ".png")), 
+      width = pwidth * 12, height = pheight*5, units = "mm", res = 600)
+  print(p)
+  dev.off()
+  
+  # save PDF
+  ggsave(
+    file.path(folder_path, paste0(group, ".pdf")),
+    p, 
+    width = pwidth * 12, 
+    height = pheight * 5, 
+    units = "mm", 
+    scale = 1
+    )
+  
+}
+
+### Save Marker Gene Tables
+folder_path <- file.path(getwd(), "celltype_marker_tables")
+dir.create(folder_path)
+for (group in names(sce@metadata$markers)) {
+  
+  marker_test_file_name <- paste0(group, "_markers_test.tsv")
+  top_markers_file_name <- paste0(group, "_top_markers.tsv")
+  
+  write.table(
+    sce@metadata$markers[[group]]$marker_test_res, 
+    file = file.path(folder_path, marker_test_file_name), 
+    row.names = FALSE, 
+    col.names = TRUE, 
+    sep = "\t"
+    )
+  
+  write.table(
+    sce@metadata$markers[[group]]$top_specific_markers, 
+    file = file.path(folder_path, top_markers_file_name), 
+    row.names = FALSE, 
+    col.names = TRUE, 
+    sep = "\t"
+  )
+  
+}
+
+
+### Save SingleCellExperiment
 write_sce(
   sce = sce,
   folder_path = file.path(getwd(), "final_sce")

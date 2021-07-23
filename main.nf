@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 
 /*
 ========================================================================================
-                         nf-core/scflow
+    nf-core/scflow
 ========================================================================================
- nf-core/scflow Analysis Pipeline.
- #### Homepage / Documentation
- https://github.com/nf-core/scflow
+    Github : https://github.com/nf-core/scflow
+    Website: https://nf-co.re/scflow
+    Slack  : https://nfcore.slack.com/channels/scflow
 ----------------------------------------------------------------------------------------
 */
 
@@ -22,13 +22,13 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/scflow --input "refs/Manifest.txt" --samplesheet "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
+    nextflow run nf-core/scflow --manifest "refs/Manifest.txt" --input "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
 
     Mandatory arguments:
-      --input [file]                Path to Manifest.txt file (must be surrounded with quotes)
-      --samplesheet [file]          Path to SampleSheet.tsv file (must be surrounded with quotes)
-      -profile [str]                Configuration profile to use. Can use multiple (comma separated)
-                                    Available: conda, docker, singularity, test, awsbatch, <institute> and more
+      --manifest [file]               Path to Manifest.txt file (must be surrounded with quotes)
+      --input [file]                  Path to SampleSheet.tsv file (must be surrounded with quotes)
+      -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
+                                      Available: conda, docker, singularity, test, awsbatch, <institute> and more
 
     References                        If not specified in the configuration file or you wish to overwrite any of the references
       --ensembl_mappings [file]       Path to ensembl_mappings file
@@ -50,36 +50,6 @@ def helpMessage() {
 }
 log.info Headers.nf_core(workflow, params.monochrome_logs)
 
-////////////////////////////////////////////////////
-/* --               PRINT HELP                 -- */
-////////////////////////////////////////////////////+
-def json_schema = "$projectDir/nextflow_schema.json"
-if (params.help) {
-    def command = "nextflow run nf-core/scflow --input '*_R{1,2}.fastq.gz' -profile docker"
-    log.info NfcoreSchema.params_help(workflow, params, json_schema, command)
-    exit 0
-}
-
-////////////////////////////////////////////////////
-/* --         VALIDATE PARAMETERS              -- */
-////////////////////////////////////////////////////+
-if (params.validate_params) {
-    NfcoreSchema.validateParameters(params, json_schema, log)
-}
-
-////////////////////////////////////////////////////
-/* --     Collect configuration parameters     -- */
-////////////////////////////////////////////////////
-
-// Has the run name been specified by the user?
-// this has the bonus effect of catching both -name and --name
-/*
-custom_runName = params.name
-if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
-    custom_runName = workflow.runName
-}
-*/
-
 // Check AWS batch settings
 if (workflow.profile.contains('awsbatch')) {
     // AWSBatch sanity checking
@@ -94,9 +64,9 @@ if (workflow.profile.contains('awsbatch')) {
 /*
  * Create a channel for input read files
  */
+ if (params.manifest) { ch_manifest = file(params.manifest, checkIfExists: true) }
  if (params.input) { ch_input = file(params.input, checkIfExists: true) }
- if (params.samplesheet) { ch_samplesheet = file(params.samplesheet, checkIfExists: true) }
- if (params.samplesheet) { ch_samplesheet2 = file(params.samplesheet, checkIfExists: true) } // copy for qc
+ if (params.input) { ch_input2 = file(params.input, checkIfExists: true) } // copy for qc
  if (params.ctd_path) { ch_ctd_path = file(params.ctd_path, checkIfExists: true) }
  if (params.celltype_mappings) { ch_celltype_mappings = file(params.celltype_mappings, checkIfExists: false) }
  if (params.ensembl_mappings) { ch_ensembl_mappings = file(params.ensembl_mappings, checkIfExists: false) }
@@ -104,18 +74,22 @@ if (workflow.profile.contains('awsbatch')) {
  if (params.ensembl_mappings) { ch_ensembl_mappings3 = file(params.ensembl_mappings, checkIfExists: false) }
  if (params.reddim_genes_yml) { ch_reddim_genes_yml = file(params.reddim_genes_yml, checkIfExists: true) }
 
-////////////////////////////////////////////////////
-/* --         PRINT PARAMETER SUMMARY          -- */
-////////////////////////////////////////////////////
-log.info NfcoreSchema.params_summary_log(workflow, params, json_schema)
+/*
+========================================================================================
+    VALIDATE & PRINT PARAMETER SUMMARY
+========================================================================================
+*/
+
+WorkflowMain.initialise(workflow, params, log)
+
 
 // Header log info
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 //summary['Run Name']       = custom_runName ?: workflow.runName
 summary['Run Name']         = workflow.runName
+summary['Manifest']         = params.manifest
 summary['Input']            = params.input
-summary['SampleSheet']      = params.samplesheet
 summary['Run EmptyDrops']   = params.amb_find_cells ? "Yes" : "No"
 summary['Find Singlets']    = params.mult_find_singlets ? "Yes ($params.mult_singlets_method)" : 'No'
 summary['Dimension Reds.']  = params.reddim_reduction_methods
@@ -341,6 +315,7 @@ scflow_finalize_options.args         =
     --facet_vars ${params.cta_facet_vars} \
     --input_reduced_dim ${params.clust_reduction_method} \
     --metric_vars ${params.cta_metric_vars} \
+    --top_n ${params.cta_top_n} \
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
     --reddimplot_alpha ${params.reddimplot_alpha}"
 
@@ -403,17 +378,17 @@ workflow {
     
   main:
     SCFLOW_CHECKINPUTS ( 
-        ch_input, 
-        ch_samplesheet
+        ch_manifest,
+        ch_input
     )
 
     SCFLOW_QC ( 
-        SCFLOW_CHECKINPUTS.out.checked_input.splitCsv(
+        SCFLOW_CHECKINPUTS.out.checked_manifest.splitCsv(
             header:['key', 'filepath'], 
             skip: 1, sep: '\t'
             )
         .map { row -> tuple(row.key, row.filepath) }, 
-        ch_samplesheet2, 
+        ch_input2, 
         ch_ensembl_mappings
     )
     

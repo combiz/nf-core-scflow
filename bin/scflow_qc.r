@@ -23,8 +23,8 @@ required <- parser$add_argument_group("Required", "required arguments")
 optional <- parser$add_argument_group("Optional", "required arguments")
 
 required$add_argument(
-  "--samplesheet",
-  help = "full path to the sample sheet tsv file",
+  "--input",
+  help = "full path to the input sample sheet tsv file",
   metavar = "SampleSheet.tsv", 
   required = TRUE
 )
@@ -358,7 +358,7 @@ mat <- scFlow::read_sparse_matrix(args$mat_path)
 metadata <- read_metadata(
   unique_key = args$key,
   key_colname = args$key_colname,
-  samplesheet_path = args$samplesheet,
+  samplesheet_path = args$input,
   col_classes = col_classes
 )
 

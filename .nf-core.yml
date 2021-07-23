@@ -1,0 +1,14 @@
+files_unchanged:
+  - Dockerfile
+
+files_exist:
+  - igenomes.config
+  - modules/local/get_software_versions.nf
+
+schema_params:
+  - input
+
+lint:
+  actions_awsfulltest: False
+  pipeline_todos: False
+  actions_ci: False

@@ -11,6 +11,7 @@ def options    = initOptions(params.options)
 process SCFLOW_DGE {
     tag "${celltype} (${n_cells_str} cells) | ${de_method}"
     label 'process_medium'
+    errorStrategy 'ignore'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${celltype}_${de_method}") }
