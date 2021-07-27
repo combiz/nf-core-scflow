@@ -142,28 +142,6 @@ Channel.from(summary.collect{ [it.key, it.value] })
     """.stripIndent() }
     .set { ch_workflow_summary }
 
-/*
- * Parse software version numbers
- */
-process get_software_versions {
-    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (filename.indexOf('.csv') > 0) filename
-                      else null
-        }
-
-    output:
-    file 'software_versions_mqc.yaml' into ch_software_versions_yaml
-    file 'software_versions.csv'
-
-    script:
-    """
-    echo $workflow.manifest.version > v_pipeline.txt
-    echo $workflow.nextflow.version > v_nextflow.txt
-    R --version > v_R.txt
-    scrape_software_versions.py &> software_versions_mqc.yaml
-    """
-}
 
 ////////////////////////////////////////////////////
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
@@ -319,11 +297,6 @@ scflow_finalize_options.args         =
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
     --reddimplot_alpha ${params.reddimplot_alpha}"
 
-def scflow_plotreddimgenes_options          = modules['scflow_plotreddimgenes']
-scflow_plotreddimgenes_options.args          =
-    "--reduction_methods ${params.plotreddim_reduction_methods} \
-    --reddimplot_pointsize ${params.reddimplot_pointsize} \
-    --reddimplot_alpha ${params.reddimplot_alpha}"
 
 def scflow_dge_options               = modules['scflow_dge']
 scflow_dge_options.args              =
@@ -344,6 +317,13 @@ scflow_dge_options.args              =
     --species ${params.species} \
     --max_cores ${params.dge_max_cores}"
 
+
+def scflow_plotreddimgenes_options          = modules['scflow_plotreddimgenes']
+scflow_plotreddimgenes_options.args          =
+    "--reduction_methods ${params.plotreddim_reduction_methods} \
+    --reddimplot_pointsize ${params.reddimplot_pointsize} \
+    --reddimplot_alpha ${params.reddimplot_alpha}"
+
 def scflow_ipa_options               = modules['scflow_ipa']
 scflow_ipa_options.args              =
     "--enrichment_tool ${params.ipa_enrichment_tool} \
@@ -357,6 +337,9 @@ scflow_dirichlet_options.args =
     --dependent_var ${params.dirich_dependent_var} \
     --ref_class ${params.dirich_ref_class} \
     --var_order ${params.dirich_var_order}"
+
+def get_software_versions         = modules['get_software_versions']
+get_software_versions.args = ''
 
 
 include { SCFLOW_CHECKINPUTS         } from './modules/local/process/scflow/checkinputs'       addParams( options: scflow_checkinputs_options       ) 
@@ -373,6 +356,7 @@ include { SCFLOW_PLOTREDDIMGENES     } from './modules/local/process/scflow/plot
 include { SCFLOW_DGE                 } from './modules/local/process/scflow/dge'               addParams( options: scflow_dge_options               )
 include { SCFLOW_IPA                 } from './modules/local/process/scflow/ipa'               addParams( options: scflow_ipa_options               )
 include { SCFLOW_DIRICHLET           } from './modules/local/process/scflow/dirichlet'         addParams( options: scflow_dirichlet_options         )
+include { GET_SOFTWARE_VERSIONS      } from './modules/local/get_software_versions'            addParams( options: [publish_files : ['tsv':'']]     )
 
 workflow {  
     
@@ -450,42 +434,15 @@ workflow {
         SCFLOW_CLUSTER.out.clustered_sce, 
         ch_reddim_genes_yml
     )
+
+
+    GET_SOFTWARE_VERSIONS (
+        
+    )
+
 }
 
-  /*
-  publish:
-    SCFLOW_CHECK_INPUTS.out.checked_input to: "$params.outdir/", mode: 'copy', overwrite: 'true'
-    // Quality-control
-    SCFLOW_QC.out.qc_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    SCFLOW_QC.out.qc_plot_data to: "$params.outdir/Tables/Quality_Control/", mode: 'copy', overwrite: 'true'
-    SCFLOW_QC.out.qc_plots to: "$params.outdir/Plots/Quality_Control/", mode: 'copy', overwrite: 'true'
-    SCFLOW_QC.out.qc_sce to: "$params.outdir/SCE/Individual/", mode: 'copy', overwrite: 'true'
-    SCFLOW_MERGE_QC_SUMMARIES.out.qc_summary to: "$params.outdir/Tables/Merged/", mode: 'copy', overwrite: 'true'
-    // Merged SCE
-    SCFLOW_MERGE.out.merged_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    SCFLOW_MERGE.out.merge_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
-    SCFLOW_MERGE.out.merge_summary_plots to: "$params.outdir/Plots/Merged/", mode: 'copy', overwrite: 'true'
-    // cluster
-    SCFLOW_CLUSTER.out.integration_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    // ct
-    SCFLOW_MAP_CELLTYPES.out.celltype_mappings to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
-    // final
-    SCFLOW_FINALIZE.out.final_sce to: "$params.outdir/SCE/", mode: 'copy', overwrite: 'true'
-    SCFLOW_FINALIZE.out.celltypes to: "$params.outdir/Tables/Celltype_Mappings", mode: 'copy', overwrite: 'true'
-    SCFLOW_FINALIZE.out.celltype_metrics_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    // DE
-    SCFLOW_DGE.out.de_table to: "$params.outdir/Tables/DGE", mode: 'copy', optional: 'true', overwrite: 'true'
-    SCFLOW_DGE.out.de_report to: "$params.outdir/Reports/", mode: 'copy', optional: 'true', overwrite: 'true'
-    SCFLOW_DGE.out.de_plot to: "$params.outdir/Plots/DGE/", mode: 'copy', optional: 'true', overwrite: 'true'
-    SCFLOW_DGE.out.de_plot_data to: "$params.outdir/Tables/DGE", mode: 'copy', optional: 'true', overwrite: 'true'
-    // IPA
-    SCFLOW_IPA.out.ipa_results to: "$params.outdir/Tables/", mode: 'copy', optional: true, overwrite: 'true'
-    SCFLOW_IPA.out.ipa_report to: "$params.outdir/Reports/", mode: 'copy', optional: true, overwrite: 'true'
-    // Dirichlet
-    SCFLOW_DIRICHLET.out.dirichlet_report to: "$params.outdir/Reports/", mode: 'copy', overwrite: 'true'
-    // plots
-    SCFLOW_PLOT_REDDIM_GENES.out.reddim_gene_plots to: "$params.outdir/Plots/", mode: 'copy', overwrite: 'true'
-}
+
 /*
  * Completion e-mail notification
  */
