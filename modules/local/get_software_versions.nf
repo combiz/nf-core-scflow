@@ -10,7 +10,7 @@ process GET_SOFTWARE_VERSIONS {
     
     tag "Version Info"
     label 'process_low'
-    cache false
+    //cache false
     
 
     output:

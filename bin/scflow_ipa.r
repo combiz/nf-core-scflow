@@ -85,7 +85,7 @@ args <- purrr::map(args, function(x) {
 ##  Start impacted pathway analysis(IPA)                                    ####
 
 output_dir <- file.path(getwd(), "ipa")
-report_dir <- file.path(getwd(), "ipa_report")
+report_dir <- file.path(getwd())
 
 dir.create(output_dir)
 dir.create(report_dir)

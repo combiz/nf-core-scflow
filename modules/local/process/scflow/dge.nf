@@ -25,10 +25,10 @@ process SCFLOW_DGE {
     path ensembl_mappings
 
     output:
-    path 'de_table/*.tsv' , emit: de_table      , optional: true
-    path 'de_report'      , emit: de_report     , type: 'dir', optional: true
-    path 'de_plot'        , emit: de_plot       , type: 'dir', optional: true
-    path 'de_plot_data'   , emit: de_plot_data  , type: 'dir', optional: true
+    path '*.tsv'              , emit: de_table      , optional: true
+    path '*.html'             , emit: de_report     , optional: true
+    path '*_volcano_plot.png' , emit: de_plot       , optional: true
+    //path 'de_plot_data/'               , emit: de_plot_data , optional: true
 
     script:
     celltype     = ct_tuple[0]

@@ -249,43 +249,34 @@ de_results <- perform_de(
   species = getOption("scflow_species")
 )
 
-new_dirs <- c(
-  "de_table",
-  "de_report",
-  "de_plot",
-  "de_plot_data")
-
-#make dirs
-purrr::walk(new_dirs, ~ dir.create(file.path(getwd(), .)))
-
 file_name <- paste0(args$celltype, "_",
                     args$de_method, pb_str, "_")
 
 for (result in names(de_results)) {
   if (dim(de_results[[result]])[[1]] > 0) {
     write.table(de_results[[result]],
-                file = file.path(getwd(), "de_table",
+                file = file.path(getwd(),
                                  paste0(file_name, result, "_DE.tsv")),
                 quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
 
     report_de(de_results[[result]],
-      report_folder_path = file.path(getwd(), "de_report"),
+      report_folder_path = file.path(getwd()),
       report_file = paste0(file_name, result, "_scflow_de_report"))
 
     print("report generated")
-    png(file.path(getwd(), "de_plot",
+    png(file.path(getwd(),
                   paste0(file_name, result, "_volcano_plot.png")),
         width = 247, height = 170, units = "mm", res = 600)
     print(attr(de_results[[result]], "plot"))
     dev.off()
 
-    print("first png generated")
-    p <- attr(de_results[[result]], "plot")
-    plot_data <- p$data
-    write.table(p$data,
-                file = file.path(getwd(), "de_plot_data",
-                                 paste0(file_name, result, ".tsv")),
-                quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
+    #print("first png generated")
+    #p <- attr(de_results[[result]], "plot")
+    #plot_data <- p$data
+    #write.table(p$data,
+    #            file = file.path(getwd(), "de_plot_data",
+    #                             paste0(file_name, result, ".tsv")),
+    #            quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
 
   } else {
     print(sprintf("No DE genes found for %s", result))

@@ -9,7 +9,7 @@ params.options = [:]
 def options    = initOptions(params.options)
 
 process SCFLOW_IPA {
-    tag "IPA"
+    tag "${de_table_basename}"
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -21,10 +21,11 @@ process SCFLOW_IPA {
     path de_table
 
     output:
-    path 'ipa/**/*'     , emit: ipa_results , optional: true, type: 'dir'
-    path 'ipa_report'   , emit: ipa_report  , optional: true, type: 'dir'
+    path '*_ipa'      , emit: ipa_results , optional: true, type: 'dir'
+    path '*.html'   , emit: ipa_report  , optional: true
 
     script:
+    de_table_basename = "${de_table.baseName}"
     def software = getSoftwareName(task.process)
 
     """
@@ -33,6 +34,8 @@ process SCFLOW_IPA {
     scflow_ipa.r \
     $options.args \
     --gene_file ${de_table.join(',')}
+
+    mv ipa ${de_table_basename}_ipa
 
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """
