@@ -26,7 +26,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 The nf-core/scflow pipeline automates the major analytical steps of a single-cell/nuclei analysis using the scFlow R package, which is built on top of popular single-cell/nuclei analysis packages within the R ecosystem (e.g. Seurat, Monocle, DoubletFinder, MAST, etc.)
 
-The **nf-core/scflow** pipeline records and allows fine control over analytical [parameters] (https://nf-co.re/scflow/dev/parameters), efficiently parallelizes and distributes compute load on diverse infrastructure (e.g. local, HPC, GCP, AWS, Azure, K8S), generates interactive reports for major analytical steps, and allows iterative parameter optimization using the NextFlow resume/cache functionality.
+The **nf-core/scflow** pipeline records and allows fine control over analytical [parameters](https://nf-co.re/scflow/dev/parameters), efficiently parallelizes and distributes compute load on diverse infrastructure (e.g. local, HPC, GCP, AWS, Azure, K8S), generates interactive reports for major analytical steps, and allows iterative parameter optimization using the NextFlow resume/cache functionality.
 
 The major analytical steps include: -
 
@@ -87,7 +87,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-If you use nf-core/scflow for your analysis, please cite it using the following DOI: [10.22541/au.162912533.38489960/v1] (https://doi.org/10.22541/au.162912533.38489960/v1).
+If you use nf-core/scflow for your analysis, please cite it using the following DOI: [10.22541/au.162912533.38489960/v1](https://doi.org/10.22541/au.162912533.38489960/v1).
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
