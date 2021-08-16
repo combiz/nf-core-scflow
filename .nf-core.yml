@@ -4,6 +4,7 @@ files_unchanged:
 files_exist:
   - igenomes.config
   - modules/local/get_software_versions.nf
+  - Dockerfile
 
 schema_params:
   - input
