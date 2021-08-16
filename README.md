@@ -26,7 +26,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 The nf-core/scflow pipeline automates the major analytical steps of a single-cell/nuclei analysis using the scFlow R package, which is built on top of popular single-cell/nuclei analysis packages within the R ecosystem (e.g. Seurat, Monocle, DoubletFinder, MAST, etc.)
 
-The **nf-core/scflow** pipeline records and allows fine control over analytical parameters (https://nf-co.re/scflow/dev/parameters), efficiently parallelizes and distributes compute load on diverse infrastructure (e.g. local, HPC, GCP, AWS, Azure, K8S), generates interactive reports for major analytical steps, and allows iterative parameter optimization using the NextFlow resume/cache functionality.
+The **nf-core/scflow** pipeline records and allows fine control over analytical [parameters] (https://nf-co.re/scflow/dev/parameters), efficiently parallelizes and distributes compute load on diverse infrastructure (e.g. local, HPC, GCP, AWS, Azure, K8S), generates interactive reports for major analytical steps, and allows iterative parameter optimization using the NextFlow resume/cache functionality.
 
 The major analytical steps include: -
 
@@ -58,7 +58,7 @@ In addition to interactive reports, the **nf-core/scflow** pipeline also exports
 4. Start running your own analysis!
 
     ```bash
-    nextflow run nf-core/scflow -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c ./conf/scflow_analysis.config
+    nextflow run nf-core/scflow -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input SampleSheet.tsv --manifest Manifest.tsv -c ./conf/scflow_analysis.config
     ```
 
 ## Documentation
@@ -79,8 +79,6 @@ The underlying scFlow R package was written by Combiz Khozoie (drcombiz), Nurun 
 
 Many thanks to others who have helped out along the way, including (but not limited to): @pditommaso, @drpatelh, @ewels, @apeltzer.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
-
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
@@ -89,7 +87,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-If you use nf-core/scflow for your analysis, please cite it using the following doi: [TBC].
+If you use nf-core/scflow for your analysis, please cite it using the following DOI: [10.22541/au.162912533.38489960/v1] (https://doi.org/10.22541/au.162912533.38489960/v1).
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
