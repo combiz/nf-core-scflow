@@ -26,30 +26,30 @@ optional <- parser$add_argument_group("Optional", "required arguments")
 required$add_argument(
   "--sce_path",
   help = "-path to the SingleCellExperiment",
-  metavar = "dir", 
+  metavar = "dir",
   required = TRUE
 )
 
 required$add_argument(
   "--ctd_folder",
   help = "path to a folder containing ewce ctd files",
-  metavar = "foo/bar", 
+  metavar = "foo/bar",
   required = TRUE
 )
 
 required$add_argument(
   "--clusters_colname",
   help = "the sce colData variable storing cluster numbers",
-  metavar = "foo/bar", 
+  metavar = "foo/bar",
   required = TRUE
 )
 
 required$add_argument(
   "--cells_to_sample",
-  type = "integer", 
+  type = "integer",
   default = 10000,
   help = "the number of cells to sample with ewce",
-  metavar = "N", 
+  metavar = "N",
   required = TRUE
 )
 
@@ -58,24 +58,24 @@ required$add_argument(
   help = "the biological species (e.g. mouse, human)",
   default = "human",
   required = TRUE
-  )
-
-required$add_argument(   
-"--reddimplot_pointsize",
-default = 0.1,
-type = "double", 
-required = TRUE,
-help = "Point size for reduced dimension plots",
-metavar = "N"
 )
 
-required$add_argument(   
-"--reddimplot_alpha",
-default = 0.2,
-type = "double", 
-required = TRUE,
-help = "Alpha value for reduced dimension plots",
-metavar = "N"
+required$add_argument(
+  "--reddimplot_pointsize",
+  default = 0.1,
+  type = "double",
+  required = TRUE,
+  help = "Point size for reduced dimension plots",
+  metavar = "N"
+)
+
+required$add_argument(
+  "--reddimplot_alpha",
+  default = 0.2,
+  type = "double",
+  required = TRUE,
+  help = "Alpha value for reduced dimension plots",
+  metavar = "N"
 )
 
 
@@ -97,12 +97,12 @@ cat(print(tempdir()))
 sce <- read_sce(args$sce_path)
 
 sce <- map_celltypes_sce(
-  sce, 
+  sce,
   ctd_folder = args$ctd_folder,
   clusters_colname = args$clusters_colname,
   cells_to_sample = args$cells_to_sample,
   species = args$species
-  )
+)
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####
@@ -113,7 +113,7 @@ write_celltype_mappings(sce, folder_path = getwd())
 write_sce(
   sce = sce,
   folder_path = file.path(getwd(), "celltype_mapped_sce")
-  )
+)
 
 ##  ............................................................................
 ##  Clean up                                                                ####

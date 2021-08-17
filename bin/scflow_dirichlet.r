@@ -69,7 +69,7 @@ required$add_argument(
 # otherwise if options not found on command line then set defaults
 args <- parser$parse_args()
 args$var_order <- strsplit(args$var_order, ",")[[1]]
-if(tolower(args$var_order) == "null") { args$var_order <- NULL }
+if (tolower(args$var_order) == "null") { args$var_order <- NULL }
 
 #   ____________________________________________________________________________
 #   Start                                                                   ####
@@ -77,12 +77,12 @@ if(tolower(args$var_order) == "null") { args$var_order <- NULL }
 sce <- read_sce(args$sce_path)
 
 results <- model_celltype_freqs(
-    sce,
-    unique_id_var = args$unique_id_var,
-    celltype_var = args$celltype_var,
-    dependent_var = args$dependent_var,
-    ref_class = args$ref_class,
-    var_order = args$var_order
+  sce,
+  unique_id_var = args$unique_id_var,
+  celltype_var = args$celltype_var,
+  dependent_var = args$dependent_var,
+  ref_class = args$ref_class,
+  var_order = args$var_order
 )
 
 ## ............................................................................
@@ -90,7 +90,7 @@ results <- model_celltype_freqs(
 
 new_dirs <- c(
   "dirichlet_report"
-  )
+)
 
 #make dirs
 purrr::walk(new_dirs, ~ dir.create(file.path(getwd(), .)))
@@ -98,12 +98,12 @@ purrr::walk(new_dirs, ~ dir.create(file.path(getwd(), .)))
 report_celltype_model(
   results,
   report_folder_path = file.path(
-    getwd(), 
+    getwd(),
     "dirichlet_report"
-    ),
+  ),
   report_file = paste0(
-      args$celltype_var, 
-      args$dependent_var, 
-      "dirichlet_report",
-      sep = "_")
+    args$celltype_var,
+    args$dependent_var,
+    "dirichlet_report",
+    sep = "_")
 )

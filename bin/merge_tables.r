@@ -22,7 +22,7 @@ required <- parser$add_argument_group("Required", "required arguments")
 required$add_argument(
   "--filepaths",
   help = "-paths to tsv files",
-  metavar = "1.tsv,2.tsv", 
+  metavar = "1.tsv,2.tsv",
   required = TRUE
 )
 

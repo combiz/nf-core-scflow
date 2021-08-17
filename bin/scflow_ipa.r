@@ -91,7 +91,6 @@ dir.create(output_dir)
 dir.create(report_dir)
 
 for (gene_file in args$gene_file) {
-
   enrichment_result <- find_impacted_pathways(
     gene_file = gene_file,
     enrichment_tool = args$enrichment_tool,
@@ -100,18 +99,15 @@ for (gene_file in args$gene_file) {
     is_output = TRUE,
     output_dir = output_dir
   )
-
   report_name <-  tools::file_path_sans_ext(gene_file)
   report_fp <- paste0(report_name, "_scflow_ipa_report")
-  
   report_impacted_pathway(
-      res = enrichment_result,
-      report_folder_path = report_dir,
-      report_file = report_fp
-    )
-
-    cli::cli_text(c(
-      "{cli::col_green(symbol$tick)} Analysis complete, output is found at: ",
-      "{.file {output_dir}}"
-    ))
+    res = enrichment_result,
+    report_folder_path = report_dir,
+    report_file = report_fp
+  )
+  cli::cli_text(c(
+    "{cli::col_green(symbol$tick)} Analysis complete, output is found at: ",
+    "{.file {output_dir}}"
+  ))
 }

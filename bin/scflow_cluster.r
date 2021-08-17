@@ -28,48 +28,48 @@ optional <- parser$add_argument_group("Optional", "required arguments")
 required$add_argument(
   "--sce_path",
   help = "-path to the SingleCellExperiment",
-  metavar = "dir", 
+  metavar = "dir",
   required = TRUE
 )
 
 required$add_argument(
   "--cluster_method",
   help = "method to use for clustering",
-  metavar = "louvain", 
+  metavar = "louvain",
   required = TRUE
 )
 
 required$add_argument(
   "--reduction_method",
   help = "reduced dimension embedding to use for clustering",
-  metavar = "UMAP", 
+  metavar = "UMAP",
   required = TRUE
 )
 
 required$add_argument(
   "--res",
-  type = "double", 
+  type = "double",
   default = 0.00001,
   help = "clustering resolution",
-  metavar = "N", 
+  metavar = "N",
   required = TRUE
 )
 
 required$add_argument(
   "--k",
-  type = "integer", 
+  type = "integer",
   default = 100,
   help = "the number of kNN",
-  metavar = "N", 
+  metavar = "N",
   required = TRUE
 )
 
 required$add_argument(
   "--louvain_iter",
-  type = "integer", 
+  type = "integer",
   default = 1,
   help = "number of iterations used for Louvain clustering",
-  metavar = "N", 
+  metavar = "N",
   required = TRUE
 )
 
@@ -84,13 +84,13 @@ args <- parser$parse_args()
 sce <- read_sce(args$sce_path, read_metadata = TRUE)
 
 sce <- cluster_sce(
-    sce,
-    cluster_method = args$cluster_method,
-    reduction_method = args$reduction_method,
-    res = args$res,
-    k = args$k,
-    louvain_iter = args$louvain_iter
-    )
+  sce,
+  cluster_method = args$cluster_method,
+  reduction_method = args$reduction_method,
+  res = args$res,
+  k = args$k,
+  louvain_iter = args$louvain_iter
+)
 
 ##  ............................................................................
 ##  Save Outputs                                                            ####
@@ -100,7 +100,7 @@ write_sce(
   sce = sce,
   folder_path = file.path(getwd(), "clustered_sce"),
   write_metadata = TRUE
-  )
+)
 
 ##  ............................................................................
 ##  Clean up                                                                ####

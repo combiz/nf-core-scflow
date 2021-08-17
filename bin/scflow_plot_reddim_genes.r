@@ -23,40 +23,40 @@ optional <- parser$add_argument_group("Optional", "required arguments")
 required$add_argument(
   "--sce_path",
   help = "-path to the SingleCellExperiment",
-  metavar = "dir", 
+  metavar = "dir",
   required = TRUE
 )
 
 required$add_argument(
   "--reddim_genes_yml",
   help = "-path to the yml file with genes of interest",
-  metavar = "dir", 
+  metavar = "dir",
   required = TRUE
 )
 
 required$add_argument(
   "--reduction_methods",
   help = "reduced dimension embedding(s) to use for plots",
-  metavar = "UMAP", 
+  metavar = "UMAP",
   required = TRUE
 )
 
-required$add_argument(   
-"--reddimplot_pointsize",
-default = 0.1,
-type = "double", 
-required = TRUE,
-help = "Point size for reduced dimension plots",
-metavar = "N"
+required$add_argument(
+  "--reddimplot_pointsize",
+  default = 0.1,
+  type = "double",
+  required = TRUE,
+  help = "Point size for reduced dimension plots",
+  metavar = "N"
 )
 
-required$add_argument(   
-"--reddimplot_alpha",
-default = 0.2,
-type = "double", 
-required = TRUE,
-help = "Alpha value for reduced dimension plots",
-metavar = "N"
+required$add_argument(
+  "--reddimplot_alpha",
+  default = 0.2,
+  type = "double",
+  required = TRUE,
+  help = "Alpha value for reduced dimension plots",
+  metavar = "N"
 )
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
@@ -89,10 +89,10 @@ for (reddim in args$reduction_method) {
       if (gene %in% SummarizedExperiment::rowData(sce)$gene) {
         p <- plot_reduced_dim_gene(
           sce,
-          reduced_dim = reddim, 
+          reduced_dim = reddim,
           gene = gene
-          )
-        png(file.path(folder_path, paste0(gene, ".png")), 
+        )
+        png(file.path(folder_path, paste0(gene, ".png")),
             width = 170, height = 170, units = "mm", res = 600)
         print(p)
         dev.off()

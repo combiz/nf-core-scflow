@@ -158,7 +158,7 @@ required$add_argument(
   help = "the biological species (e.g. mouse, human)",
   default = "human",
   required = TRUE
-  )
+)
 
 required$add_argument(
   "--max_cores",
@@ -177,9 +177,9 @@ options("scflow_species" = args$species)
 args$rescale_numerics <- as.logical(args$rescale_numerics)
 args$pseudobulk <- as.logical(args$pseudobulk)
 args$force_run <- as.logical(args$force_run)
-if(tolower(args$random_effects_var) == "null") args$random_effects_var <- NULL
+if (tolower(args$random_effects_var) == "null") args$random_effects_var <- NULL
 
-args$max_cores <- if(toupper(args$max_cores) == "NULL") NULL else { 
+args$max_cores <- if (toupper(args$max_cores) == "NULL") NULL else {
   as.numeric(as.character(args$max_cores))
 }
 
@@ -202,8 +202,6 @@ cli::cli_alert(sprintf(
   n_cores
 ))
 
-# RhpcBLASctl::omp_set_num_threads(1L)
-
 library(scFlow)
 
 #   ____________________________________________________________________________
@@ -222,7 +220,9 @@ if (args$pseudobulk) {
   pb_str <- "_pb"
   sce_subset <- pseudobulk_sce(
     sce_subset,
-    keep_vars = c(args$dependent_var, args$confounding_vars, args$random_effects_var),
+    keep_vars = c(
+      args$dependent_var, args$confounding_vars, args$random_effects_var
+      ),
     assay_name = "counts",
     celltype_var = args$celltype_var,
     sample_var = args$sample_var
@@ -258,11 +258,9 @@ for (result in names(de_results)) {
                 file = file.path(getwd(),
                                  paste0(file_name, result, "_DE.tsv")),
                 quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
-
     report_de(de_results[[result]],
-      report_folder_path = file.path(getwd()),
-      report_file = paste0(file_name, result, "_scflow_de_report"))
-
+              report_folder_path = file.path(getwd()),
+              report_file = paste0(file_name, result, "_scflow_de_report"))
     print("report generated")
     png(file.path(getwd(),
                   paste0(file_name, result, "_volcano_plot.png")),
@@ -270,17 +268,7 @@ for (result in names(de_results)) {
     print(attr(de_results[[result]], "plot"))
     dev.off()
 
-    #print("first png generated")
-    #p <- attr(de_results[[result]], "plot")
-    #plot_data <- p$data
-    #write.table(p$data,
-    #            file = file.path(getwd(), "de_plot_data",
-    #                             paste0(file_name, result, ".tsv")),
-    #            quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
-
   } else {
     print(sprintf("No DE genes found for %s", result))
-  }
+    }
 }
-
-
