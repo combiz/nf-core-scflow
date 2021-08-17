@@ -11,7 +11,11 @@ nextflow.enable.dsl = 2
 ----------------------------------------------------------------------------------------
 */
 
+<<<<<<< HEAD
 include { getSoftwareName; initOptions; getPathFromList; saveFiles } from './modules/local/process/functions.nf'
+=======
+include { getSoftwareName;initOptions;getPathFromList;saveFiles } from './modules/local/process/functions.nf'
+>>>>>>> 441742b35368e342078001db81e92622d13c4aa6
 params.options = [:]
 
 def helpMessage() {
@@ -25,27 +29,27 @@ def helpMessage() {
     nextflow run nf-core/scflow --manifest "refs/Manifest.txt" --input "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
 
     Mandatory arguments:
-      --manifest [file]               Path to Manifest.txt file (must be surrounded with quotes)
-      --input [file]                  Path to SampleSheet.tsv file (must be surrounded with quotes)
-      -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
-                                      Available: conda, docker, singularity, test, awsbatch, <institute> and more
+    --manifest [file]               Path to Manifest.txt file (must be surrounded with quotes)
+    --input [file]                  Path to SampleSheet.tsv file (must be surrounded with quotes)
+    -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
+                                    Available: conda, docker, singularity, test, awsbatch, <institute> and more
 
     References                        If not specified in the configuration file or you wish to overwrite any of the references
-      --ensembl_mappings [file]       Path to ensembl_mappings file
-      --celltype_mappings [file]      Path to manual cell-type mappings file
-      --ctd_path [file]               Path to the zip file containing .ctd files for celltype annotation
-      --reddim_genes_yml [file]       Path to a file containing genes of interest for expression plotting
+    --ensembl_mappings [file]       Path to ensembl_mappings file
+    --celltype_mappings [file]      Path to manual cell-type mappings file
+    --ctd_path [file]               Path to the zip file containing .ctd files for celltype annotation
+    --reddim_genes_yml [file]       Path to a file containing genes of interest for expression plotting
 
     Other options:
-      --outdir [file]                 The output directory where the results will be saved
-      --email [email]                 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
-      --email_on_fail [email]         Same as --email, except only send mail if the workflow is not successful
-      -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
+    --outdir [file]                 The output directory where the results will be saved
+    --email [email]                 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
+    --email_on_fail [email]         Same as --email, except only send mail if the workflow is not successful
+    -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
 
     AWSBatch options:
-      --awsqueue [str]                The AWSBatch JobQueue that needs to be set when running on AWSBatch
-      --awsregion [str]               The AWS Region for your AWS Batch job to run on
-      --awscli [str]                  Path to the AWS CLI tool
+    --awsqueue [str]                The AWSBatch JobQueue that needs to be set when running on AWSBatch
+    --awsregion [str]               The AWS Region for your AWS Batch job to run on
+    --awscli [str]                  Path to the AWS CLI tool
     '''.stripIndent()
 }
 log.info Headers.nf_core(workflow, params.monochrome_logs)
@@ -269,7 +273,7 @@ scflow_cluster_options.args         =
 
 def scflow_reportintegrated_options  = modules['scflow_reportintegrated']
 scflow_reportintegrated_options.args =
-   "--categorical_covariates ${params.integ_categorical_covariates} \
+    "--categorical_covariates ${params.integ_categorical_covariates} \
     --input_reduced_dim ${params.integ_input_reduced_dim} \
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
     --reddimplot_alpha ${params.reddimplot_alpha}"

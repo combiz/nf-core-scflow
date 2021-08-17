@@ -16,12 +16,12 @@ process SCFLOW_QC {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${key}") }
 
 //    container 'combiz/scflow-docker:0.6.1'
-    
+
     input:
     tuple val(key), path(mat_path)
     path input
     path ensembl_mappings
-    
+
     output:
     path '*.html'               , emit: qc_report
     path 'qc_plot_data'         , emit: qc_plot_data, type: 'dir'

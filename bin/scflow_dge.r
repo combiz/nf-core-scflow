@@ -256,7 +256,7 @@ for (result in names(de_results)) {
   if (dim(de_results[[result]])[[1]] > 0) {
     write.table(de_results[[result]],
                 file = file.path(getwd(),
-                                 paste0(file_name, result, "_DE.tsv")),
+                                paste0(file_name, result, "_DE.tsv")),
                 quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
     report_de(de_results[[result]],
               report_folder_path = file.path(getwd()),
