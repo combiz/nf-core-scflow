@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['21.04.0', '']
+        nxf_ver: ["21.04.0", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -38,3 +38,12 @@ jobs:
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+
+      - name: Build new docker image
+        if: ${{ github.event.workflow_run.conclusion == 'thiswillnevertrigger' }}
+        run: docker build --no-cache . -t almurphy/scfdev:dev
+      - name: Pull docker image
+        if: ${{ github.event.workflow_run.conclusion == 'thiswillnevertrigger' }}
+        run: |
+          docker pull almurphy/scfdev:dev
+          docker tag almurphy/scfdev:dev almurphy/scfdev:dev
