@@ -9,14 +9,14 @@ params.options = [:]
 def options    = initOptions(params.options)
 
 process SCFLOW_MERGE {
-    tag "MERGED"
+    tag 'MERGED'
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-//    container 'combiz/scflow-docker:0.6.1'
-    
+    //    container 'combiz/scflow-docker:0.6.1'
+
     input:
     path qc_passed_sces
     path ensembl_mappings

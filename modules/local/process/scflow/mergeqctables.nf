@@ -15,11 +15,11 @@ process SCFLOW_MERGEQCTABLES {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-//    container 'combiz/scflow-docker:0.6.1'
-    
+    //    container 'combiz/scflow-docker:0.6.1'
+
     input:
     path qcs_tsv
-    
+
     output:
     path '*.tsv', emit: qc_summary
 

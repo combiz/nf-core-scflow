@@ -9,14 +9,14 @@ params.options = [:]
 def options    = initOptions(params.options)
 
 process SCFLOW_FINALIZE {
-    tag "MERGED"
+    tag 'MERGED'
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-//    container 'combiz/scflow-docker:0.6.1'
-    
+    //    container 'combiz/scflow-docker:0.6.1'
+
     input:
     path sce
     path celltype_mappings
@@ -30,7 +30,6 @@ process SCFLOW_FINALIZE {
 
     script:
     def software = getSoftwareName(task.process)
-
 
     """
     export MC_CORES=${task.cpus}

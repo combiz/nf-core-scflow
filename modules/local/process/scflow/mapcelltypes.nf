@@ -9,14 +9,14 @@ params.options = [:]
 def options    = initOptions(params.options)
 
 process SCFLOW_MAPCELLTYPES {
-    tag "MERGED"
+    tag 'MERGED'
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-//    container 'combiz/scflow-docker:0.6.1'
-    
+    //    container 'combiz/scflow-docker:0.6.1'
+
     input:
     path sce
     path ctd_path
@@ -33,7 +33,7 @@ process SCFLOW_MAPCELLTYPES {
     export MC_CORES=${task.cpus}
 
     mkdir ctd_folder && unzip ${ctd_path} -d ./ctd_folder
-    
+
 
     scflow_map_celltypes.r \
     $options.args \
