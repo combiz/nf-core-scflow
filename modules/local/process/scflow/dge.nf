@@ -17,7 +17,7 @@ process SCFLOW_DGE {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:"${celltype}_${de_method}") }
 
 //    container 'combiz/scflow-docker:0.6.1'
-    
+
     input:
     path sce
     each de_method
@@ -37,7 +37,7 @@ process SCFLOW_DGE {
     def software = getSoftwareName(task.process)
 
 
-     """
+    """
     echo "celltype: ${celltype} n_cells: ${n_cells_str}"
     export MC_CORES=${task.cpus}
     export MKL_NUM_THREADS=1

@@ -1,7 +1,7 @@
 /*
  * Check input manifest and samplesheet inputs are valid
  */
- 
+
 
 // Import generic module functions
 include { initOptions; saveFiles; getSoftwareName } from './functions'
@@ -17,11 +17,11 @@ process SCFLOW_CHECKINPUTS {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
     //container "combiz/scflow-docker:0.6.1"
-    
+
     input:
     path manifest
     path input
-    
+
     output:
     path 'checked_manifest.txt', emit: checked_manifest
 
@@ -32,7 +32,7 @@ process SCFLOW_CHECKINPUTS {
     check_inputs.r \\
         --input $input \
         --manifest $manifest
-        
+
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """
 }

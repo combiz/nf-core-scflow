@@ -11,7 +11,7 @@ nextflow.enable.dsl=2
 ----------------------------------------------------------------------------------------
 */
 
-include { getSoftwareName;initOptions;getPathFromList;saveFiles } from './modules/local/process/functions.nf' 
+include { getSoftwareName;initOptions;getPathFromList;saveFiles } from './modules/local/process/functions.nf'
 params.options = [:]
 
 def helpMessage() {
@@ -25,27 +25,27 @@ def helpMessage() {
     nextflow run nf-core/scflow --manifest "refs/Manifest.txt" --input "refs/SampleSheet.tsv" -c "conf/scflow_params.config"
 
     Mandatory arguments:
-      --manifest [file]               Path to Manifest.txt file (must be surrounded with quotes)
-      --input [file]                  Path to SampleSheet.tsv file (must be surrounded with quotes)
-      -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
-                                      Available: conda, docker, singularity, test, awsbatch, <institute> and more
+    --manifest [file]               Path to Manifest.txt file (must be surrounded with quotes)
+    --input [file]                  Path to SampleSheet.tsv file (must be surrounded with quotes)
+    -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
+                                    Available: conda, docker, singularity, test, awsbatch, <institute> and more
 
     References                        If not specified in the configuration file or you wish to overwrite any of the references
-      --ensembl_mappings [file]       Path to ensembl_mappings file
-      --celltype_mappings [file]      Path to manual cell-type mappings file
-      --ctd_path [file]               Path to the zip file containing .ctd files for celltype annotation
-      --reddim_genes_yml [file]       Path to a file containing genes of interest for expression plotting
+    --ensembl_mappings [file]       Path to ensembl_mappings file
+    --celltype_mappings [file]      Path to manual cell-type mappings file
+    --ctd_path [file]               Path to the zip file containing .ctd files for celltype annotation
+    --reddim_genes_yml [file]       Path to a file containing genes of interest for expression plotting
 
     Other options:
-      --outdir [file]                 The output directory where the results will be saved
-      --email [email]                 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
-      --email_on_fail [email]         Same as --email, except only send mail if the workflow is not successful
-      -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
+    --outdir [file]                 The output directory where the results will be saved
+    --email [email]                 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
+    --email_on_fail [email]         Same as --email, except only send mail if the workflow is not successful
+    -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
 
     AWSBatch options:
-      --awsqueue [str]                The AWSBatch JobQueue that needs to be set when running on AWSBatch
-      --awsregion [str]               The AWS Region for your AWS Batch job to run on
-      --awscli [str]                  Path to the AWS CLI tool
+    --awsqueue [str]                The AWSBatch JobQueue that needs to be set when running on AWSBatch
+    --awsregion [str]               The AWS Region for your AWS Batch job to run on
+    --awscli [str]                  Path to the AWS CLI tool
     """.stripIndent()
 }
 log.info Headers.nf_core(workflow, params.monochrome_logs)
@@ -154,7 +154,7 @@ def scflow_checkinputs_options         = modules['scflow_checkinputs']
 scflow_checkinputs_options.args        = ''
 
 def scflow_qc_options                  = modules['scflow_qc']
-scflow_qc_options.args                 = 
+scflow_qc_options.args                 =
     "--key_colname ${params.qc_key_colname} \
     --factor_vars ${params.qc_factor_vars} \
     --min_library_size ${params.qc_min_library_size} \
@@ -228,7 +228,7 @@ scflow_integrate_options.args        =
     --small_clust_thresh ${params.integ_small_clust_thresh}"
 
 def scflow_reducedims_options        = modules['scflow_reducedims']
-scflow_reducedims_options.args       = 
+scflow_reducedims_options.args       =
     "--input_reduced_dim ${params.reddim_input_reduced_dim} \
     --reduction_methods ${params.reddim_reduction_methods} \
     --vars_to_regress_out ${params.reddim_vars_to_regress_out} \
@@ -271,7 +271,7 @@ scflow_cluster_options.args         =
 
 def scflow_reportintegrated_options  = modules['scflow_reportintegrated']
 scflow_reportintegrated_options.args =
-   "--categorical_covariates ${params.integ_categorical_covariates} \
+    "--categorical_covariates ${params.integ_categorical_covariates} \
     --input_reduced_dim ${params.integ_input_reduced_dim} \
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
     --reddimplot_alpha ${params.reddimplot_alpha}"
@@ -331,7 +331,7 @@ scflow_ipa_options.args              =
     --enrichment_database ${params.ipa_enrichment_database}"
 
 def scflow_dirichlet_options         = modules['scflow_dirichlet']
-scflow_dirichlet_options.args = 
+scflow_dirichlet_options.args =
     "--unique_id_var ${params.dirich_unique_id_var} \
     --celltype_var ${params.dirich_celltype_var} \
     --dependent_var ${params.dirich_dependent_var} \
@@ -342,7 +342,7 @@ def get_software_versions         = modules['get_software_versions']
 get_software_versions.args = ''
 
 
-include { SCFLOW_CHECKINPUTS         } from './modules/local/process/scflow/checkinputs'       addParams( options: scflow_checkinputs_options       ) 
+include { SCFLOW_CHECKINPUTS         } from './modules/local/process/scflow/checkinputs'       addParams( options: scflow_checkinputs_options       )
 include { SCFLOW_QC                  } from './modules/local/process/scflow/qc'                addParams( options: scflow_qc_options                )
 include { SCFLOW_MERGEQCTABLES       } from './modules/local/process/scflow/mergeqctables'     addParams( options: scflow_mergeqctables_options  )
 include { SCFLOW_MERGE               } from './modules/local/process/scflow/merge'             addParams( options: scflow_merge_options             )
@@ -358,86 +358,86 @@ include { SCFLOW_IPA                 } from './modules/local/process/scflow/ipa'
 include { SCFLOW_DIRICHLET           } from './modules/local/process/scflow/dirichlet'         addParams( options: scflow_dirichlet_options         )
 include { GET_SOFTWARE_VERSIONS      } from './modules/local/get_software_versions'            addParams( options: [publish_files : ['tsv':'']]     )
 
-workflow {  
-    
+workflow {
+
   main:
-    SCFLOW_CHECKINPUTS ( 
+    SCFLOW_CHECKINPUTS (
         ch_manifest,
         ch_input
     )
 
-    SCFLOW_QC ( 
+    SCFLOW_QC (
         SCFLOW_CHECKINPUTS.out.checked_manifest.splitCsv(
-            header:['key', 'filepath'], 
+            header:['key', 'filepath'],
             skip: 1, sep: '\t'
             )
-        .map { row -> tuple(row.key, row.filepath) }, 
-        ch_input2, 
+        .map { row -> tuple(row.key, row.filepath) },
+        ch_input2,
         ch_ensembl_mappings
     )
-    
-    SCFLOW_MERGEQCTABLES ( 
-        SCFLOW_QC.out.qc_summary.collect() 
-    )
-    
-    SCFLOW_MERGE ( 
-        SCFLOW_QC.out.qc_sce.collect(), 
-        ch_ensembl_mappings2 
+
+    SCFLOW_MERGEQCTABLES (
+        SCFLOW_QC.out.qc_summary.collect()
     )
 
-    SCFLOW_INTEGRATE ( 
-        SCFLOW_MERGE.out.merged_sce 
+    SCFLOW_MERGE (
+        SCFLOW_QC.out.qc_sce.collect(),
+        ch_ensembl_mappings2
+    )
+
+    SCFLOW_INTEGRATE (
+        SCFLOW_MERGE.out.merged_sce
     )
 
 
-    SCFLOW_REDUCEDIMS ( 
-        SCFLOW_INTEGRATE.out.integrated_sce 
+    SCFLOW_REDUCEDIMS (
+        SCFLOW_INTEGRATE.out.integrated_sce
     )
-    
-    SCFLOW_CLUSTER ( 
-        SCFLOW_REDUCEDIMS.out.reddim_sce 
+
+    SCFLOW_CLUSTER (
+        SCFLOW_REDUCEDIMS.out.reddim_sce
     )
 
     SCFLOW_REPORTINTEGRATED (
         SCFLOW_CLUSTER.out.clustered_sce
     )
 
-    SCFLOW_MAPCELLTYPES ( 
-        SCFLOW_CLUSTER.out.clustered_sce, 
-        ch_ctd_path 
+    SCFLOW_MAPCELLTYPES (
+        SCFLOW_CLUSTER.out.clustered_sce,
+        ch_ctd_path
     )
 
-    SCFLOW_FINALIZE ( 
-        SCFLOW_MAPCELLTYPES.out.celltype_mapped_sce, 
-        ch_celltype_mappings 
+    SCFLOW_FINALIZE (
+        SCFLOW_MAPCELLTYPES.out.celltype_mapped_sce,
+        ch_celltype_mappings
     )
 
-    SCFLOW_DGE ( 
-        SCFLOW_FINALIZE.out.final_sce, 
-        params.dge_de_method, 
+    SCFLOW_DGE (
+        SCFLOW_FINALIZE.out.final_sce,
+        params.dge_de_method,
         SCFLOW_FINALIZE.out.celltypes.splitCsv (
             header:['celltype', 'n_cells'], skip: 1, sep: '\t'
         )
-        .map { row -> tuple(row.celltype, row.n_cells) }, 
-        ch_ensembl_mappings3 
+        .map { row -> tuple(row.celltype, row.n_cells) },
+        ch_ensembl_mappings3
     )
 
-    SCFLOW_IPA ( 
-        SCFLOW_DGE.out.de_table 
+    SCFLOW_IPA (
+        SCFLOW_DGE.out.de_table
     )
 
-    SCFLOW_DIRICHLET ( 
-        SCFLOW_FINALIZE.out.final_sce 
+    SCFLOW_DIRICHLET (
+        SCFLOW_FINALIZE.out.final_sce
     )
 
-    SCFLOW_PLOTREDDIMGENES ( 
-        SCFLOW_CLUSTER.out.clustered_sce, 
+    SCFLOW_PLOTREDDIMGENES (
+        SCFLOW_CLUSTER.out.clustered_sce,
         ch_reddim_genes_yml
     )
 
 
     GET_SOFTWARE_VERSIONS (
-        
+
     )
 
 }

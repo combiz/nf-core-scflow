@@ -16,7 +16,7 @@ process SCFLOW_MERGE {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
 //    container 'combiz/scflow-docker:0.6.1'
-    
+
     input:
     path qc_passed_sces
     path ensembl_mappings

@@ -16,7 +16,7 @@ process SCFLOW_DIRICHLET {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
 //    container 'combiz/scflow-docker:0.6.1'
-    
+
     input:
     path sce
 
@@ -32,7 +32,7 @@ process SCFLOW_DIRICHLET {
     scflow_dirichlet.r \
     $options.args \
     --sce_path ${sce}
-    
+
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """
 }

@@ -7,11 +7,11 @@ process GET_SOFTWARE_VERSIONS {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'pipeline_info', meta:[:], publish_by_meta:[]) }
-    
+
     tag "Version Info"
     label 'process_low'
     //cache false
-    
+
 
     output:
     path "software_versions.tsv"     , emit: tsv

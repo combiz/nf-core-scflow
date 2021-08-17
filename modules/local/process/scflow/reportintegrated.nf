@@ -16,7 +16,7 @@ process SCFLOW_REPORTINTEGRATED {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
 //    container 'combiz/scflow-docker:0.6.1'
-    
+
     input:
     path( sce )
 
