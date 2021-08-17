@@ -357,7 +357,7 @@ include { SCFLOW_DIRICHLET           } from './modules/local/process/scflow/diri
 include { GET_SOFTWARE_VERSIONS      } from './modules/local/get_software_versions'            addParams( options: [publish_files : ['tsv':'']]     )
 
 workflow {
-  main:
+    main:
     SCFLOW_CHECKINPUTS (
         ch_manifest,
         ch_input
