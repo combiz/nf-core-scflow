@@ -51,14 +51,14 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( opti
 ========================================================================================
 */
 
-def multiqc_options   = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+//def multiqc_options   = modules['multiqc']
+//multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
-include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
+//include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
+//include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
 
 /*
 ========================================================================================
@@ -67,7 +67,7 @@ include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( op
 */
 
 // Info required for completion email and summary
-def multiqc_report = []
+//def multiqc_report = []
 
 workflow SCFLOW {
 
@@ -83,10 +83,11 @@ workflow SCFLOW {
     //
     // MODULE: Run FastQC
     //
-    FASTQC (
+    /*FASTQC (
         INPUT_CHECK.out.reads
     )
     ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+    */
 
     //
     // MODULE: Pipeline reporting
@@ -106,7 +107,7 @@ workflow SCFLOW {
     //
     // MODULE: MultiQC
     //
-    workflow_summary    = WorkflowScflow.paramsSummaryMultiqc(workflow, summary_params)
+    /* workflow_summary    = WorkflowScflow.paramsSummaryMultiqc(workflow, summary_params)
     ch_workflow_summary = Channel.value(workflow_summary)
 
     ch_multiqc_files = Channel.empty()
@@ -121,7 +122,9 @@ workflow SCFLOW {
     )
     multiqc_report       = MULTIQC.out.report.toList()
     ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
+    */
 }
+
 
 /*
 ========================================================================================
