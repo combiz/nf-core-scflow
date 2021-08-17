@@ -11,11 +11,7 @@ nextflow.enable.dsl = 2
 ----------------------------------------------------------------------------------------
 */
 
-<<<<<<< HEAD
 include { getSoftwareName; initOptions; getPathFromList; saveFiles } from './modules/local/process/functions.nf'
-=======
-include { getSoftwareName;initOptions;getPathFromList;saveFiles } from './modules/local/process/functions.nf'
->>>>>>> 441742b35368e342078001db81e92622d13c4aa6
 params.options = [:]
 
 def helpMessage() {

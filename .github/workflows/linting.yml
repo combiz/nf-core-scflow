@@ -53,13 +53,13 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: "10"
+          node-version: '10'
 
       - name: Install editorconfig-checker
         run: npm install -g editorconfig-checker
 
       - name: Run ECLint check
-        run: editorconfig-checker --exclude README.md $(git ls-files | grep -v test)
+        run: editorconfig-checker -exclude README.md $(git ls-files | grep -v test)
 
   YAML:
     runs-on: ubuntu-latest
@@ -142,3 +142,4 @@ jobs:
             lint_log.txt
             lint_results.md
             PR_number.txt
+
