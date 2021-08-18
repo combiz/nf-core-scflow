@@ -18,7 +18,7 @@
 
 **nf-core/scflow** is a bioinformatics pipeline for scalable, reproducible, best-practice analyses of single-cell/nuclei RNA-sequencing data.
 
-The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner.  Full case/control sc/sn-RNAseq analyses can be orchestrated with a single line of code on a local workstation, high-performance computing cluster (HPC), or on Cloud services including Google Cloud, Amazon Web Services, Microsfot Azure, and Kubernetes.  It uses Docker/Singularity containers making installation trivial and results highly reproducible.
+The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner.  Full case/control sc/sn-RNAseq analyses can be orchestrated with a single line of code on a local workstation, high-performance computing cluster (HPC), or on Cloud services including Google Cloud, Amazon Web Services, Microsoft Azure, and Kubernetes.  It uses Docker/Singularity containers making installation trivial and results highly reproducible.
 
 Each new release of **nf-core/scflow** triggers automated continuous integration tests which run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/scflow/results).
 
