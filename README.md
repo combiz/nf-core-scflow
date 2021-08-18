@@ -68,7 +68,7 @@ Try the pipeline on an in-built, minimal test dataset (all inputs will be automa
 
 ### Analyse your own data
 
-The **nf-core/scflow** pipeline requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file ([see parameter documentation](https://nf-co.re/scflow/dev/parameters)). 
+The **nf-core/scflow** pipeline requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file ([see parameter documentation](https://nf-co.re/scflow/dev/parameters)).
 
 A complete, automated, scalable, and reproducible case-control analysis can then be performed with a single line of code: -
 
