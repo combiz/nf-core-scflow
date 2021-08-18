@@ -11,6 +11,12 @@ indent_style = space
 [*.{yml,yaml}]
 indent_size = 2
 
+<<<<<<< HEAD
+=======
+[*.json]
+insert_final_newline = unset
+
+>>>>>>> TEMPLATE
 # These files are edited and tested upstream in nf-core/modules
 [/modules/nf-core/**]
 charset = unset
@@ -22,7 +28,10 @@ indent_size = unset
 
 [/assets/email*]
 indent_size = unset
+<<<<<<< HEAD
 
 [/bin/*.{R,r}]
 indent_style = space
 indent_size = 2
+=======
+>>>>>>> TEMPLATE

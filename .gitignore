@@ -6,8 +6,11 @@ results/
 testing/
 testing*
 *.pyc
+<<<<<<< HEAD
 refs/
 data/
 results/
 singularity/
 *.sif
+=======
+>>>>>>> TEMPLATE
