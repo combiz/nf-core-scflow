@@ -48,7 +48,7 @@ def helpMessage() {
     --awscli [str]                  Path to the AWS CLI tool
     '''.stripIndent()
 }
-log.info Headers.nf_core(workflow, params.monochrome_logs)
+//log.info Headers.nf_core(workflow, params.monochrome_logs)
 
 // Check AWS batch settings
 if (workflow.profile.contains('awsbatch')) {
