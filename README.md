@@ -16,7 +16,7 @@
 
 ## Introduction
 
-**nf-core/scflow** is a bioinformatics pipeline for scalable, reproducible, best-practice analyses of single-cell/nuclei RNA-sequencing data.  
+**nf-core/scflow** is a bioinformatics pipeline for scalable, reproducible, best-practice analyses of single-cell/nuclei RNA-sequencing data.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner.  Full case/control sc/sn-RNAseq analyses can be orchestrated with a single line of code on a local workstation, high-performance computing cluster (HPC), or on Cloud services including Google Cloud, Amazon Web Services, Microsfot Azure, and Kubernetes.  It uses Docker/Singularity containers making installation trivial and results highly reproducible.
 
@@ -49,6 +49,7 @@ For more details, see the pre-print: [scFlow: A Scalable and Reproducible Analys
 ## Quick Start
 
 ### Analyse a test dataset
+
 Try the pipeline on an in-built, minimal test dataset (all inputs will be automatically downloaded): -
 
 1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.04.0`)
@@ -67,11 +68,12 @@ Try the pipeline on an in-built, minimal test dataset (all inputs will be automa
 
 ### Analyse your own data
 
-The **nf-core/scflow** pipeline requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file ([see parameter documentation](https://nf-co.re/scflow/dev/parameters)).  
+The **nf-core/scflow** pipeline requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file ([see parameter documentation](https://nf-co.re/scflow/dev/parameters)). 
 
 A complete, automated, scalable, and reproducible case-control analysis can then be performed with a single line of code: -
 
 1. Start running your own analysis!
+
     ```bash
     nextflow run nf-core/scflow \
     --manifest Manifest.tsv \
@@ -80,7 +82,7 @@ A complete, automated, scalable, and reproducible case-control analysis can then
     -profile local
     ```
 
-Switching from a local workstation analysis to a Cloud based analysis can be achieved simply by changing the `profile` parameter. For example, a Google Cloud analysis with  automated staging of input matrices from Cloud storage (e.g. a Google Storage Bucket) can be achieved using `-profile gcp`.  Additionally, pre-configured institutional profiles for a range of university and research institution HPC systems are readily available via nf-core [configs](https://github.com/nf-core/configs). 
+Switching from a local workstation analysis to a Cloud based analysis can be achieved simply by changing the `profile` parameter. For example, a Google Cloud analysis with  automated staging of input matrices from Cloud storage (e.g. a Google Storage Bucket) can be achieved using `-profile gcp`.  Additionally, pre-configured institutional profiles for a range of university and research institution HPC systems are readily available via nf-core [configs](https://github.com/nf-core/configs).
 
 ## Documentation
 
@@ -108,7 +110,7 @@ If you use nf-core/scflow for your analysis, please cite it as follows:
 
 > **scFlow: A Scalable and Reproducible Analysis Pipeline for Single-Cell RNA Sequencing Data.**
 >
-> Combiz Khozoie, Nurun Fancy, Mahdi M. Marjaneh, Alan E. Murphy, Paul M. Matthews, Nathan Skene 
+> Combiz Khozoie, Nurun Fancy, Mahdi M. Marjaneh, Alan E. Murphy, Paul M. Matthews, Nathan Skene
 >
 > _bioRxiv_ 2021 August 19. doi: [10.22541/au.162912533.38489960/v1](https://doi.org/10.22541/au.162912533.38489960/v1).
 
