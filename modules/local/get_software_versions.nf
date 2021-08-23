@@ -9,7 +9,7 @@ process GET_SOFTWARE_VERSIONS {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'pipeline_info', meta:[:], publish_by_meta:[]) }
 
     tag 'Version Info'
-    label 'process_low'
+    label 'process_tiny'
     //cache false
 
     output:
