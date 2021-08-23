@@ -4,7 +4,7 @@
 
 The **nf-core/scflow** pipeline is designed to orchestrate a reproducible case/control analysis of scRNA-seq data with best-practices, at scale, from quality-control through to insight discovery.
 
-A pipeline run with **nf-core/scflow** requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file (documentation for each parameter is available at https://nf-co.re/scflow/dev/parameters).
+A pipeline run with **nf-core/scflow** requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file (documentation for each parameter is available at [https://nf-co.re/scflow/dev/parameters]).
 
 A complete, automated, scalable, and reproducible case-control analysis can then be performed with a single line of code: -
 
