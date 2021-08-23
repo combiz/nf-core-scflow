@@ -2,26 +2,26 @@
 
 ## Introduction
 
-This document describes the output produced by the pipeline. 
+This document describes the output produced by the pipeline. Key outputs include interactive HTML reports for major analytical steps, flat-file tables, and publication-quality plots. In addition, a fully-annotated SingleCellExperiment (SCE) object is output for optional downstream tertiary analysis, in addition to individual SCEs for each sample after quality control.
 
-The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
-
-<!-- TODO nf-core: Write this documentation describing your workflow's output -->
+The pipeline will create the directories listed below during an analysis run. All paths are relative to the top-level results directory.
 
 ## Pipeline overview
 
-The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
+The pipeline is built using [Nextflow](https://www.nextflow.io/) and automates a case/control scRNA-seq analysis using the following steps:
 
-* [Check inputs](#check_inputs) - Checks if all input files are present (`SCFLOW_CHECKINPUTS`)
-* [Quality control](#qc) - Quality control of gene-cell matrices (`SCFLOW_QC`)
-* [Merged summary](#merged) - Quality control of merged qc tables and merged SingleCellExperiment (SCE) object (`SCFLOW_MERGEQCTABLES` and `SCFLOW_MERGE`)
-* [Integration, dimension reduction and clustering](#integration_dimension_reduction) - Integration and dimension reduction of the merged SCE followed by clustering (`SCFLOW_INTEGRATE`, `SCFLOW_REDUCEDIMS`, `SCFLOW_CLUSTER` & `SCFLOW_REPORTINTEGRATED`)
-* [Celltype annotation](#celltype_annotation) - Automated cell-type annotation of the clustered SCE and identification of marker genes  (`SCFLOW_MAPCELLTYPES`, `SCFLOW_FINALIZE`)
+* [Check inputs](#check_inputs) - Checks the input sample sheet and manifest files (`SCFLOW_CHECKINPUTS`)
+* [Quality control](#qc) - Quality control of gene-cell matrices for each individual sample (`SCFLOW_QC`)
+* [Merged summary](#merged) - Quality control of merged QC tables and the merged SingleCellExperiment (SCE) object (`SCFLOW_MERGEQCTABLES` and `SCFLOW_MERGE`)
+* [Integration](#integration) - Calculating latent metagene factors for the merged SCE for sample integration (`SCFLOW_INTEGRATE`, `SCFLOW_REPORTINTEGRATED`)
+* [Dimension reduction](#dimension_reduction) - Dimension reduction for the merged SCE using UMAP or tSNE (`SCFLOW_REDUCEDIMS`)
+* [Clustering](#clustering) - Community detection to identify clusters of cells using the Louvain/Leiden algorithm ( `SCFLOW_CLUSTER`)
+* [Cell-type annotation](#celltype_annotation) - Automated cell-type annotation of the clustered SCE and identification of cell-type marker genes and calculation of relevant metrics (`SCFLOW_MAPCELLTYPES`, `SCFLOW_FINALIZE`)
 * [Differential gene expression analysis](#DGE) - Performs differential gene expression analysis and generates result tables and plots (`SCFLOW_DGE`)
 * [Impacted pathway analysis](#IPA) - Performs impacted pathway analysis and generates result tables and plots  (`SCFLOW_IPA`)
 * [Dirichlet](#dirichlet) - Performs differential analysis of cell-type composition (`SCFLOW_DIRICHLET`)
-* [Reports](#reports) - Aggregate report describing results and QC from multiple processes of the pipeline (`SCFLOW_QC`, `SCFLOW_MERGE`, `SCFLOW_REPORTINTEGRATED`, `SCFLOW_FINALIZE`, `SCFLOW_DGE`, `SCFLOW_IPA`, `SCFLOW_DIRICHLET`)
-* [Additional plots](#plots) - User-specified gene plots highlighting the cells in reduced dimensionality space 
+* [Reports](#reports) - Interactive HTML reports describing results from major analytical steps of the pipeline (`SCFLOW_QC`, `SCFLOW_MERGE`, `SCFLOW_REPORTINTEGRATED`, `SCFLOW_FINALIZE`, `SCFLOW_DGE`, `SCFLOW_IPA`, `SCFLOW_DIRICHLET`)
+* [Additional plots](#plots) - User-specified gene plots highlighting the expression of genes in cells plotted in reduced dimensional space 
 * [Additional tables](#tables) - Tables of cell-type mappings for each cluster
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution (`GET_SOFTWARE_VERSIONS`)
 
@@ -31,12 +31,12 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <summary>Output files</summary>
 
 * `quality_control/`
-    * `merged.tsv` : A `.tsv` file containing all qc values from merged samples. 
+    * `merged.tsv` : A `.tsv` file containing detailed individual-sample QC metrics for all samples. 
 
 * `quality_cotrol/<manifest>/`
-    * `qc_plot_data` : `.tsv` files for major qc values for plotting.
+    * `qc_plot_data` : `.tsv` files for major QC values for plotting.
     * `qc_plots` : `.png` files included in the `.html` reports for major qc steps.
-    * `sce/<manifest_sce>/`: Post-qc SCE in gene-cell matrix format along with `.tsv` files for metadata and dimensionality-reduction values.
+    * `sce/<manifest_sce>/`: Post-QC SCE for an individual sample. It is possible to use the read_sce() function of the scFlow R package to read in this object.
 
 </details>
 
@@ -56,7 +56,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <details markdown="1">
 <summary>Output files</summary>
 
-The output after integration, dimension reduction and clustering is a `.html` report generated by the process `SCFLOW_REPORTINTEGRATED` which can be found in the `reports/` folder.
+The process `SCFLOW_REPORTINTEGRATED` saves an interactive integration and clustering HTML report to the reports/ folder.
 
 </details>
 
@@ -73,9 +73,9 @@ The output after integration, dimension reduction and clustering is a `.html` re
     * `*.tsv` : `.tsv` files for all and top n marker genes for clusters and cluster_celltype variables 
 
 * `final/`
-    * `SCE/final_sce` : The directory containing the final SCE with all metadata and dimensionality reduction, clustering and cell-type annotation.
+    * `SCE/final_sce` : The directory containing the final SCE with all metadata and dimensionality reduction, clustering and cell-type annotation. It is possible to use the read_sce() function of the scFlow R package to read in this object.
     * `celltypes.tsv` : A `.tsv` file giving the final number of all cell-types and number of nuclei/cells per cell-type.
-    
+
 </details>
 
 ### Differential gene expression analysis
@@ -84,7 +84,7 @@ The output after integration, dimension reduction and clustering is a `.html` re
 <summary>Output files</summary>
 
 * `DGE/<cluster_celltype>/`
-    * `*.tsv` : A `.tsv` file containing all genes with their logFC and padj.
+    * `*.tsv` : A `.tsv` file containing all genes with statistical results of the fitted model, including logFC, adjusted p-value, etc.
     * `de_plots` : Directory containing the volcano plot used in the `scflow_de_report.html` report.
 
 </details>
@@ -95,16 +95,15 @@ The output after integration, dimension reduction and clustering is a `.html` re
 <summary>Output files</summary>
 
 * `IPA/<cluster_celltype>/`
-    * `<enrichment_tool>/<de_table>/` : Directory containing `.png` image of the top 10 significant impacted pathways and `.tsv` file containing all significantly impacted pathways.
-    
+    * `<enrichment_tool>/<de_table>/` : Directory containing a `.png` plot of the top 10 significant impacted pathways and `.tsv` file containing all significantly impacted pathways.
+
 </details>
 
 ### Dirichlet
 
 <details markdown="1">
 <summary>Output files</summary>
-
-Differential cell-type composition analysis is performed in `SCFLOW_DIRICHLET` and the output can be found in the `reports/` folder.
+The process `SCFLOW_DIRICHLET` saves a differential cell-composition report to the `reports/` folder.
     
 </details>
 
@@ -114,13 +113,13 @@ Differential cell-type composition analysis is performed in `SCFLOW_DIRICHLET` a
 <summary>Output files</summary>
 
 * `reports/`
-    * `qc/*_scflow_qc_report.html` : Complete qc reports containing post-qc summary, key parameters used, qc plots etc.
-    * `merged_report/*_scflow_merged_report.html` : Merged summary reports containing qc from all samples together.
-    * `integration_report/integrate_report_scflow.html` : Report giving key parameters used in integration and clustering and plots showing mixedness of the samples/batches to integrate.
-    * `celltype_metrics_report/scflow_celltype_metrics_report.html` : Celltype metrics report showing pipeline generated celltype annotation with marker gene plots and tables.
-    * `DGE/*scflow_de_report.html` : Individual report for differential expression for each celltype and each contrast specified.
-    * `IPA/*scflow_ipa_report.html` : Individual report from impacted pathway analysis containing plots and tables of the enrichment.
-    * `dirichlet_report/*dirichlet_report.html` : Dirichlet report for differential celltype proportion.
+    * `qc/*_scflow_qc_report.html` : Per-sample QC reports containing post-QC summaries, key parameters used, QC plots, etc.
+    * `merged_report/*_scflow_merged_report.html` : The merged summary report containing inter-sample QC metrics.
+    * `integration_report/integrate_report_scflow.html` : The integration report describing key parameters for integration and visual and quantitative outputs of integration performance.
+    * `celltype_metrics_report/scflow_celltype_metrics_report.html` : The cell-type metrics report, including cluster and cell-type annotations, marker genes, and additional metrics.
+    * `DGE/*scflow_de_report.html` : Individual reports for each differential gene expression model fit for each cell-type.
+    * `IPA/*scflow_ipa_report.html` : Individual reports from impacted pathway analysis with plots and tables of  enrichment results.
+    * `dirichlet_report/*dirichlet_report.html` : Dirichlet report for differential cell-type composition analysis.
 
 </details>
 
@@ -131,7 +130,7 @@ Differential cell-type composition analysis is performed in `SCFLOW_DIRICHLET` a
 <summary>Output files</summary>
 
 * `plots/reddim_gene_plots`
-    * `<plotreddim_reduction_methods>/<celltypes>` : Directories of plots of specified cell-types in the `reddim_genes.yml` file. 
+    * `<plotreddim_reduction_methods>/<celltypes>` : Directories of plots of gene expression in 2D space for each gene in the `reddim_genes.yml` file. 
 
 </details>
 
@@ -141,11 +140,13 @@ Differential cell-type composition analysis is performed in `SCFLOW_DIRICHLET` a
 <summary>Output files</summary>
 
 * `tables/celltype_mappings/`
-    * `celltype_mappings.tsv` : A `.tsv` file with the automated cell-type annotation by process `mapcelltype`.
+    * `celltype_mappings.tsv` : A `.tsv` file with the automated cell-type annotations generated by the process `SCFLOW_MAPCELLTYPES`.  Optionally copy this file to a new location, update it, and return to the analysis with the `--celltype_mappings` parameter to manually revise cell-type annotations for clusters.
 
 </details>
 
 ### Pipeline information
+
+[Nextflow](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to troubleshoot errors with the running of the pipeline and provide you with other information such as launch commands, run times, and resource usage.
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -157,4 +158,3 @@ Differential cell-type composition analysis is performed in `SCFLOW_DIRICHLET` a
 </details>
 
 
-[Nextflow](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to troubleshoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
