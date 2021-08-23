@@ -2,9 +2,9 @@
 
 ## Introduction
 
-The **nf-core/scflow** pipeline is designed to orchestrate a reproducible case/control analysis of scRNA-seq data with best-practices, at scale, from quality-control through to insight discovery. 
+The **nf-core/scflow** pipeline is designed to orchestrate a reproducible case/control analysis of scRNA-seq data with best-practices, at scale, from quality-control through to insight discovery.
 
-A pipeline run with **nf-core/scflow** requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file (documentation for each parameter is available at https://nf-co.re/scflow/dev/parameters).  
+A pipeline run with **nf-core/scflow** requires three inputs: (1) a two-column manifest file with paths to gene-cell matrices and a unique sample key; (2) a sample sheet with sample information for each input matrix in the manifest file; and, (3) a parameters configuration file (documentation for each parameter is available at https://nf-co.re/scflow/dev/parameters).
 
 A complete, automated, scalable, and reproducible case-control analysis can then be performed with a single line of code: -
 
@@ -43,7 +43,7 @@ An example manifest file: -
 
 In this example, the `key` column is a single word proquint (pronouncable-quintuplet) identifier generated using the `ids` package in R. Any unique identifier is valid (avoid spaces and special characters).
 
-The `filepath` column of the manifest file should point to folders containing `matrix.mtx.gz`, `features.tsv.gz`, `barcodes.tsv.gz` for individual samples.  These are the raw or filtered gene-cell matrices output by CellRanger (additional inputs will be supported in the future).  
+The `filepath` column of the manifest file should point to folders containing `matrix.mtx.gz`, `features.tsv.gz`, `barcodes.tsv.gz` for individual samples.  These are the raw or filtered gene-cell matrices output by CellRanger (additional inputs will be supported in the future).
 
 ### Samplesheet input
 
@@ -77,11 +77,11 @@ The documentation for parameters are available in human-readable format [here](h
 
 For your first analysis, we recommend default parameters; however, parameters containing sample sheet specific variables should be updated before starting.  These include: -
 
-* `qc_factor_vars` -- this parameter will explicitly set the variable type of named sample sheet variables to factors, to override the assumption by R that table columns which contain only numbers are numeric or integers.  In the sample sheet example above, the *capdate*, *prepdate*, and *seqdate* should all be explicitly overridden with `qc_factor_vars = 'capdate,prepdate,seqdate'`.
-* `integ_categorical_covariates` -- add sample sheet variables which may be sources of sample-to-sample variance here in order to examine integration performance, e.g. `integ_categorical_covariates = 'manifest,diagnosis,sex,group,seqdate'`.
-* `merge_facet_vars`-- optionally add categorical sample sheet variables which may be sources of batch effects here for assessment in the post-merge QC report, e.g. `merge_facet_vars = 'seqdate,capdate'`.
-* `cta_facet_vars`  -- optionally add categorical sample sheet variables here to evaluate cell-type metrics across classes in the cell-type metrics report, e.g. `cta_facet_vars = 'manifest,diagnosis,sex'`.
-* For differential gene expression (`dge_` prefix parameters) and Dirichlet differential cell-type composition (`dirich_` prefix parameters), set the `dependent_var` as the sample sheet variable of interest (e.g. diagnosis), and specify the reference class (`ref_class) ` of the variable (e.g. control) if the variable is categorical.  Typically the `dge_confounding_vars` would include both cellular and sample level co-variates (e.g. `dge_confounding_vars = 'cngeneson,pc_mito,seqdate'`).
+* `qc_factor_vars` -- this parameter will explicitly set the variable type of named sample sheet variables to factors, to override the assumption by R that table columns which contain only numbers are numeric or integers.  In the sample sheet example above, the *capdate*, *prepdate*, and *seqdate* should all be explicitly overridden with `qc_factor_vars='capdate,prepdate,seqdate'`.
+* `integ_categorical_covariates` -- add sample sheet variables which may be sources of sample-to-sample variance here in order to examine integration performance, e.g. `integ_categorical_covariates='manifest,diagnosis,sex,group,seqdate'`.
+* `merge_facet_vars`-- optionally add categorical sample sheet variables which may be sources of batch effects here for assessment in the post-merge QC report, e.g. `merge_facet_vars='seqdate,capdate'`.
+* `cta_facet_vars`  -- optionally add categorical sample sheet variables here to evaluate cell-type metrics across classes in the cell-type metrics report, e.g. `cta_facet_vars='manifest,diagnosis,sex'`.
+* For differential gene expression (`dge_` prefix parameters) and Dirichlet differential cell-type composition (`dirich_` prefix parameters), set the `dependent_var` as the sample sheet variable of interest (e.g. diagnosis), and specify the reference class (`ref_class`) of the variable (e.g. control) if the variable is categorical.  Typically the `dge_confounding_vars` would include both cellular and sample level co-variates (e.g. `dge_confounding_vars='cngeneson,pc_mito,seqdate'`).
 
 For more details of experimental parameters, see the [parameters documentation](https://nf-co.re/scflow/parameters) or the [scFlow Manual](https://combiz.github.io/scflow-manual/).
 
