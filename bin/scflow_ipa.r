@@ -12,6 +12,7 @@ options(mc.cores = parallel::detectCores())
 library(argparse)
 library(scFlow)
 library(cli)
+library(dplyr)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -50,9 +51,32 @@ required$add_argument(
 required$add_argument(
   "--enrichment_database",
   help = "name of the enrichment databases",
-  metavar = "GO_Biological_Process,GO_Cellular_Component,GO_Molecular_Function",
+  metavar = "GO_Biological_Process,Reactome,Wikipathway",
   required = TRUE,
-  default = "KEGG"
+  default = "GO_Biological_Process"
+)
+
+required$add_argument(
+  "--species",
+  help = "the biological species (e.g. mouse, human)",
+  default = "human",
+  required = TRUE
+)
+
+required$add_argument(
+  "--fc_threshold",
+  type = "double",
+  default = 1.1,
+  metavar = "number",
+  help = "Absolute fold-change cutoff for DE [default %(default)s]"
+)
+
+required$add_argument(
+  "--pval_cutoff",
+  type = "double",
+  default = 0.05,
+  metavar = "number",
+  help = "p-value cutoff for DE [default %(default)s]"
 )
 
 
@@ -61,6 +85,8 @@ required$add_argument(
 ### Pre-process args                                                        ####
 
 args <- parser$parse_args()
+
+options("scflow_species" = args$species)
 
 args$enrichment_method <- strsplit(args$enrichment_method, ",")[[1]]
 args$enrichment_tool <- strsplit(args$enrichment_tool, ",")[[1]]
@@ -91,23 +117,47 @@ dir.create(output_dir)
 dir.create(report_dir)
 
 for (gene_file in args$gene_file) {
-  enrichment_result <- find_impacted_pathways(
-    gene_file = gene_file,
-    enrichment_tool = args$enrichment_tool,
-    enrichment_method = args$enrichment_method,
-    enrichment_database = args$enrichment_database,
-    is_output = TRUE,
-    output_dir = output_dir
-  )
-  report_name <-  tools::file_path_sans_ext(gene_file)
-  report_fp <- paste0(report_name, "_scflow_ipa_report")
-  report_impacted_pathway(
-    res = enrichment_result,
-    report_folder_path = report_dir,
-    report_file = report_fp
-  )
-  cli::cli_text(c(
-    "{cli::col_green(symbol$tick)} Analysis complete, output is found at: ",
-    "{.file {output_dir}}"
-  ))
+  
+  dt <- read.delim(gene_file)
+  
+  dt <- dt %>%
+    dplyr::filter(padj <= args$pval_cutoff, 
+                  abs(logFC) >= log2(args$fc_threshold))
+  
+  if (nrow(dt) < 5 ) {
+    cli::cli_alert_danger("Gene list is very short!")
+  } else {
+    
+    enrichment_result <- find_impacted_pathways(
+      gene_file = dt,
+      reference_file = NULL,
+      organism = getOption("scflow_species"),
+      enrichment_tool = args$enrichment_tool,
+      enrichment_method = args$enrichment_method,
+      enrichment_database = args$enrichment_database,
+      is_output = TRUE,
+      output_dir = output_dir
+    )
+    
+    if (all(unlist(lapply(
+      enrichment_result, function(dt){
+        isFALSE(dt$metadata$result)})))) {
+      cli::cli_alert_danger("No significant pathway was found at FDR 0.05")
+    } else {
+      
+      report_name <-  tools::file_path_sans_ext(gene_file)
+      report_fp <- paste0(report_name, "_scflow_ipa_report")
+      
+      report_impacted_pathway(
+        res = enrichment_result,
+        report_folder_path = report_dir,
+        report_file = report_fp
+      )
+      
+      cli::cli_text(c(
+        "{cli::col_green(symbol$tick)} Analysis complete, output is found at: ",
+        "{.file {output_dir}}"
+      ))
+    }
+  }
 }

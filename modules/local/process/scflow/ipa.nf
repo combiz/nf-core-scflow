@@ -1,5 +1,5 @@
 /*
- * Integrated pathway analysis of differentially expressed genes
+ * Impacted pathway analysis of differentially expressed genes
  */
 
 // Import generic module functions

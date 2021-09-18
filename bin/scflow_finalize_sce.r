@@ -5,12 +5,11 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
+options(mc.cores = future::availableCores())
+
 ##  ............................................................................
 ##  Load packages                                                           ####
 library(argparse)
-library(scFlow)
-library(magrittr)
-library(SingleCellExperiment)
 
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
@@ -25,42 +24,42 @@ optional <- parser$add_argument_group("Optional", "required arguments")
 required$add_argument(
   "--sce_path",
   help = "-path to the SingleCellExperiment",
-  metavar = "dir",
+  metavar = "dir", 
   required = TRUE
 )
 
 required$add_argument(
   "--celltype_mappings",
   help = "path to a tsv file with revised celltype mappings",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
 required$add_argument(
   "--clusters_colname",
   help = "name of the column with cluster numbers",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
 required$add_argument(
   "--celltype_var",
   help = "name of the column with celltype names",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
 required$add_argument(
   "--unique_id_var",
   help = "name of the column with unique sample ids",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
 required$add_argument(
   "--facet_vars",
   help = "names of variables to examine in the celltype metrics report",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
@@ -68,14 +67,14 @@ required$add_argument(
 required$add_argument(
   "--input_reduced_dim",
   help = "name of the reduced dimension slot to use for plots in the report",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
 required$add_argument(
   "--metric_vars",
   help = "names of variables to examine in the celltype metrics report",
-  metavar = "foo/bar",
+  metavar = "foo/bar", 
   required = TRUE
 )
 
@@ -84,7 +83,7 @@ required$add_argument(
   default = 5,
   type = "integer",
   required = TRUE,
-  help = "The number of top marker genes",
+  help ="The number of top marker genes",
   metavar = "N"
 )
 
@@ -106,6 +105,13 @@ required$add_argument(
   metavar = "N"
 )
 
+required$add_argument(
+  "--max_cores",
+  default = NULL,
+  help = "override for lower cpu core usage",
+  metavar = "N",
+  required = TRUE
+)
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
@@ -116,6 +122,31 @@ args$metric_vars <- strsplit(args$metric_vars, ",")[[1]]
 
 options("scflow_reddimplot_pointsize" = args$reddimplot_pointsize)
 options("scflow_reddimplot_alpha" = args$reddimplot_alpha)
+
+args$max_cores <- if(toupper(args$max_cores) == "NULL") NULL else { 
+  as.numeric(as.character(args$max_cores))
+}
+
+#   ____________________________________________________________________________
+#   Delay Package Loading for Optional Max Cores Override
+
+n_cores <- future::availableCores(methods = "mc.cores")
+
+if (is.null(args$max_cores)) {
+  options(mc.cores = n_cores)
+} else {
+  options(mc.cores = min(args$max_cores, n_cores))
+}
+
+cli::cli_alert(sprintf(
+  "Using %s cores on system with %s available cores.",
+  getOption("mc.cores"),
+  n_cores
+))
+
+library(scFlow)
+library(magrittr)
+library(SingleCellExperiment)
 
 ##  ............................................................................
 ##  Start                                                                   ####
@@ -161,8 +192,8 @@ celltypes <- as.data.frame(SummarizedExperiment::colData(sce)) %>%
 colnames(celltypes) <- c("celltype", "n_cells")
 
 write.table(
-  data.frame(celltypes),
-  file = "celltypes.tsv",
+  data.frame(celltypes), 
+  file = "celltypes.tsv", 
   row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
 
 ### Save Marker Gene Plots
@@ -170,58 +201,58 @@ folder_path <- file.path(getwd(), "celltype_marker_plots")
 dir.create(folder_path)
 
 for (group in names(sce@metadata$markers)) {
+  
   pwidth <- max(10,
-                length(
-                  unique(sce@metadata$markers[[group]]$marker_plot$data$Group)
-                  )
+                length(unique(sce@metadata$markers[[group]]$marker_plot$data$Group))
   )
-  pheight <- length(
-    unique(sce@metadata$markers[[group]]$marker_plot$data$Gene)
-    )
+  pheight <- length(unique(sce@metadata$markers[[group]]$marker_plot$data$Gene))
+  
   p <- sce@metadata$markers[[group]]$marker_plot
+  
   plot_file_name <- paste0(group, "_markers")
+  
   # save PNG
-  png(file.path(folder_path, paste0(plot_file_name, ".png")),
-      width = pwidth * 12, height = pheight * 5, units = "mm", res = 600)
+  png(file.path(folder_path, paste0(plot_file_name, ".png")), 
+      width = pwidth * 12, height = pheight*5, units = "mm", res = 600)
   print(p)
   dev.off()
-
+  
   # save PDF
   ggsave(
     file.path(folder_path, paste0(group, ".pdf")),
-    p,
-    width = pwidth * 12,
-    height = pheight * 5,
-    units = "mm",
+    p, 
+    width = pwidth * 12, 
+    height = pheight * 5, 
+    units = "mm", 
     scale = 1
   )
-
+  
 }
 
 ### Save Marker Gene Tables
 folder_path <- file.path(getwd(), "celltype_marker_tables")
 dir.create(folder_path)
 for (group in names(sce@metadata$markers)) {
-
+  
   marker_test_file_name <- paste0(group, "_markers_test.tsv")
   top_markers_file_name <- paste0(group, "_top_markers.tsv")
-
+  
   write.table(
-    sce@metadata$markers[[group]]$marker_test_res,
-    file = file.path(folder_path, marker_test_file_name),
-    row.names = FALSE,
-    col.names = TRUE,
+    sce@metadata$markers[[group]]$marker_test_res, 
+    file = file.path(folder_path, marker_test_file_name), 
+    row.names = FALSE, 
+    col.names = TRUE, 
     sep = "\t"
   )
-
+  
   write.table(
-    sce@metadata$markers[[group]]$top_specific_markers,
-    file = file.path(folder_path, top_markers_file_name),
-    row.names = FALSE,
-    col.names = TRUE,
+    sce@metadata$markers[[group]]$top_specific_markers, 
+    file = file.path(folder_path, top_markers_file_name), 
+    row.names = FALSE, 
+    col.names = TRUE, 
     sep = "\t"
   )
-
+  
 }
 
 

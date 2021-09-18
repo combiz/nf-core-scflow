@@ -55,11 +55,16 @@
                     "description": "Input sample species.",
                     "help_text": "Currently, \"human\" and \"mouse\" are supported."
                 },
+                "max_cores": {
+                    "type": "string",
+                    "default": "'null'",
+                    "description": "Maximum CPU cores.",
+                    "help_text": "The default value of 'null' utilizes all available CPU cores.  Manually overriding this parameter can reduce the memory demands of parallelization across multiple cores."
+                },
                 "outdir": {
                     "type": "string",
                     "default": "./results",
-                    "description": "Outputs directory.",
-                    "fa_icon": "fas fa-folder-open"
+                    "description": "Outputs directory."
                 }
             },
             "required": [
@@ -67,7 +72,8 @@
                 "input",
                 "ensembl_mappings",
                 "ctd_path",
-                "species"
+                "species",
+                "max_cores"
             ],
             "help_text": ""
         },
@@ -88,7 +94,7 @@
                     "default": "seqdate",
                     "description": "The sample sheet variables to treat as factors.",
                     "help_text": "All sample sheet columns with numbers which should be treated as factors should be specified here separated by commas.   Examples include columns with dates, numeric sample identifiers, etc.",
-                    "fa_icon": "fas fa-layer-group"
+                    "fa_icon": "fas fa-quote-left"
                 },
                 "qc_min_library_size": {
                     "type": "integer",
@@ -123,7 +129,7 @@
                 },
                 "qc_max_ribo": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "description": "Maximum proportion of counts mapping to ribosomal genes.",
                     "fa_icon": "fas fa-less-than-equal",
                     "minimum": 0,
@@ -150,25 +156,26 @@
                     "fa_icon": "fas fa-greater-than-equal"
                 },
                 "qc_drop_unmapped": {
-                    "type": "boolean",
-                    "default": true,
+                    "type": "string",
+                    "default": "True",
                     "description": "Option to drop unmapped genes.",
                     "fa_icon": "fas fa-cut"
                 },
                 "qc_drop_mito": {
-                    "type": "boolean",
-                    "default": true,
+                    "type": "string",
+                    "default": "True",
                     "description": "Option to drop mitochondrial genes.",
                     "fa_icon": "fas fa-cut"
                 },
                 "qc_drop_ribo": {
-                    "type": "boolean",
+                    "type": "string",
                     "description": "Option to drop ribosomal genes.",
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "default": "false"
                 },
                 "qc_nmads": {
                     "type": "number",
-                    "default": 4.0,
+                    "default": 4,
                     "description": "The number of MADs for outlier detection.",
                     "help_text": "The number of median absolute deviations (MADs) used to define outliers for adaptive thresholding.",
                     "fa_icon": "fas fa-mountain"
@@ -199,8 +206,8 @@
             "default": "",
             "properties": {
                 "amb_find_cells": {
-                    "type": "boolean",
-                    "default": true,
+                    "type": "string",
+                    "default": "true",
                     "description": "Enable ambient RNA / empty droplet profiling.",
                     "fa_icon": "fas fa-cut"
                 },
@@ -257,40 +264,34 @@
             "default": "",
             "properties": {
                 "mult_find_singlets": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enable doublet/multiplet identification.",
-                    "fa_icon": "fas fa-cut"
+                    "type": "string",
+                    "default": "true",
+                    "description": "Enable doublet/multiplet identification."
                 },
                 "mult_singlets_method": {
                     "type": "string",
                     "default": "doubletfinder",
-                    "description": "Algorithm to use for doublet/multiplet identification.",
-                    "fa_icon": "fas fa-toolbox"
+                    "description": "Algorithm to use for doublet/multiplet identification."
                 },
                 "mult_vars_to_regress_out": {
                     "type": "string",
                     "default": "nCount_RNA,pc_mito",
-                    "description": "Variables to regress out for dimensionality reduction.",
-                    "fa_icon": "fas fa-layer-group"
+                    "description": "Variables to regress out for dimensionality reduction."
                 },
                 "mult_pca_dims": {
                     "type": "integer",
                     "default": 10,
-                    "description": "Number of PCA dimensions to use.",
-                    "fa_icon": "fas fa-calculator"
+                    "description": "Number of PCA dimensions to use."
                 },
                 "mult_var_features": {
                     "type": "integer",
                     "default": 2000,
-                    "description": "The top n most variable features to use.",
-                    "fa_icon": "fas fa-calculator"
+                    "description": "The top n most variable features to use."
                 },
                 "mult_doublet_rate": {
                     "type": "number",
                     "description": "A fixed doublet rate.",
-                    "help_text": "Use a fixed default rate (e.g. 0.075 to specify that 7.5% of all cells should be marked as doublets), or set to 0 to use the \"dpk\" method (recommended).",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "Use a fixed default rate (e.g. 0.075 to specify that 7.5% of all cells should be marked as doublets), or set to 0 to use the \"dpk\" method (recommended)."
                 },
                 "mult_dpk": {
                     "type": "integer",
@@ -298,15 +299,13 @@
                     "description": "Doublets per thousand cells increment.",
                     "help_text": "The doublets per thousand cell increment specifies the expected doublet rate based on the number of cells, i.e. with a dpk of 8 (recommended by 10X), a dataset with 1000 cells is expected to contain 8 doublets per thousand cells, a dataset with 2000 cells is expected to contain 16 doublets per thousand cells, and a dataset with 10000 cells is expected to contain 80 cells per thousand cells (or 800 doublets in total).  If the \"doublet_rate\" parameter is manually specified this recommended incremental behaviour is overridden.",
                     "minimum": 0,
-                    "maximum": 1000,
-                    "fa_icon": "fas fa-calculator"
+                    "maximum": 1000
                 },
                 "mult_pK": {
                     "type": "number",
                     "default": 0.02,
                     "description": "Specify a pK value instead of parameter sweep.",
-                    "help_text": "The optimal pK value used by the doubletFinder algorithm is determined following a compute-intensive parameter sweep.  The parameter sweep can be overridden by manually specifying a pK value.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "The optimal pK value used by the doubletFinder algorithm is determined following a compute-intensive parameter sweep.  The parameter sweep can be overridden by manually specifying a pK value."
                 }
             },
             "fa_icon": "fas fa-adjust",
@@ -330,26 +329,25 @@
                     "type": "string",
                     "default": "total_features_by_counts,total_counts,pc_mito,pc_ribo",
                     "description": "Numeric variables for inter-sample metrics.",
-                    "help_text": "A comma-separated list of numeric variables which differ between individual cells of each sample.  The merged sample report will include plots facilitating between-sample comparisons for each of these numeric variables.",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "A comma-separated list of numeric variables which differ between individual cells of each sample.  The merged sample report will include plots facilitating between-sample comparisons for each of these numeric variables."
                 },
                 "merge_facet_vars": {
                     "type": "string",
+                    "default": "NULL",
                     "description": "Categorical variables for further sub-setting of plots",
-                    "help_text": "A comma-separated list of categorical variables.  The merged sample report will include additional plots of sample metrics subset by each of these variables (e.g. sex, diagnosis).",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "A comma-separated list of categorical variables.  The merged sample report will include additional plots of sample metrics subset by each of these variables (e.g. sex, diagnosis)."
                 },
                 "merge_outlier_vars": {
                     "type": "string",
                     "default": "total_features_by_counts,total_counts",
                     "description": "Numeric variables for outlier identification.",
-                    "help_text": "The merged report will include tables highlighting samples that are putative outliers for each of these numeric variables.",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "The merged report will include tables highlighting samples that are putative outliers for each of these numeric variables."
                 }
             },
             "fa_icon": "fas fa-object-ungroup",
             "required": [
                 "merge_plot_vars",
+                "merge_facet_vars",
                 "merge_outlier_vars"
             ]
         },
@@ -362,223 +360,155 @@
                 "integ_method": {
                     "type": "string",
                     "default": "Liger",
-                    "description": "Choice of integration method.",
-                    "fa_icon": "fas fa-toolbox"
-                },
-                "integ_unique_id_var": {
-                    "type": "string",
-                    "default": "manifest",
-                    "description": "Unique sample identifier variable.",
-                    "fa_icon": "fas fa-key"
-                },
-                "integ_take_gene_union": {
-                    "type": "boolean",
-                    "description": "Fill out matrices with union of genes.",
-                    "help_text": "See rliger::createLiger().  Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data) (requires make.sparse = TRUE) (default FALSE).",
-                    "fa_icon": "fas fa-cut"
-                },
-                "integ_remove_missing": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Remove non-expressing cells/genes.",
-                    "help_text": "See rliger::createLiger().  Whether to remove cells not expressing any measured genes, and genes not expressed in any cells (if take.gene.union = TRUE, removes only genes not expressed in any dataset) (default TRUE).",
-                    "fa_icon": "fas fa-cut"
-                },
-                "integ_num_genes": {
-                    "type": "integer",
-                    "default": 3000,
-                    "description": "Number of genes to find for each dataset.",
-                    "help_text": "See rliger::selectGenes(). Number of genes to find for each dataset. Optimises the value of var.thresh for each dataset to get this number of genes.",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_combine": {
-                    "type": "string",
-                    "default": "union",
-                    "description": "How to combine variable genes across experiments.",
-                    "help_text": "See rliger::selectGenes().  Either \"union\" or \"intersection\".",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_keep_unique": {
-                    "type": "boolean",
-                    "description": "Keep unique genes.",
-                    "help_text": "See rliger::selectGenes().",
-                    "fa_icon": "fas fa-cut"
-                },
-                "integ_capitalize": {
-                    "type": "boolean",
-                    "description": "Capitalize gene names to match homologous genes.",
-                    "help_text": "See rliger::selectGenes().",
-                    "fa_icon": "fab fa-adn"
-                },
-                "integ_use_cols": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Treat each column as a cell.",
-                    "help_text": "See rliger::removeMissingObs().",
-                    "fa_icon": "fas fa-columns"
+                    "description": "Choice of integration method."
                 },
                 "integ_k": {
                     "type": "integer",
                     "default": 30,
                     "description": "Inner dimension of factorization (n factors).",
-                    "help_text": "See rliger::optimizeALS().  Inner dimension of factorization (number of factors). Run suggestK to determine appropriate value; a general rule of thumb is that a higher k will be needed for datasets with more sub-structure.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See rliger::optimizeALS().  Inner dimension of factorization (number of factors). Run suggestK to determine appropriate value; a general rule of thumb is that a higher k will be needed for datasets with more sub-structure."
+                },
+                "integ_unique_id_var": {
+                    "type": "string",
+                    "default": "manifest",
+                    "description": "Unique sample identifier variable."
+                },
+                "integ_take_gene_union": {
+                    "type": "string",
+                    "default": "false",
+                    "description": "Fill out matrices with union of genes.",
+                    "help_text": "See rliger::createLiger().  Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data) (requires make.sparse = TRUE) (default FALSE)."
+                },
+                "integ_remove_missing": {
+                    "type": "string",
+                    "default": "true",
+                    "description": "Remove non-expressing cells/genes.",
+                    "help_text": "See rliger::createLiger().  Whether to remove cells not expressing any measured genes, and genes not expressed in any cells (if take.gene.union = TRUE, removes only genes not expressed in any dataset) (default TRUE)."
+                },
+                "integ_num_genes": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Number of genes to find for each dataset.",
+                    "help_text": "See rliger::selectGenes(). Number of genes to find for each dataset. Optimises the value of var.thresh for each dataset to get this number of genes."
+                },
+                "integ_combine": {
+                    "type": "string",
+                    "default": "union",
+                    "description": "How to combine variable genes across experiments.",
+                    "help_text": "See rliger::selectGenes().  Either \"union\" or \"intersection\"."
+                },
+                "integ_capitalize": {
+                    "type": "string",
+                    "default": "false",
+                    "description": "Capitalize gene names to match homologous genes.",
+                    "help_text": "See rliger::selectGenes()."
+                },
+                "integ_use_cols": {
+                    "type": "string",
+                    "default": "true",
+                    "description": "Treat each column as a cell.",
+                    "help_text": "See rliger::removeMissingObs()."
                 },
                 "integ_lambda": {
                     "type": "number",
-                    "default": 5.0,
+                    "default": 5,
                     "description": "Regularization parameter.",
-                    "help_text": "See rliger::optimizeALS(). Regularization parameter. Larger values penalize dataset-specific effects more strongly (ie. alignment should increase as lambda increases). Run suggestLambda to determine most appropriate value for balancing dataset alignment and agreement (default 5.0).",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See rliger::optimizeALS(). Regularization parameter. Larger values penalize dataset-specific effects more strongly (ie. alignment should increase as lambda increases). Run suggestLambda to determine most appropriate value for balancing dataset alignment and agreement (default 5.0)."
                 },
                 "integ_thresh": {
                     "type": "number",
                     "default": 0.0001,
                     "description": "Convergence threshold.",
-                    "help_text": "See rliger::optimizeALS().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See rliger::optimizeALS()."
                 },
                 "integ_max_iters": {
                     "type": "integer",
                     "default": 100,
                     "description": "Maximum number of block coordinate descent iterations.",
-                    "help_text": "See rliger::optimizeALS().",
-                    "fa_icon": "fas fa-less-than-equal"
+                    "help_text": "See rliger::optimizeALS()."
                 },
                 "integ_nrep": {
                     "type": "integer",
                     "default": 1,
                     "description": "Number of restarts to perform.",
-                    "help_text": "See rliger::optimizeALS().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See rliger::optimizeALS()."
                 },
                 "integ_rand_seed": {
                     "type": "integer",
                     "default": 1,
-                    "description": "Random seed for reproducible results.",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_knn_k": {
-                    "type": "integer",
-                    "default": 20,
-                    "description": "Number of neearest neighbours for within-dataset knn graph.",
-                    "help_text": "See rliger::quantile_norm().",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_k2": {
-                    "type": "integer",
-                    "default": 500,
-                    "description": "Horizon parameter for shared nearest factor graph.",
-                    "help_text": "See rliger::quantileAlignSNF().  Distances to all but the k2 nearest neighbors are set to 0 (cuts down on memory usage for very large graphs).",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_prune_thresh": {
-                    "type": "number",
-                    "default": 0.2,
-                    "description": "Minimum allowed edge weight.",
-                    "help_text": "See rliger::quantileAlignSNF().",
-                    "fa_icon": "fas fa-greater-than-equal"
-                },
-                "integ_ref_dataset": {
-                    "type": "string",
-                    "description": "Name of dataset to use as a reference.",
-                    "help_text": "See rliger::quantile_norm().  Name of dataset to use as a \"reference\" for normalization. By default, the dataset with the largest number of cells is used.",
-                    "fa_icon": "fas fa-quote-left"
-                },
-                "integ_min_cells": {
-                    "type": "integer",
-                    "default": 2,
-                    "description": "Minimum number of cells to consider a cluster shared across datasets.",
-                    "help_text": "See rliger::quantile_norm().",
-                    "fa_icon": "fas fa-greater-than-equal"
+                    "description": "Random seed for reproducible results."
                 },
                 "integ_quantiles": {
                     "type": "integer",
                     "default": 50,
                     "description": "Number of quantiles to use for normalization.",
-                    "help_text": "See rliger::quantile_norm().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See rliger::quantile_norm()."
                 },
-                "integ_nstart": {
+                "integ_ref_dataset": {
+                    "type": "string",
+                    "default": "NULL",
+                    "description": "Name of dataset to use as a reference.",
+                    "help_text": "See rliger::quantile_norm().  Name of dataset to use as a \"reference\" for normalization. By default, the dataset with the largest number of cells is used."
+                },
+                "integ_min_cells": {
                     "type": "integer",
-                    "default": 10,
-                    "description": "Number of times to perform Louvain community detection.",
-                    "help_text": "See rliger::quantileAlignSNF().  Number of times to perform Louvain community detection with different random starts (default 10).",
-                    "fa_icon": "fas fa-recycle"
+                    "default": 2,
+                    "description": "Minimum number of cells to consider a cluster shared across datasets.",
+                    "help_text": "See rliger::quantile_norm()."
+                },
+                "integ_knn_k": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of neearest neighbours for within-dataset knn graph.",
+                    "help_text": "See rliger::quantile_norm()."
+                },
+                "integ_center": {
+                    "type": "string",
+                    "default": "false",
+                    "description": "Center the data when scaling factors.",
+                    "help_text": "See rliger::quantile_norm()."
                 },
                 "integ_resolution": {
                     "type": "integer",
                     "default": 1,
                     "description": "Controls the number of communities detected.",
-                    "help_text": "See rliger::quantileAlignSNF().",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_dims_use": {
-                    "type": "string",
-                    "description": "Indices of factors to use for shared nearest factor determination.",
-                    "help_text": "See rliger::quantile_norm().",
-                    "fa_icon": "fas fa-calculator"
-                },
-                "integ_dist_use": {
-                    "type": "string",
-                    "default": "CR",
-                    "description": "Distance metric to use in calculating nearest neighbour.",
-                    "help_text": "See rliger::quantileAlignSNF().  Default \"CR\".",
-                    "fa_icon": "fas fa-digital-tachograph"
-                },
-                "integ_center": {
-                    "type": "boolean",
-                    "description": "Center the data when scaling factors.",
-                    "help_text": "See rliger::quantile_norm().",
-                    "fa_icon": "fas fa-compress-arrows-alt"
-                },
-                "integ_small_clust_thresh": {
-                    "type": "integer",
-                    "help_text": "See rliger::quantileAlignSNF().  Extracts small clusters loading highly on single factor with fewer cells than this before regular alignment (default 0 \u2013 no small cluster extraction).",
-                    "description": "Small cluster extraction cells threshold.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See rliger::quantileAlignSNF()."
                 },
                 "integ_categorical_covariates": {
                     "type": "string",
                     "default": "individual,diagnosis,region,sex",
                     "description": "Categorical variables for integration report metrics.",
-                    "help_text": "The integration report will provide plots and integration metrics for these categorical variables.",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "The integration report will provide plots and integration metrics for these categorical variables."
                 },
                 "integ_input_reduced_dim": {
                     "type": "string",
                     "default": "UMAP",
                     "description": "Reduced dimension embedding for the integration report.",
-                    "help_text": "The integration report will provide with and without integration plots using this embedding.",
-                    "fa_icon": "fas fa-chess-board"
+                    "help_text": "The integration report will provide with and without integration plots using this embedding."
                 }
             },
             "fa_icon": "far fa-object-group",
             "required": [
                 "integ_method",
+                "integ_k",
                 "integ_unique_id_var",
                 "integ_take_gene_union",
                 "integ_remove_missing",
                 "integ_num_genes",
                 "integ_combine",
-                "integ_keep_unique",
                 "integ_capitalize",
                 "integ_use_cols",
-                "integ_k",
                 "integ_lambda",
                 "integ_thresh",
                 "integ_max_iters",
                 "integ_nrep",
                 "integ_rand_seed",
-                "integ_knn_k",
-                "integ_k2",
-                "integ_prune_thresh",
-                "integ_min_cells",
                 "integ_quantiles",
-                "integ_nstart",
-                "integ_resolution",
-                "integ_dist_use",
+                "integ_ref_dataset",
+                "integ_min_cells",
+                "integ_knn_k",
                 "integ_center",
+                "integ_resolution",
                 "integ_categorical_covariates",
                 "integ_input_reduced_dim"
             ]
@@ -592,42 +522,36 @@
                 "reddim_input_reduced_dim": {
                     "type": "string",
                     "default": "PCA,Liger",
-                    "description": "Input matrix for dimension reduction.",
-                    "fa_icon": "fas fa-chess-board"
+                    "description": "Input matrix for dimension reduction."
                 },
                 "reddim_reduction_methods": {
                     "type": "string",
                     "default": "tSNE,UMAP,UMAP3D",
                     "description": "Dimension reduction outputs to generate.",
-                    "help_text": "Typically 'UMAP,UMAP3D' or 'tSNE'.",
-                    "fa_icon": "fas fa-toolbox"
+                    "help_text": "Typically 'UMAP,UMAP3D' or 'tSNE'."
                 },
                 "reddim_vars_to_regress_out": {
                     "type": "string",
                     "default": "nCount_RNA,pc_mito",
-                    "description": "Variables to regress out before dimension reduction.",
-                    "fa_icon": "fas fa-layer-group"
+                    "description": "Variables to regress out before dimension reduction."
                 },
                 "reddim_umap_pca_dims": {
                     "type": "integer",
                     "default": 30,
                     "description": "Number of PCA dimensions.",
-                    "help_text": "See uwot::umap().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap()."
                 },
                 "reddim_umap_n_neighbors": {
                     "type": "integer",
                     "default": 35,
                     "description": "Number of nearest neighbours to use.",
-                    "help_text": "See uwot::umap().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap()."
                 },
                 "reddim_umap_n_components": {
                     "type": "integer",
                     "default": 2,
                     "description": "The dimension of the space to embed into.",
-                    "help_text": "See uwot::umap(). The dimension of the space to embed into. This defaults to 2 to provide easy visualization, but can reasonably be set to any integer value in the range 2 to 100.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap(). The dimension of the space to embed into. This defaults to 2 to provide easy visualization, but can reasonably be set to any integer value in the range 2 to 100."
                 },
                 "reddim_umap_init": {
                     "type": "string",
@@ -643,8 +567,7 @@
                         "pca",
                         "spca",
                         "agspectral"
-                    ],
-                    "fa_icon": "fas fa-calculator"
+                    ]
                 },
                 "reddim_umap_metric": {
                     "type": "string",
@@ -658,169 +581,147 @@
                         "hamming",
                         "correlation",
                         "categorical"
-                    ],
-                    "fa_icon": "fas fa-digital-tachograph"
+                    ]
                 },
                 "reddim_umap_n_epochs": {
                     "type": "integer",
                     "default": 200,
                     "description": "Number of epochs to us during optimization of embedded coordinates.",
-                    "help_text": "See uwot::umap().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap()."
                 },
                 "reddim_umap_learning_rate": {
                     "type": "integer",
                     "default": 1,
                     "description": "Initial learning rate used in optimization of coordinates.",
-                    "help_text": "See uwot::umap().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap()."
                 },
                 "reddim_umap_min_dist": {
                     "type": "number",
                     "default": 0.4,
                     "description": "Effective minimum distance between embedded points.",
-                    "help_text": "See uwot::umap().  Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together, while larger values will result on a more even dispersal of points. The value should be set relative to the spread value, which determines the scale at which embedded points will be spread out.",
-                    "fa_icon": "fas fa-greater-than-equal"
+                    "help_text": "See uwot::umap().  Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together, while larger values will result on a more even dispersal of points. The value should be set relative to the spread value, which determines the scale at which embedded points will be spread out."
                 },
                 "reddim_umap_spread": {
                     "type": "number",
                     "default": 0.85,
                     "description": "Effective scale of embedded points.",
-                    "help_text": "See uwot::umap().  In combination with min_dist, this determines how clustered/clumped the embedded points are.",
-                    "fa_icon": "fas fa-arrows-alt-h"
+                    "help_text": "See uwot::umap().  In combination with min_dist, this determines how clustered/clumped the embedded points are."
                 },
                 "reddim_umap_set_op_mix_ratio": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "description": "Interpolation to combine local fuzzy sets.",
                     "help_text": "See uwot::umap().  The value of this parameter should be between 0.0 and 1.0; a value of 1.0 will use a pure fuzzy union, while 0.0 will use a pure fuzzy intersection.",
                     "minimum": 0,
-                    "maximum": 1,
-                    "fa_icon": "fas fa-adjust"
+                    "maximum": 1
                 },
                 "reddim_umap_local_connectivity": {
                     "type": "integer",
                     "default": 1,
                     "description": "Local connectivity required.",
-                    "help_text": "See uwot::umap().  The local connectivity required \u2013 i.e. the number of nearest neighbors that should be assumed to be connected at a local level. The higher this value the more connected the manifold becomes locally.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap().  The local connectivity required \u2013 i.e. the number of nearest neighbors that should be assumed to be connected at a local level. The higher this value the more connected the manifold becomes locally."
                 },
                 "reddim_umap_repulsion_strength": {
                     "type": "integer",
                     "default": 1,
                     "description": "Weighting applied to negative samples in embedding optimization.",
-                    "help_text": "See uwot::umap().  Weighting applied to negative samples in low dimensional embedding optimization. Values higher than one will result in greater weight being given to negative samples.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap().  Weighting applied to negative samples in low dimensional embedding optimization. Values higher than one will result in greater weight being given to negative samples."
                 },
                 "reddim_umap_negative_sample_rate": {
                     "type": "integer",
                     "default": 5,
                     "description": "Number of negative edge samples to use per positive edge sample.",
-                    "help_text": "See uwot::umap().  The number of negative edge/1-simplex samples to use per positive edge/1-simplex sample in optimizing the low dimensional embedding.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See uwot::umap().  The number of negative edge/1-simplex samples to use per positive edge/1-simplex sample in optimizing the low dimensional embedding."
                 },
                 "reddim_umap_fast_sgd": {
-                    "type": "boolean",
+                    "type": "string",
+                    "default": "false",
                     "description": "Use fast SGD.",
-                    "help_text": "See uwot::umap().  Setting this to TRUE will speed up the stochastic optimization phase, but give a potentially less accurate embedding, and which will not be exactly reproducible even with a fixed seed. For visualization, fast_sgd = TRUE will give perfectly good results. For more generic dimensionality reduction, it's safer to leave fast_sgd = FALSE.",
-                    "fa_icon": "fas fa-skiing"
+                    "help_text": "See uwot::umap().  Setting this to TRUE will speed up the stochastic optimization phase, but give a potentially less accurate embedding, and which will not be exactly reproducible even with a fixed seed. For visualization, fast_sgd = TRUE will give perfectly good results. For more generic dimensionality reduction, it's safer to leave fast_sgd = FALSE."
                 },
                 "reddim_tsne_dims": {
                     "type": "integer",
                     "default": 2,
                     "description": "Output dimensionality.",
-                    "help_text": "See Rtsne::Rtsne().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne()."
                 },
                 "reddim_tsne_initial_dims": {
                     "type": "integer",
                     "default": 50,
                     "description": "Number of dimensions retained in the initial PCA step.",
-                    "help_text": "See Rtsne::Rtsne().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne()."
                 },
                 "reddim_tsne_perplexity": {
                     "type": "integer",
                     "default": 150,
                     "description": "Perplexity parameter.",
-                    "help_text": "See Rtsne::Rtsne().",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne()."
                 },
                 "reddim_tsne_theta": {
                     "type": "number",
                     "default": 0.5,
                     "description": "Speed/accuracy trade-off.",
-                    "help_text": "See Rtsne::Rtsne().  Speed/accuracy trade-off (increase for less accuracy), set to 0.0 for exact TSNE (default: 0.5).",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne().  Speed/accuracy trade-off (increase for less accuracy), set to 0.0 for exact TSNE (default: 0.5)."
                 },
                 "reddim_tsne_stop_lying_iter": {
                     "type": "integer",
                     "default": 250,
                     "description": "Iteration after which perplexities are no longer exaggerated.",
-                    "help_text": "See Rtsne::Rtsne().  Iteration after which the perplexities are no longer exaggerated (default: 250, except when Y_init is used, then 0).",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne().  Iteration after which the perplexities are no longer exaggerated (default: 250, except when Y_init is used, then 0)."
                 },
                 "reddim_tsne_mom_switch_iter": {
                     "type": "integer",
                     "default": 250,
                     "description": "Iteration after which the final momentum is used.",
-                    "help_text": "See Rtsne::Rtsne().  Iteration after which the final momentum is used (default: 250, except when Y_init is used, then 0).",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne().  Iteration after which the final momentum is used (default: 250, except when Y_init is used, then 0)."
                 },
                 "reddim_tsne_max_iter": {
                     "type": "integer",
                     "default": 1000,
                     "description": "Number of iterations.",
-                    "help_text": "See Rtsne::Rtsne(). ",
-                    "fa_icon": "fas fa-less-than-equal"
+                    "help_text": "See Rtsne::Rtsne(). "
                 },
                 "reddim_tsne_pca_center": {
-                    "type": "boolean",
-                    "default": true,
+                    "type": "string",
+                    "default": "true",
                     "description": "Center data before PCA.",
-                    "help_text": "See Rtsne::Rtsne(). Should data be centered before pca is applied? (default: TRUE)",
-                    "fa_icon": "fas fa-compress-arrows-alt"
+                    "help_text": "See Rtsne::Rtsne(). Should data be centered before pca is applied? (default: TRUE)"
                 },
                 "reddim_tsne_pca_scale": {
-                    "type": "boolean",
+                    "type": "string",
+                    "default": "false",
                     "description": "Scale data before PCA.",
-                    "help_text": "See Rtsne::Rtsne().  Should data be scaled before pca is applied? (default: FALSE).",
-                    "fa_icon": "fas fa-balance-scale"
+                    "help_text": "See Rtsne::Rtsne().  Should data be scaled before pca is applied? (default: FALSE)."
                 },
                 "reddim_tsne_normalize": {
-                    "type": "boolean",
-                    "default": true,
+                    "type": "string",
+                    "default": "true",
                     "description": "Normalize data before distance calculations.",
-                    "help_text": "See Rtsne::Rtsne(). Should data be normalized internally prior to distance calculations with normalize_input? (default: TRUE)",
-                    "fa_icon": "fas fa-balance-scale"
+                    "help_text": "See Rtsne::Rtsne(). Should data be normalized internally prior to distance calculations with normalize_input? (default: TRUE)"
                 },
                 "reddim_tsne_momentum": {
                     "type": "number",
                     "default": 0.5,
                     "description": "Momentum used in the first part of optimization.",
-                    "help_text": "See Rtsne::Rtsne(). ",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne(). "
                 },
                 "reddim_tsne_final_momentum": {
                     "type": "number",
                     "default": 0.8,
                     "description": "Momentum used in the final part of optimization.",
-                    "help_text": "See Rtsne::Rtsne(). ",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne(). "
                 },
                 "reddim_tsne_eta": {
                     "type": "integer",
                     "default": 1000,
                     "description": "Learning rate.",
-                    "help_text": "See Rtsne::Rtsne(). ",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne(). "
                 },
                 "reddim_tsne_exaggeration_factor": {
                     "type": "integer",
                     "default": 12,
                     "description": "Exaggeration factor used in the first part of the optimization.",
-                    "help_text": "See Rtsne::Rtsne().  Exaggeration factor used to multiply the P matrix in the first part of the optimization (default: 12.0).",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "See Rtsne::Rtsne().  Exaggeration factor used to multiply the P matrix in the first part of the optimization (default: 12.0)."
                 }
             },
             "fa_icon": "fas fa-cubes",
@@ -868,34 +769,29 @@
                     "type": "string",
                     "default": "leiden",
                     "description": "Clustering method.",
-                    "help_text": "Specify \"leiden\" or \"louvain\".",
-                    "fa_icon": "fas fa-toolbox"
+                    "help_text": "Specify \"leiden\" or \"louvain\"."
                 },
                 "clust_reduction_method": {
                     "type": "string",
                     "default": "UMAP_Liger",
                     "description": "Reduced dimension input(s) for clustering.",
-                    "help_text": "One or more of \"UMAP\", \"tSNE\", \"PCA\", \"LSI\".",
-                    "fa_icon": "fas fa-chess-board"
+                    "help_text": "One or more of \"UMAP\", \"tSNE\", \"PCA\", \"LSI\"."
                 },
                 "clust_res": {
                     "type": "number",
                     "default": 0.001,
-                    "description": "The resolution of clustering.",
-                    "fa_icon": "fas fa-calculator"
+                    "description": "The resolution of clustering."
                 },
                 "clust_k": {
                     "type": "integer",
                     "default": 50,
                     "description": "Integer number of nearest neighbours for clustering.",
-                    "help_text": "Integer number of nearest neighbors to use when creating the k nearest neighbor graph for Louvain/Leiden clustering. k is related to the resolution of the clustering result, a bigger k will result in lower resolution and vice versa.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "Integer number of nearest neighbors to use when creating the k nearest neighbor graph for Louvain/Leiden clustering. k is related to the resolution of the clustering result, a bigger k will result in lower resolution and vice versa."
                 },
                 "clust_louvain_iter": {
                     "type": "integer",
                     "default": 1,
-                    "description": "The number of iterations for clustering.",
-                    "fa_icon": "fas fa-recycle"
+                    "description": "The number of iterations for clustering."
                 }
             },
             "fa_icon": "fas fa-braille",
@@ -916,44 +812,37 @@
                 "cta_clusters_colname": {
                     "type": "string",
                     "default": "clusters",
-                    "description": "SingleCellExperiment clusters colData variable name.",
-                    "fa_icon": "fas fa-quote-left"
+                    "description": "SingleCellExperiment clusters colData variable name."
                 },
                 "cta_cells_to_sample": {
                     "type": "integer",
                     "default": 10000,
-                    "description": "Max cells to sample.",
-                    "fa_icon": "fas fa-calculator"
+                    "description": "Max cells to sample."
                 },
                 "cta_unique_id_var": {
                     "type": "string",
                     "default": "individual",
-                    "description": "A sample metadata unique sample ID.",
-                    "fa_icon": "fas fa-key"
+                    "description": "A sample metadata unique sample ID."
                 },
                 "cta_celltype_var": {
                     "type": "string",
                     "default": "cluster_celltype",
-                    "description": "SingleCellExperiment cell-type colData variable name.",
-                    "fa_icon": "fas fa-quote-left"
+                    "description": "SingleCellExperiment cell-type colData variable name."
                 },
                 "cta_facet_vars": {
                     "type": "string",
                     "default": "manifest,diagnosis,sex,capdate,prepdate,seqdate",
-                    "description": "Cell-type metrics for categorical variables.",
-                    "fa_icon": "fas fa-layer-group"
+                    "description": "Cell-type metrics for categorical variables."
                 },
                 "cta_metric_vars": {
                     "type": "string",
                     "default": "pc_mito,pc_ribo,total_counts,total_features_by_counts",
-                    "description": "Cell-type metrics for numeric variables.",
-                    "fa_icon": "fas fa-layer-group"
+                    "description": "Cell-type metrics for numeric variables."
                 },
                 "cta_top_n": {
                     "type": "integer",
                     "default": 5,
-                    "description": "Number of top marker genes for plot/table generation.",
-                    "fa_icon": "fas fa-calculator"
+                    "description": "Number of top marker genes for plot/table generation."
                 }
             },
             "fa_icon": "fas fa-brain",
@@ -976,8 +865,7 @@
                 "dge_de_method": {
                     "type": "string",
                     "default": "MASTZLM",
-                    "description": "Differential gene expression method.",
-                    "fa_icon": "fas fa-toolbox"
+                    "description": "Differential gene expression method."
                 },
                 "dge_mast_method": {
                     "type": "string",
@@ -988,15 +876,13 @@
                         "glm",
                         "glmer",
                         "bayesglm"
-                    ],
-                    "fa_icon": "fas fa-toolbox"
+                    ]
                 },
                 "dge_min_counts": {
                     "type": "integer",
                     "default": 1,
                     "description": "Expressive gene minimum counts.",
-                    "help_text": "Only genes with at least min_counts in min_cells_pc will be tested for differential gene expression.",
-                    "fa_icon": "fas fa-greater-than-equal"
+                    "help_text": "Only genes with at least min_counts in min_cells_pc will be tested for differential gene expression."
                 },
                 "dge_min_cells_pc": {
                     "type": "number",
@@ -1004,87 +890,83 @@
                     "minimum": 0,
                     "maximum": 1,
                     "description": "Expressive gene minimum cells fraction.",
-                    "help_text": "Only genes with at least min_counts in min_cells_pc will be tested for differential gene expression.  Default 0.1 (i.e. 10% of cells).",
-                    "fa_icon": "fas fa-greater-than-equal"
+                    "help_text": "Only genes with at least min_counts in min_cells_pc will be tested for differential gene expression.  Default 0.1 (i.e. 10% of cells)."
                 },
                 "dge_rescale_numerics": {
-                    "type": "boolean",
-                    "default": true,
+                    "type": "string",
+                    "default": "true",
                     "description": "Re-scale numeric covariates.",
-                    "help_text": "Re-scaling and centring numeric covariates in a model can improve model performance.",
-                    "fa_icon": "fas fa-balance-scale"
+                    "help_text": "Re-scaling and centring numeric covariates in a model can improve model performance."
                 },
                 "dge_pseudobulk": {
-                    "type": "boolean",
+                    "type": "string",
+                    "default": "false",
                     "description": "Pseudobulked differential gene expression.",
-                    "help_text": "Perform differential gene expression on a smaller matrix where counts are first summed across all cells within a sample (defined by dge_sample_var level).",
-                    "fa_icon": "far fa-object-group"
+                    "help_text": "Perform differential gene expression on a smaller matrix where counts are first summed across all cells within a sample (defined by dge_sample_var level)."
                 },
                 "dge_celltype_var": {
                     "type": "string",
                     "default": "cluster_celltype",
                     "description": "Cell-type annotation variable name.",
-                    "help_text": "Differential gene expression is performed separately for each cell-type of this colData variable.",
-                    "fa_icon": "fas fa-quote-left"
+                    "help_text": "Differential gene expression is performed separately for each cell-type of this colData variable."
                 },
                 "dge_sample_var": {
                     "type": "string",
                     "default": "manifest",
-                    "description": "Unique sample identifier variable.",
-                    "fa_icon": "fas fa-key"
+                    "description": "Unique sample identifier variable."
                 },
                 "dge_dependent_var": {
                     "type": "string",
                     "default": "group",
                     "description": "Dependent variable of DGE model.",
-                    "help_text": "The dependent variable may be a categorical (e.g. diagnosis) or a numeric (e.g. histopathology score) variable.",
-                    "fa_icon": "fas fa-quote-left"
+                    "help_text": "The dependent variable may be a categorical (e.g. diagnosis) or a numeric (e.g. histopathology score) variable."
                 },
                 "dge_ref_class": {
                     "type": "string",
                     "default": "Control",
                     "help_text": "If a categorical dependent variable is specified, then the reference class of the dependent variable is specified here (e.g. 'Control').",
-                    "description": "Reference class of categorical dependent variable.",
-                    "fa_icon": "fas fa-quote-left"
+                    "description": "Reference class of categorical dependent variable."
                 },
                 "dge_confounding_vars": {
                     "type": "string",
                     "default": "cngeneson,seqdate,pc_mito",
                     "description": "Confounding variables.",
-                    "help_text": "A comma-separated list of confounding variables to account for in the DGE model.",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "A comma-separated list of confounding variables to account for in the DGE model."
                 },
                 "dge_random_effects_var": {
                     "type": "string",
+                    "default": "NULL",
                     "description": "Random effect confounding variable.",
-                    "help_text": "If specified, the term `+ (1 | x ) +`is added to the model, where x is the specified random effects variable.",
-                    "fa_icon": "fas fa-quote-left"
+                    "help_text": "If specified, the term `+ (1 | x ) +`is added to the model, where x is the specified random effects variable."
                 },
                 "dge_fc_threshold": {
                     "type": "number",
                     "default": 1.1,
                     "description": "Fold-change threshold for plotting.",
-                    "help_text": "This absolute fold-change cut-off value is used in plots (e.g. volcano) and the DGE report.",
-                    "fa_icon": "fas fa-calculator"
+                    "help_text": "This absolute fold-change cut-off value is used in plots (e.g. volcano) and the DGE report."
                 },
                 "dge_pval_cutoff": {
                     "type": "number",
                     "default": 0.05,
                     "description": "Adjusted p-value cutoff.",
-                    "help_text": "The adjusted p-value cutoff value is used in plots (e.g. volcano) and the DGE report.",
-                    "fa_icon": "fas fa-less-than-equal"
+                    "help_text": "The adjusted p-value cutoff value is used in plots (e.g. volcano) and the DGE report."
+                },
+                "dge_n_label": {
+                    "type": "number",
+                    "default": 5,
+                    "help_text": "The number of genes to label in plots (e.g. volcano) and the DGE report."
                 },
                 "dge_force_run": {
-                    "type": "boolean",
+                    "type": "string",
+                    "default": "false",
                     "description": "Force model fit for non-full rank.",
-                    "help_text": "A non-full rank model specification will return an error; to override this to return a warning only, set to TRUE.",
-                    "fa_icon": "fas fa-exclamation"
+                    "help_text": "A non-full rank model specification will return an error; to override this to return a warning only, set to TRUE."
                 },
                 "dge_max_cores": {
-                    "type": "integer",
+                    "type": "string",
+                    "default": "'null'",
                     "description": "Maximum CPU cores.",
-                    "help_text": "The default value of 'null' utilizes all available CPU cores.  As each additional CPU core increases the number of genes simultaneously fit, the RAM/memory demand increases concomitantly.  Manually overriding this parameter can reduce the memory demands of parallelization across multiple cores.",
-                    "fa_icon": "fas fa-microchip"
+                    "help_text": "The default value of 'null' utilizes all available CPU cores.  As each additional CPU core increases the number of genes simultaneously fit, the RAM/memory demand increases concomitantly.  Manually overriding this parameter can reduce the memory demands of parallelization across multiple cores."
                 }
             },
             "fa_icon": "fas fa-chart-bar",
@@ -1100,9 +982,12 @@
                 "dge_dependent_var",
                 "dge_ref_class",
                 "dge_confounding_vars",
+                "dge_random_effects_var",
                 "dge_fc_threshold",
                 "dge_pval_cutoff",
-                "dge_force_run"
+                "dge_n_label",
+                "dge_force_run",
+                "dge_max_cores"
             ]
         },
         "impacted_pathway_analysis": {
@@ -1114,26 +999,18 @@
                 "ipa_enrichment_tool": {
                     "type": "string",
                     "default": "WebGestaltR",
-                    "description": "Pathway enrichment tool(s) to use.",
-                    "enum": [
-                        "WebGestaltR",
-                        "ROntoTools",
-                        "enrichR"
-                    ],
-                    "fa_icon": "fas fa-toolbox"
+                    "description": "Pathway enrichment tool(s) to use."
                 },
                 "ipa_enrichment_method": {
                     "type": "string",
                     "default": "ORA",
-                    "description": "Enrichment method.",
-                    "fa_icon": "fas fa-layer-group"
+                    "description": "Enrichment method."
                 },
                 "ipa_enrichment_database": {
                     "type": "string",
                     "default": "GO_Biological_Process",
                     "description": "Database(s) to use for enrichment.",
-                    "help_text": "See scFlow::list_databases().  Name of the database(s) for enrichment. Examples include \"GO_Biological_Process\", \"GO_Cellular_Component\", \"GO_Molecular_Function\", \"KEGG\", \"Reactome\", \"Wikipathway\".",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "See scFlow::list_databases().  Name of the database(s) for enrichment. Examples include \"GO_Biological_Process\", \"GO_Cellular_Component\", \"GO_Molecular_Function\", \"KEGG\", \"Reactome\", \"Wikipathway\"."
                 }
             },
             "fa_icon": "fas fa-project-diagram",
@@ -1152,33 +1029,28 @@
                 "dirich_unique_id_var": {
                     "type": "string",
                     "default": "individual",
-                    "description": "Unique sampler identifier.",
-                    "fa_icon": "fas fa-key"
+                    "description": "Unique sampler identifier."
                 },
                 "dirich_celltype_var": {
                     "type": "string",
                     "default": "cluster_celltype",
-                    "description": "Cell-type annotation variable name.",
-                    "fa_icon": "fas fa-quote-left"
+                    "description": "Cell-type annotation variable name."
                 },
                 "dirich_dependent_var": {
                     "type": "string",
                     "default": "group",
-                    "description": "Dependent variable of Dirichlet model.",
-                    "fa_icon": "fas fa-quote-left"
+                    "description": "Dependent variable of Dirichlet model."
                 },
                 "dirich_ref_class": {
                     "type": "string",
                     "default": "Control",
-                    "description": "Reference class of categorical dependent variable.",
-                    "fa_icon": "fas fa-quote-left"
+                    "description": "Reference class of categorical dependent variable."
                 },
                 "dirich_var_order": {
                     "type": "string",
                     "default": "Control,Low,High",
                     "description": "Dependent variable classes order.",
-                    "help_text": "For plotting and reports, the order of classes for the dependent variable can be manually specified (e.g. 'Control,Low,High').",
-                    "fa_icon": "fas fa-layer-group"
+                    "help_text": "For plotting and reports, the order of classes for the dependent variable can be manually specified (e.g. 'Control,Low,High')."
                 }
             },
             "fa_icon": "fas fa-chart-pie",
@@ -1401,6 +1273,11 @@
                     "description": "Send plain-text email instead of HTML.",
                     "hidden": true,
                     "fa_icon": "fas fa-envelope"
+                },
+                "options": {
+                    "type": "string",
+                    "description": "NA",
+                    "hidden": true
                 }
             }
         }

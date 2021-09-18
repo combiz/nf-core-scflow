@@ -5,13 +5,13 @@
 # ____________________________________________________________________________
 # Initialization ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = future::availableCores(methods = "mc.cores"))
 
 ## ............................................................................
 ## Load packages ####
-library(argparse)
 library(scFlow)
-library(parallel)
+library(argparse)
+#library(parallel)
 
 ## ............................................................................
 ## Parse command-line arguments ####
@@ -33,14 +33,14 @@ required$add_argument(
 required$add_argument(
   "--method",
   required = TRUE,
-  help = "The integration method to use",
+  help ="The integration method to use",
   metavar = "Liger"
 )
 
 required$add_argument(
   "--unique_id_var",
   required = TRUE,
-  help = "Unique id variable",
+  help ="Unique id variable",
   metavar = "manifest"
 )
 
@@ -48,7 +48,7 @@ required$add_argument(
   "--take_gene_union",
   default = FALSE,
   required = TRUE,
-  help = "Whether to fill out raw.data matrices with union of genes",
+  help ="Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data)",
   metavar = "Boolean"
 )
 
@@ -56,7 +56,7 @@ required$add_argument(
   "--remove_missing",
   default = TRUE,
   required = TRUE,
-  help = "Remove non-expressive genes and cells",
+  help ="Whether to remove cells not expressing any measured genes, and genes not expressed in any cells",
   metavar = "Boolean"
 )
 
@@ -65,7 +65,7 @@ required$add_argument(
   default = 3000,
   type = "integer",
   required = TRUE,
-  help = "Number of genes to find for each dataset",
+  help ="Number of genes to find for each dataset",
   metavar = "N"
 )
 
@@ -73,23 +73,15 @@ required$add_argument(
   "--combine",
   default = "union",
   required = TRUE,
-  help = "How to combine variable genes across experiments",
+  help ="How to combine variable genes across experiments",
   metavar = "union,intersect"
-)
-
-required$add_argument(
-  "--keep_unique",
-  default = FALSE,
-  required = TRUE,
-  help = "Keep genes that occur only in one dataset",
-  metavar = "Boolean"
 )
 
 required$add_argument(
   "--capitalize",
   default = FALSE,
   required = TRUE,
-  help = "Capitalize gene names to match homologous genes(i.e. across species)",
+  help ="Capitalize gene names to match homologous genes(ie. across species)",
   metavar = "Boolean"
 )
 
@@ -97,7 +89,7 @@ required$add_argument(
   "--use_cols",
   default = TRUE,
   required = TRUE,
-  help = "Treat each column as a cell",
+  help ="Treat each column as a cell",
   metavar = "Boolean"
 )
 
@@ -106,7 +98,7 @@ required$add_argument(
   default = 30,
   type = "integer",
   required = TRUE,
-  help = "Inner dimension of factorization (number of factors)",
+  help ="Inner dimension of factorization (number of factors)",
   metavar = "N"
 )
 
@@ -115,7 +107,7 @@ required$add_argument(
   default = 5.0,
   type = "double",
   required = TRUE,
-  help = "Regularization parameter",
+  help ="Regularization parameter. Larger values penalize dataset-specific effects more strongly (ie. alignment should increase as lambda increases)",
   metavar = "N"
 )
 
@@ -124,7 +116,7 @@ required$add_argument(
   default = 0.0001,
   type = "double",
   required = TRUE,
-  help = "Convergence threshold.",
+  help ="Convergence threshold. Convergence occurs when |obj0-obj|/(mean(obj0,obj)) < thresh",
   metavar = "N"
 )
 
@@ -133,7 +125,7 @@ required$add_argument(
   default = 100,
   type = "integer",
   required = TRUE,
-  help = "Maximum number of block coordinate descent iterations to perform",
+  help ="Maximum number of block coordinate descent iterations to perform",
   metavar = "N"
 )
 
@@ -142,7 +134,7 @@ required$add_argument(
   default = 1,
   type = "integer",
   required = TRUE,
-  help = "Number of restarts to perform",
+  help ="Number of restarts to perform",
   metavar = "N"
 )
 
@@ -151,7 +143,7 @@ required$add_argument(
   default = 1,
   type = "integer",
   required = TRUE,
-  help = "Random seed to allow reproducible results",
+  help ="Random seed to allow reproducible results",
   metavar = "N"
 )
 
@@ -160,33 +152,15 @@ required$add_argument(
   default = 20,
   type = "integer",
   required = TRUE,
-  help = "Number of nearest neighbors for within-dataset knn graph",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--k2",
-  default = 500,
-  type = "integer",
-  required = TRUE,
-  help = "Horizon parameter for shared nearest factor graph",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--prune_thresh",
-  default = 0.2,
-  type = "double",
-  required = TRUE,
-  help = "Minimum allowed edge weight. Any edges below this are removed",
+  help ="Number of nearest neighbors for within-dataset knn graph",
   metavar = "N"
 )
 
 required$add_argument(
   "--ref_dataset",
-  default = "",
+  default = '',
   required = TRUE,
-  help = "Name of dataset to use as a reference for normalization",
+  help ="Name of dataset to use as a reference for normalization",
   metavar = "ref"
 )
 
@@ -195,7 +169,7 @@ required$add_argument(
   default = 2,
   type = "integer",
   required = TRUE,
-  help = "Minimum number of cells to consider a cluster shared across datasets",
+  help ="Minimum number of cells to consider a cluster shared across datasets",
   metavar = "N"
 )
 
@@ -204,16 +178,7 @@ required$add_argument(
   default = 50,
   type = "integer",
   required = TRUE,
-  help = "Number of quantiles to use for quantile normalization",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--nstart",
-  default = 10,
-  type = "integer",
-  required = TRUE,
-  help = "Number of times to perform Louvain community detection",
+  help ="Number of quantiles to use for quantile normalization",
   metavar = "N"
 )
 
@@ -222,41 +187,16 @@ required$add_argument(
   default = 1,
   type = "double",
   required = TRUE,
-  help = "Controls the number of communities detected",
+  help ="Controls the number of communities detected (Higher resolution -> more communities)",
   metavar = "N"
-)
-
-required$add_argument(
-  "--dims_use",
-  default = "null",
-  required = TRUE,
-  help = "Indices of factors to use for shared nearest factor determination",
-  metavar = "Indices"
-)
-
-required$add_argument(
-  "--dist_use",
-  default = "CR",
-  required = TRUE,
-  help = "Distance metric to use in calculating nearest neighbors",
-  metavar = "CR"
 )
 
 required$add_argument(
   "--center",
   default = FALSE,
   required = TRUE,
-  help = "Centers the data when scaling factors",
+  help ="Centers the data when scaling factors (useful for less sparse modalities like methylation data)",
   metavar = "Boolean"
-)
-
-required$add_argument(
-  "--small_clust_thresh",
-  default = 0,
-  type = "double",
-  required = TRUE,
-  help = "Extracts small clusters loading highly on single factor",
-  metavar = "N"
 )
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
@@ -290,12 +230,11 @@ sce <- integrate_sce(
   unique_id_var = args$unique_id_var,
   take_gene_union = args$take_gene_union,
   remove.missing = args$remove_missing,
-  make.sparse = T,
   num_genes = args$num_genes,
   combine = args$combine,
-  keep_unique = args$keep_unique,
   capitalize = args$capitalize,
   use_cols = args$use_cols,
+  num_cores = future::availableCores(methods = "mc.cores"),
   k = args$k,
   lambda = args$lambda,
   thresh = args$thresh,
@@ -306,23 +245,14 @@ sce <- integrate_sce(
   V_init = NULL,
   rand_seed = args$rand_seed,
   knn_k = args$knn_k,
-  k2 = args$k2,
-  prune_thresh = args$prune_thresh,
   ref_dataset = args$ref_dataset,
   min_cells = args$min_cells,
   quantiles = args$quantiles,
-  nstart = args$nstart,
   resolution = args$resolution,
-  dims_use = args$dims_use,
-  dist_use = args$dist_use,
   center = args$center,
-  small_clust_thresh = args$small_clust_thresh,
-  do_plot = FALSE,
-  id_number = NULL,
-  print_obj = FALSE,
-  print_mod = FALSE,
-  print_align_summary = FALSE
+  print_obj = FALSE
 )
+
 
 ## ............................................................................
 ## Save Outputs ####
