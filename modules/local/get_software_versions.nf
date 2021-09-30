@@ -10,6 +10,7 @@ process GET_SOFTWARE_VERSIONS {
 
     tag 'Version Info'
     label 'process_tiny'
+    errorStrategy 'ignore'
     //cache false
 
     output:
