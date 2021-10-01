@@ -30,7 +30,7 @@ process SCFLOW_FINALIZE {
 
     script:
     def software = getSoftwareName(task.process)
-    def ctm = celltype_mappings.name != 'NO_FILE' ? "$celltype_mappings" : 'nofile'
+    def ctm = celltype_mappings.simpleName != 'NO_FILE' ? "$celltype_mappings" : 'nofile'
 
     """
     export MC_CORES=${task.cpus}
