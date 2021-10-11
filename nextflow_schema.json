@@ -207,7 +207,7 @@
             "properties": {
                 "amb_find_cells": {
                     "type": "string",
-                    "default": "true",
+                    "default": "True",
                     "description": "Enable ambient RNA / empty droplet profiling.",
                     "fa_icon": "fas fa-cut"
                 },
@@ -265,8 +265,9 @@
             "properties": {
                 "mult_find_singlets": {
                     "type": "string",
-                    "default": "true",
-                    "description": "Enable doublet/multiplet identification."
+                    "default": "True",
+                    "description": "Enable doublet/multiplet identification.",
+                    "fa_icon": "fas fa-cut"
                 },
                 "mult_singlets_method": {
                     "type": "string",
@@ -375,13 +376,14 @@
                 },
                 "integ_take_gene_union": {
                     "type": "string",
-                    "default": "false",
                     "description": "Fill out matrices with union of genes.",
-                    "help_text": "See rliger::createLiger().  Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data) (requires make.sparse = TRUE) (default FALSE)."
+                    "help_text": "See rliger::createLiger().  Whether to fill out raw.data matrices with union of genes across all datasets (filling in 0 for missing data) (requires make.sparse = TRUE) (default FALSE).",
+                    "fa_icon": "fas fa-cut",
+                    "default": "false"
                 },
                 "integ_remove_missing": {
                     "type": "string",
-                    "default": "true",
+                    "default": "True",
                     "description": "Remove non-expressing cells/genes.",
                     "help_text": "See rliger::createLiger().  Whether to remove cells not expressing any measured genes, and genes not expressed in any cells (if take.gene.union = TRUE, removes only genes not expressed in any dataset) (default TRUE)."
                 },
@@ -395,17 +397,19 @@
                     "type": "string",
                     "default": "union",
                     "description": "How to combine variable genes across experiments.",
-                    "help_text": "See rliger::selectGenes().  Either \"union\" or \"intersection\"."
+                    "help_text": "See rliger::selectGenes().  Either \"union\" or \"intersection\".",
+                    "fa_icon": "fas fa-calculator"
                 },
                 "integ_capitalize": {
                     "type": "string",
-                    "default": "false",
                     "description": "Capitalize gene names to match homologous genes.",
-                    "help_text": "See rliger::selectGenes()."
+                    "help_text": "See rliger::selectGenes().",
+                    "fa_icon": "fab fa-adn",
+                    "default": "false"
                 },
                 "integ_use_cols": {
                     "type": "string",
-                    "default": "true",
+                    "default": "True",
                     "description": "Treat each column as a cell.",
                     "help_text": "See rliger::removeMissingObs()."
                 },
@@ -472,7 +476,8 @@
                     "type": "integer",
                     "default": 1,
                     "description": "Controls the number of communities detected.",
-                    "help_text": "See rliger::quantileAlignSNF()."
+                    "help_text": "See rliger::quantileAlignSNF().",
+                    "fa_icon": "fas fa-calculator"
                 },
                 "integ_categorical_covariates": {
                     "type": "string",
@@ -635,9 +640,10 @@
                 },
                 "reddim_umap_fast_sgd": {
                     "type": "string",
-                    "default": "false",
                     "description": "Use fast SGD.",
-                    "help_text": "See uwot::umap().  Setting this to TRUE will speed up the stochastic optimization phase, but give a potentially less accurate embedding, and which will not be exactly reproducible even with a fixed seed. For visualization, fast_sgd = TRUE will give perfectly good results. For more generic dimensionality reduction, it's safer to leave fast_sgd = FALSE."
+                    "help_text": "See uwot::umap().  Setting this to TRUE will speed up the stochastic optimization phase, but give a potentially less accurate embedding, and which will not be exactly reproducible even with a fixed seed. For visualization, fast_sgd = TRUE will give perfectly good results. For more generic dimensionality reduction, it's safer to leave fast_sgd = FALSE.",
+                    "fa_icon": "fas fa-skiing",
+                    "default": "false"
                 },
                 "reddim_tsne_dims": {
                     "type": "integer",
@@ -683,19 +689,20 @@
                 },
                 "reddim_tsne_pca_center": {
                     "type": "string",
-                    "default": "true",
+                    "default": "True",
                     "description": "Center data before PCA.",
                     "help_text": "See Rtsne::Rtsne(). Should data be centered before pca is applied? (default: TRUE)"
                 },
                 "reddim_tsne_pca_scale": {
                     "type": "string",
-                    "default": "false",
                     "description": "Scale data before PCA.",
-                    "help_text": "See Rtsne::Rtsne().  Should data be scaled before pca is applied? (default: FALSE)."
+                    "help_text": "See Rtsne::Rtsne().  Should data be scaled before pca is applied? (default: FALSE).",
+                    "fa_icon": "fas fa-balance-scale",
+                    "default": "false"
                 },
                 "reddim_tsne_normalize": {
                     "type": "string",
-                    "default": "true",
+                    "default": "True",
                     "description": "Normalize data before distance calculations.",
                     "help_text": "See Rtsne::Rtsne(). Should data be normalized internally prior to distance calculations with normalize_input? (default: TRUE)"
                 },
@@ -894,15 +901,16 @@
                 },
                 "dge_rescale_numerics": {
                     "type": "string",
-                    "default": "true",
+                    "default": "True",
                     "description": "Re-scale numeric covariates.",
                     "help_text": "Re-scaling and centring numeric covariates in a model can improve model performance."
                 },
                 "dge_pseudobulk": {
                     "type": "string",
-                    "default": "false",
                     "description": "Pseudobulked differential gene expression.",
-                    "help_text": "Perform differential gene expression on a smaller matrix where counts are first summed across all cells within a sample (defined by dge_sample_var level)."
+                    "help_text": "Perform differential gene expression on a smaller matrix where counts are first summed across all cells within a sample (defined by dge_sample_var level).",
+                    "fa_icon": "far fa-object-group",
+                    "default": "false"
                 },
                 "dge_celltype_var": {
                     "type": "string",
@@ -958,15 +966,17 @@
                 },
                 "dge_force_run": {
                     "type": "string",
-                    "default": "false",
                     "description": "Force model fit for non-full rank.",
-                    "help_text": "A non-full rank model specification will return an error; to override this to return a warning only, set to TRUE."
+                    "help_text": "A non-full rank model specification will return an error; to override this to return a warning only, set to TRUE.",
+                    "fa_icon": "fas fa-exclamation",
+                    "default": "false"
                 },
                 "dge_max_cores": {
                     "type": "string",
-                    "default": "'null'",
                     "description": "Maximum CPU cores.",
-                    "help_text": "The default value of 'null' utilizes all available CPU cores.  As each additional CPU core increases the number of genes simultaneously fit, the RAM/memory demand increases concomitantly.  Manually overriding this parameter can reduce the memory demands of parallelization across multiple cores."
+                    "help_text": "The default value of 'null' utilizes all available CPU cores.  As each additional CPU core increases the number of genes simultaneously fit, the RAM/memory demand increases concomitantly.  Manually overriding this parameter can reduce the memory demands of parallelization across multiple cores.",
+                    "fa_icon": "fas fa-microchip",
+                    "default": "null"
                 }
             },
             "fa_icon": "fas fa-chart-bar",
@@ -1223,10 +1233,11 @@
                     "hidden": true
                 },
                 "monochrome_logs": {
-                    "type": "boolean",
+                    "type": "string",
                     "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
-                    "hidden": true
+                    "hidden": true,
+                    "default": "false"
                 },
                 "tracedir": {
                     "type": "string",

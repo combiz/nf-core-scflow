@@ -30,6 +30,7 @@ process SCFLOW_FINALIZE {
 
     script:
     def software = getSoftwareName(task.process)
+    def ctm = celltype_mappings.simpleName != 'NO_FILE' ? "$celltype_mappings" : 'nofile'
 
     """
     export MC_CORES=${task.cpus}
@@ -37,7 +38,7 @@ process SCFLOW_FINALIZE {
     scflow_finalize_sce.r \
     $options.args \
     --sce_path ${sce} \
-    --celltype_mappings ${celltype_mappings}
+    --celltype_mappings ${ctm}
 
     scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
     """
