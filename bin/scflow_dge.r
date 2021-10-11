@@ -231,9 +231,11 @@ if (args$pseudobulk) {
   pb_str <- "_pb"
   sce_subset <- pseudobulk_sce(
     sce_subset,
-    keep_vars = c(args$dependent_var,
-                  args$confounding_vars, 
-                  args$random_effects_var),
+    keep_vars = c(
+      args$dependent_var,
+      args$confounding_vars,
+      args$random_effects_var
+    ),
     assay_name = "counts",
     celltype_var = args$celltype_var,
     sample_var = args$sample_var
@@ -291,6 +293,7 @@ for (result in names(de_results)) {
       pval_cutoff = args$pval_cutoff,
       n_label = args$n_label
     )
+
     ggplot2::ggsave(
       filename = file.path(
         getwd(),
