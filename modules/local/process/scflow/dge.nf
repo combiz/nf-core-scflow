@@ -1,5 +1,5 @@
 /*
- * Generate 2D reduced dimension plots of gene expression
+ * Run differential gene expression analysis
  */
 
 // Import generic module functions

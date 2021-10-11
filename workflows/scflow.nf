@@ -94,32 +94,25 @@ scflow_merge_options.args            =
 def scflow_integrate_options         = modules['scflow_integrate']
 scflow_integrate_options.args        =
     "--method ${params.integ_method} \
+    --k ${params.integ_k} \
     --unique_id_var ${params.integ_unique_id_var} \
     --take_gene_union ${params.integ_take_gene_union} \
     --remove_missing ${params.integ_remove_missing} \
     --num_genes ${params.integ_num_genes} \
     --combine ${params.integ_combine} \
-    --keep_unique ${params.integ_keep_unique} \
     --capitalize ${params.integ_capitalize} \
     --use_cols ${params.integ_use_cols} \
-    --k ${params.integ_k} \
     --lambda ${params.integ_lambda} \
     --thresh ${params.integ_thresh} \
     --max_iters ${params.integ_max_iters} \
     --nrep ${params.integ_nrep} \
     --rand_seed ${params.integ_rand_seed} \
-    --knn_k ${params.integ_knn_k} \
-    --k2 ${params.integ_k2} \
-    --prune_thresh ${params.integ_prune_thresh} \
+    --quantiles ${params.integ_quantiles} \
     --ref_dataset ${params.integ_ref_dataset} \
     --min_cells ${params.integ_min_cells} \
-    --quantiles ${params.integ_quantiles} \
-    --nstart ${params.integ_nstart} \
-    --resolution ${params.integ_resolution} \
-    --dims_use ${params.integ_dims_use} \
-    --dist_use ${params.integ_dist_use} \
+    --knn_k ${params.integ_knn_k} \
     --center ${params.integ_center} \
-    --small_clust_thresh ${params.integ_small_clust_thresh}"
+    --resolution ${params.integ_resolution}"
 
 def scflow_reducedims_options        = modules['scflow_reducedims']
 scflow_reducedims_options.args       =
@@ -188,7 +181,8 @@ scflow_finalize_options.args         =
     --metric_vars ${params.cta_metric_vars} \
     --top_n ${params.cta_top_n} \
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
-    --reddimplot_alpha ${params.reddimplot_alpha}"
+    --reddimplot_alpha ${params.reddimplot_alpha} \
+    --max_cores ${params.max_cores}"
 
 def scflow_dge_options               = modules['scflow_dge']
 scflow_dge_options.args              =
@@ -219,7 +213,10 @@ def scflow_ipa_options               = modules['scflow_ipa']
 scflow_ipa_options.args              =
     "--enrichment_tool ${params.ipa_enrichment_tool} \
     --enrichment_method ${params.ipa_enrichment_method} \
-    --enrichment_database ${params.ipa_enrichment_database}"
+    --enrichment_database ${params.ipa_enrichment_database} \
+    --pval_cutoff ${params.dge_pval_cutoff} \
+    --fc_threshold ${params.dge_fc_threshold} \
+    --species ${params.species}"
 
 def scflow_dirichlet_options         = modules['scflow_dirichlet']
 scflow_dirichlet_options.args =

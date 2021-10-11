@@ -14,7 +14,7 @@ process GET_SOFTWARE_VERSIONS {
     //cache false
 
     output:
-    path 'software_versions.tsv'     , emit: tsv
+    path "software_versions.tsv"     , emit: tsv
 
     script: // This script is bundled with the pipeline, in nf-core/scflow/bin/
     """
