@@ -12,7 +12,6 @@ process GET_SOFTWARE_VERSIONS {
     label 'process_tiny'
     errorStrategy 'ignore'
     //cache false
-    
 
     output:
     path "software_versions.tsv"     , emit: tsv

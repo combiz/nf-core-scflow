@@ -185,9 +185,11 @@ options("scflow_species" = args$species)
 args$rescale_numerics <- as.logical(args$rescale_numerics)
 args$pseudobulk <- as.logical(args$pseudobulk)
 args$force_run <- as.logical(args$force_run)
-if(tolower(args$random_effects_var) == "null") args$random_effects_var <- NULL
+if (tolower(args$random_effects_var) == "null") args$random_effects_var <- NULL
 
-args$max_cores <- if(toupper(args$max_cores) == "NULL") NULL else { 
+args$max_cores <- if (toupper(args$max_cores) == "NULL") {
+  NULL
+} else {
   as.numeric(as.character(args$max_cores))
 }
 
@@ -210,7 +212,6 @@ cli::cli_alert(sprintf(
   n_cores
 ))
 
-# RhpcBLASctl::omp_set_num_threads(1L)
 
 library(scFlow)
 
@@ -230,7 +231,9 @@ if (args$pseudobulk) {
   pb_str <- "_pb"
   sce_subset <- pseudobulk_sce(
     sce_subset,
-    keep_vars = c(args$dependent_var, args$confounding_vars, args$random_effects_var),
+    keep_vars = c(args$dependent_var,
+                  args$confounding_vars, 
+                  args$random_effects_var),
     assay_name = "counts",
     celltype_var = args$celltype_var,
     sample_var = args$sample_var
@@ -257,42 +260,48 @@ de_results <- perform_de(
   species = getOption("scflow_species")
 )
 
-file_name <- paste0(args$celltype, "_",
-                    args$de_method, pb_str, "_")
+file_name <- paste0(
+  args$celltype, "_",
+  args$de_method, pb_str, "_"
+)
 
 for (result in names(de_results)) {
   if (dim(de_results[[result]])[[1]] > 0) {
     write.table(de_results[[result]],
-                file = file.path(getwd(), 
-                                 paste0(file_name, result, "_DE.tsv")),
-                quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
-    
+      file = file.path(
+        getwd(),
+        paste0(file_name, result, "_DE.tsv")
+      ),
+      quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE
+    )
+
     report_de(de_results[[result]],
-              fc_threshold = args$fc_threshold,
-              pval_cutoff = args$pval_cutoff,
-              n_label = args$n_label,
-              report_folder_path = file.path(getwd()),
-              report_file = paste0(file_name, result, "_scflow_de_report"))
-    
+      fc_threshold = args$fc_threshold,
+      pval_cutoff = args$pval_cutoff,
+      n_label = args$n_label,
+      report_folder_path = file.path(getwd()),
+      report_file = paste0(file_name, result, "_scflow_de_report")
+    )
+
     print("report generated")
-    
+
     p <- scFlow::volcano_plot(
       dt = de_results[[result]],
       fc_threshold = args$fc_threshold,
-      pval_cutoff =  args$pval_cutoff,
+      pval_cutoff = args$pval_cutoff,
       n_label = args$n_label
     )
-    ggplot2::ggsave(filename = file.path(getwd(),
-                                         paste0(file_name, result, "_volcano_plot.png")),
-                    plot = p,
-                    width = 7, height = 5, units = "in", dpi = 600)
-    
+    ggplot2::ggsave(
+      filename = file.path(
+        getwd(),
+        paste0(file_name, result, "_volcano_plot.png")
+      ),
+      plot = p,
+      width = 7, height = 5, units = "in", dpi = 600
+    )
+
     print("Volcano plot generated")
-  
-    
   } else {
     print(sprintf("No DE genes found for %s", result))
   }
 }
-
-
