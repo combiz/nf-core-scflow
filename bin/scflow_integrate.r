@@ -5,7 +5,7 @@
 # ____________________________________________________________________________
 # Initialization ####
 
-options(mc.cores = future::availableCores(methods = "mc.cores"))
+options(mc.cores = max(2, future::availableCores(methods = "mc.cores")))
 
 ## ............................................................................
 ## Load packages ####
