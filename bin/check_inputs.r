@@ -48,7 +48,9 @@ manifest <- read.delim(args$manifest)
 # check manifest paths exist
 
 check_exists <- function(filepath) {
-  RCurl::url.exists(filepath) | dir.exists(filepath)
+  RCurl::url.exists(filepath) |
+  dir.exists(filepath) |
+  any(startsWith(filepath, c("gs://", "s3://")))
 }
 
 dir_exists <- purrr::pmap_lgl(manifest, ~ check_exists(as.character(..2)))
