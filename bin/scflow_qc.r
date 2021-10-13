@@ -422,6 +422,11 @@ if (args$find_singlets) {
   )
 }
 
+
+sce <- sce[ , sce$total_counts >= args$min_library_size]
+sce <- sce[ , sce$total_features_by_counts >= args$min_features]
+
+
 dir.create(file.path(getwd(), "qc_report"))
 
 report_qc_sce(
