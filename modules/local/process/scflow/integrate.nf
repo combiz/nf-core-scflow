@@ -10,7 +10,7 @@ def options    = initOptions(params.options)
 
 process SCFLOW_INTEGRATE {
     tag 'MERGED'
-    label 'process_large'
+    label 'process_high_memory'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
@@ -34,7 +34,6 @@ process SCFLOW_INTEGRATE {
     export OMP_NUM_THREADS=1
     export OPENBLAS_NUM_THREADS=1
     export VECLIB_MAXIMUM_THREADS=1
-
     scflow_integrate.r \
     $options.args \
     --sce_path ${sce}
