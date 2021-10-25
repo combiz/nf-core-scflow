@@ -10,7 +10,7 @@ def options    = initOptions(params.options)
 
 process SCFLOW_DGE {
     tag "${celltype} (${n_cells_str} cells) | ${de_method}"
-    label 'process_medium'
+    label 'process_high'
     errorStrategy 'ignore'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
