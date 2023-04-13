@@ -64,7 +64,7 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--fc_threshold",
+  "--logFC_threshold",
   type = "double",
   default = 1.1,
   metavar = "number",
@@ -72,7 +72,7 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--pval_cutoff",
+  "--padj_cutoff",
   type = "double",
   default = 0.05,
   metavar = "number",
@@ -121,8 +121,8 @@ for (gene_file in args$gene_file) {
 
   dt <- dt %>%
     dplyr::filter(
-      padj <= args$pval_cutoff,
-      abs(logFC) >= log2(args$fc_threshold)
+      padj <= args$padj_cutoff,
+      abs(logFC) >= log2(args$logFC_threshold)
     )
 
   if (nrow(dt) < 5) {

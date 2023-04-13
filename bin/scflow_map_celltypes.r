@@ -54,6 +54,15 @@ required$add_argument(
 )
 
 required$add_argument(
+  "--annotation_level",
+  default = 1,
+  type = "integer",
+  help = "the annotation level of the reference ctd",
+  required = TRUE,
+  metavar = "N"
+)
+
+required$add_argument(
   "--species",
   help = "the biological species (e.g. mouse, human)",
   default = "human",
@@ -101,6 +110,7 @@ sce <- map_celltypes_sce(
   ctd_folder = args$ctd_folder,
   clusters_colname = args$clusters_colname,
   cells_to_sample = args$cells_to_sample,
+  annotation_level = as.numeric(args$annotation_level),
   species = args$species
 )
 
