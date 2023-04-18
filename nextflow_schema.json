@@ -1067,6 +1067,11 @@
                     "default": "Control,Low,High",
                     "description": "Dependent variable classes order.",
                     "help_text": "For plotting and reports, the order of classes for the dependent variable can be manually specified (e.g. 'Control,Low,High')."
+                },
+                "dirich_confounding_vars": {
+                    "type": "string",
+                    "default": "sex",
+                    "description": "Additional confounding variables."
                 }
             },
             "fa_icon": "fas fa-chart-pie",
@@ -1075,7 +1080,8 @@
                 "dirich_celltype_var",
                 "dirich_dependent_var",
                 "dirich_ref_class",
-                "dirich_var_order"
+                "dirich_var_order",
+                "dirich_confounding_vars"
             ]
         },
         "general_plotting": {

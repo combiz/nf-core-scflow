@@ -225,7 +225,8 @@ scflow_dirichlet_options.args =
     --celltype_var ${params.dirich_celltype_var} \
     --dependent_var ${params.dirich_dependent_var} \
     --ref_class ${params.dirich_ref_class} \
-    --var_order ${params.dirich_var_order}"
+    --var_order ${params.dirich_var_order} \
+    --confounding_vars ${params.dirich_confounding_vars}"
 
 def get_software_versions         = modules['get_software_versions']
 get_software_versions.args = ''
