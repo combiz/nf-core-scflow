@@ -131,7 +131,7 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--fc_threshold",
+  "--logFC_threshold",
   type = "double",
   default = 1.1,
   metavar = "number",
@@ -139,7 +139,7 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--pval_cutoff",
+  "--padj_cutoff",
   type = "double",
   default = 0.05,
   metavar = "number",
@@ -254,8 +254,6 @@ de_results <- perform_de(
   ref_class = args$ref_class,
   confounding_vars = args$confounding_vars,
   random_effects_var = args$random_effects_var,
-  fc_threshold = args$fc_threshold,
-  pval_cutoff = args$pval_cutoff,
   mast_method = args$mast_method,
   force_run = args$force_run,
   ensembl_mapping_file = args$ensembl_mappings,
@@ -278,8 +276,8 @@ for (result in names(de_results)) {
     )
 
     report_de(de_results[[result]],
-      fc_threshold = args$fc_threshold,
-      pval_cutoff = args$pval_cutoff,
+      logFC_threshold = args$logFC_threshold,
+      padj_cutoff = args$padj_cutoff,
       n_label = args$n_label,
       report_folder_path = file.path(getwd()),
       report_file = paste0(file_name, result, "_scflow_de_report")
@@ -289,8 +287,8 @@ for (result in names(de_results)) {
 
     p <- scFlow::volcano_plot(
       dt = de_results[[result]],
-      fc_threshold = args$fc_threshold,
-      pval_cutoff = args$pval_cutoff,
+      logFC_threshold = args$logFC_threshold,
+      padj_cutoff = args$padj_cutoff,
       n_label = args$n_label
     )
 

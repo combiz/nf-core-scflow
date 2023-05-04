@@ -313,6 +313,7 @@ args <- purrr::map(args, function(x) {
 
 sce <- read_sce(args$sce_path, read_metadata = TRUE)
 
+set.seed(42)
 sce <- reduce_dims_sce(
   sce,
   input_reduced_dim = args$input_reduced_dim,
