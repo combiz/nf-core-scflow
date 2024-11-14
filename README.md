@@ -59,7 +59,7 @@ Try the pipeline on an in-built, minimal test dataset (all inputs will be automa
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
     ```console
-    nextflow run nf-core/scflow -profile test,<docker/singularity/podman/shifter/charliecloud/conda/institute>
+    nextflow run combiz/nf-core-scflow -r dev-nf -profile test,<docker/singularity/podman/shifter/charliecloud/conda/institute>
     ```
 
     > - Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
@@ -75,7 +75,7 @@ A complete, automated, scalable, and reproducible case-control analysis can then
 1. Start running your own analysis!
 
     ```bash
-    nextflow run nf-core/scflow \
+    nextflow run combiz/nf-core-scflow -r dev-nf \
     --manifest Manifest.tsv \
     --input Samplesheet.tsv \
     -c scflow_params.config \
