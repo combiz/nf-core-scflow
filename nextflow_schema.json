@@ -826,6 +826,11 @@
                     "default": 10000,
                     "description": "Max cells to sample."
                 },
+                "cta_annotation_level": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Annotation level of the reference ctd"
+                },
                 "cta_unique_id_var": {
                     "type": "string",
                     "default": "individual",
@@ -856,6 +861,7 @@
             "required": [
                 "cta_clusters_colname",
                 "cta_cells_to_sample",
+                "cta_annotation_level",
                 "cta_unique_id_var",
                 "cta_celltype_var",
                 "cta_facet_vars",
@@ -947,13 +953,13 @@
                     "description": "Random effect confounding variable.",
                     "help_text": "If specified, the term `+ (1 | x ) +`is added to the model, where x is the specified random effects variable."
                 },
-                "dge_fc_threshold": {
+                "dge_logFC_threshold": {
                     "type": "number",
                     "default": 1.1,
                     "description": "Fold-change threshold for plotting.",
                     "help_text": "This absolute fold-change cut-off value is used in plots (e.g. volcano) and the DGE report."
                 },
-                "dge_pval_cutoff": {
+                "dge_padj_cutoff": {
                     "type": "number",
                     "default": 0.05,
                     "description": "Adjusted p-value cutoff.",
@@ -993,8 +999,8 @@
                 "dge_ref_class",
                 "dge_confounding_vars",
                 "dge_random_effects_var",
-                "dge_fc_threshold",
-                "dge_pval_cutoff",
+                "dge_logFC_threshold",
+                "dge_padj_cutoff",
                 "dge_n_label",
                 "dge_force_run",
                 "dge_max_cores"
@@ -1061,6 +1067,11 @@
                     "default": "Control,Low,High",
                     "description": "Dependent variable classes order.",
                     "help_text": "For plotting and reports, the order of classes for the dependent variable can be manually specified (e.g. 'Control,Low,High')."
+                },
+                "dirich_confounding_vars": {
+                    "type": "string",
+                    "default": "sex",
+                    "description": "Additional confounding variables."
                 }
             },
             "fa_icon": "fas fa-chart-pie",
@@ -1069,7 +1080,8 @@
                 "dirich_celltype_var",
                 "dirich_dependent_var",
                 "dirich_ref_class",
-                "dirich_var_order"
+                "dirich_var_order",
+                "dirich_confounding_vars"
             ]
         },
         "general_plotting": {

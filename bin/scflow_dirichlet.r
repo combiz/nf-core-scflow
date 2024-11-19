@@ -65,11 +65,28 @@ required$add_argument(
   required = TRUE
 )
 
+required$add_argument(
+  "--confounding_vars",
+  help = "confounding variables",
+  metavar = "sex",
+  required = TRUE
+)
+
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults
 args <- parser$parse_args()
-args$var_order <- strsplit(args$var_order, ",")[[1]]
-if (tolower(args$var_order) == "null") { args$var_order <- NULL }
+
+if (tolower(args$var_order) == "null") { 
+  args$var_order <- NULL 
+  } else {
+    args$var_order <- strsplit(args$var_order, ",")[[1]]
+  }
+
+if (tolower(args$confounding_vars) == "null") { 
+  args$confounding_vars <- NULL 
+  } else {
+    args$confounding_vars <- strsplit(args$confounding_vars, ",")[[1]]
+  }
 
 #   ____________________________________________________________________________
 #   Start                                                                   ####
@@ -82,7 +99,8 @@ results <- model_celltype_freqs(
   celltype_var = args$celltype_var,
   dependent_var = args$dependent_var,
   ref_class = args$ref_class,
-  var_order = args$var_order
+  var_order = args$var_order,
+  confounding_vars = args$confounding_vars
 )
 
 ## ............................................................................

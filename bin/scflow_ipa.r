@@ -64,15 +64,15 @@ required$add_argument(
 )
 
 required$add_argument(
-  "--fc_threshold",
+  "--logFC_threshold",
   type = "double",
-  default = 1.1,
+  default = 0.5,
   metavar = "number",
   help = "Absolute fold-change cutoff for DE [default %(default)s]"
 )
 
 required$add_argument(
-  "--pval_cutoff",
+  "--padj_cutoff",
   type = "double",
   default = 0.05,
   metavar = "number",
@@ -121,8 +121,8 @@ for (gene_file in args$gene_file) {
 
   dt <- dt %>%
     dplyr::filter(
-      padj <= args$pval_cutoff,
-      abs(logFC) >= log2(args$fc_threshold)
+      padj <= args$padj_cutoff,
+      abs(logFC) >= args$logFC_threshold
     )
 
   if (nrow(dt) < 5) {
@@ -134,10 +134,31 @@ for (gene_file in args$gene_file) {
       organism = getOption("scflow_species"),
       enrichment_tool = args$enrichment_tool,
       enrichment_method = args$enrichment_method,
-      enrichment_database = args$enrichment_database,
-      is_output = TRUE,
-      output_dir = output_dir
+      enrichment_database = args$enrichment_database
     )
+
+    for(i in names(enrichment_result)){
+
+      output_dir_path <- paste(output_dir, i, sep = "/")
+      dir.create(output_dir_path)
+
+      res <- enrichment_result[[i]]
+
+      lapply(
+          setdiff(names(res), c("plot", "metadata")),
+          function(dt) {
+            write.table(res[dt],
+                        file = paste(output_dir_path, "/", dt, ".tsv", sep = ""),
+                        row.names = FALSE,
+                        col.names = gsub(dt, "", colnames(res[[dt]])), sep = "\t")})
+        lapply(
+          names(res$plot),
+          function(p) {
+            ggplot2::ggsave(paste(output_dir_path, "/", p, ".png", sep = ""),
+                            res$plot[[p]],
+                            device = "png", height = 8,
+                            width = 10, units = "in", dpi = 300)})
+    }
 
     if (all(unlist(lapply(
       enrichment_result, function(dt) {

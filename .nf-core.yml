@@ -9,7 +9,7 @@ lint:
 
   schema_params:
     - input
-
 actions_awsfulltest: False
 pipeline_todos: False
 actions_ci: False
+repository_type: pipeline

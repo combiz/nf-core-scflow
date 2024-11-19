@@ -167,6 +167,7 @@ def scflow_mapcelltypes_options      = modules['scflow_mapcelltypes']
 scflow_mapcelltypes_options.args     =
     "--clusters_colname ${params.cta_clusters_colname} \
     --cells_to_sample ${params.cta_cells_to_sample} \
+    --annotation_level ${params.cta_annotation_level} \
     --species ${params.species} \
     --reddimplot_pointsize ${params.reddimplot_pointsize} \
     --reddimplot_alpha ${params.reddimplot_alpha}"
@@ -198,8 +199,8 @@ scflow_dge_options.args              =
     --ref_class ${params.dge_ref_class} \
     --confounding_vars ${params.dge_confounding_vars} \
     --random_effects_var ${params.dge_random_effects_var} \
-    --pval_cutoff ${params.dge_pval_cutoff} \
-    --fc_threshold ${params.dge_fc_threshold} \
+    --padj_cutoff ${params.dge_padj_cutoff} \
+    --logFC_threshold ${params.dge_logFC_threshold} \
     --species ${params.species} \
     --max_cores ${params.dge_max_cores}"
 
@@ -214,8 +215,8 @@ scflow_ipa_options.args              =
     "--enrichment_tool ${params.ipa_enrichment_tool} \
     --enrichment_method ${params.ipa_enrichment_method} \
     --enrichment_database ${params.ipa_enrichment_database} \
-    --pval_cutoff ${params.dge_pval_cutoff} \
-    --fc_threshold ${params.dge_fc_threshold} \
+    --padj_cutoff ${params.dge_padj_cutoff} \
+    --logFC_threshold ${params.dge_logFC_threshold} \
     --species ${params.species}"
 
 def scflow_dirichlet_options         = modules['scflow_dirichlet']
@@ -224,7 +225,8 @@ scflow_dirichlet_options.args =
     --celltype_var ${params.dirich_celltype_var} \
     --dependent_var ${params.dirich_dependent_var} \
     --ref_class ${params.dirich_ref_class} \
-    --var_order ${params.dirich_var_order}"
+    --var_order ${params.dirich_var_order} \
+    --confounding_vars ${params.dirich_confounding_vars}"
 
 def get_software_versions         = modules['get_software_versions']
 get_software_versions.args = ''
